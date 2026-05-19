@@ -1,0 +1,23 @@
+Options -Indexes
+Options -MultiViews
+
+RewriteEngine On
+RewriteBase /KivuBoost/
+
+# --- Sécurité : bloquer l'accès direct aux dossiers sensibles ---
+RewriteRule ^app/           - [F,L]
+RewriteRule ^config/        - [F,L]
+
+# --- Ne pas réécrire les vraies ressources statiques ---
+RewriteCond %{REQUEST_FILENAME} -f [OR]
+RewriteCond %{REQUEST_FILENAME} -d
+RewriteRule ^ - [L]
+
+# --- Tout passer au front controller ---
+RewriteRule ^(.*)$ index.php [QSA,L]
+
+# --- Headers de sécurité ---
+Header always set X-Frame-Options "SAMEORIGIN"
+Header always set X-Content-Type-Options "nosniff"
+Header always set X-XSS-Protection "1; mode=block"
+Header always set Referrer-Policy "strict-origin-when-cross-origin"
