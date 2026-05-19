@@ -40,12 +40,10 @@ $pageTitle = 'Recharger mon compte';
       <div class="flex items-center justify-between gap-3 px-4 py-3 rounded-xl border transition-all hover:border-[#e30613]/40" style="background:#0a0f1a;border-color:#1a2332">
         <div class="flex items-center gap-3">
           <svg viewBox="0 0 100 100" class="w-10 h-10 shrink-0 rounded-xl bg-white p-1.5 shadow-md" xmlns="http://www.w3.org/2000/svg">
-            <!-- Smartphone frame in M-Pesa Red -->
-            <rect x="34" y="10" width="32" height="76" rx="8" fill="none" stroke="#e30613" stroke-width="7"/>
-            <circle cx="50" cy="79" r="3" fill="#e30613"/>
-            <line x1="44" y1="18" x2="56" y2="18" stroke="#e30613" stroke-width="3" stroke-linecap="round"/>
-            <!-- Floating waving green card/paper -->
-            <path d="M15 48 C28 32, 48 62, 85 42 C70 58, 50 28, 15 48" fill="#4caf50" stroke="#388e3c" stroke-width="1.5"/>
+            <rect x="36" y="20" width="28" height="60" rx="6" fill="none" stroke="#e30613" stroke-width="6"/>
+            <line x1="45" y1="28" x2="55" y2="28" stroke="#e30613" stroke-width="3" stroke-linecap="round"/>
+            <circle cx="50" cy="70" r="3" fill="#e30613"/>
+            <path d="M15 50 C 30 35, 45 65, 85 50" fill="none" stroke="#22c55e" stroke-width="6" stroke-linecap="round"/>
           </svg>
           <div>
             <div class="text-[9px] text-gray-500 uppercase tracking-wider font-semibold">M-Pesa (Vodacom)</div>
@@ -60,10 +58,12 @@ $pageTitle = 'Recharger mon compte';
       <!-- Airtel Money -->
       <div class="flex items-center justify-between gap-3 px-4 py-3 rounded-xl border transition-all hover:border-[#e30613]/40" style="background:#0a0f1a;border-color:#1a2332">
         <div class="flex items-center gap-3">
-          <svg viewBox="0 0 100 100" class="w-10 h-10 shrink-0 rounded-xl shadow-md" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <rect width="100" height="100" rx="16" fill="#e30613"/>
-            <path d="M64.2 38.3C62.1 31 56 25.5 48.2 25.5C37.5 25.5 29.5 34.5 29.5 45.2C29.5 56 37.5 65 48.2 65C54.8 65 60.5 61 62.8 54.8C63.5 52.8 62.5 50.8 60.5 50.1C58.5 49.4 56.5 50.4 55.8 52.4C54.3 56.5 50.5 59.2 46.2 59.2C39.5 59.2 34.5 53.5 34.5 46.8C34.5 40.1 39.5 34.4 46.2 34.4C51.2 34.4 55.2 37.8 56.4 42.6C57 44.9 59.3 46.3 61.6 45.7C63.9 45.1 64.9 42.8 64.2 38.3Z" fill="white"/>
-            <path d="M50 43.5C46.5 43.5 43.5 46.5 43.5 50C43.5 53.5 46.5 56.5 50 56.5C53.5 56.5 56.5 53.5 56.5 50C56.5 46.5 53.5 43.5 50 43.5Z" fill="white"/>
+          <svg viewBox="0 0 100 100" class="w-10 h-10 shrink-0 rounded-xl shadow-md" xmlns="http://www.w3.org/2000/svg">
+            <rect width="100" height="100" rx="20" fill="#e30613"/>
+            <g transform="translate(10, 10) scale(0.8)">
+              <path d="M64.2 38.3C62.1 31 56 25.5 48.2 25.5C37.5 25.5 29.5 34.5 29.5 45.2C29.5 56 37.5 65 48.2 65C54.8 65 60.5 61 62.8 54.8C63.5 52.8 62.5 50.8 60.5 50.1C58.5 49.4 56.5 50.4 55.8 52.4C54.3 56.5 50.5 59.2 46.2 59.2C39.5 59.2 34.5 53.5 34.5 46.8C34.5 40.1 39.5 34.4 46.2 34.4C51.2 34.4 55.2 37.8 56.4 42.6C57 44.9 59.3 46.3 61.6 45.7C63.9 45.1 64.9 42.8 64.2 38.3Z" fill="white"/>
+              <circle cx="50" cy="50" r="6" fill="white"/>
+            </g>
           </svg>
           <div>
             <div class="text-[9px] text-gray-500 uppercase tracking-wider font-semibold">Airtel Money</div>
@@ -79,10 +79,11 @@ $pageTitle = 'Recharger mon compte';
       <?php if (!empty($settings['orange_number'])): ?>
       <div class="flex items-center justify-between gap-3 px-4 py-3 rounded-xl border transition-all hover:border-[#ff6600]/40" style="background:#0a0f1a;border-color:#1a2332">
         <div class="flex items-center gap-3">
-          <svg viewBox="0 0 100 100" class="w-10 h-10 shrink-0 rounded-xl bg-white p-1.5 shadow-md">
-            <!-- Orange Money official brand marks (Black top-right arrow & Orange bottom-left arrow) -->
-            <path d="M22 54 L44 32 L34 22 L72 22 L72 60 L62 50 L40 72 Z" fill="#000000" />
-            <path d="M78 46 L56 68 L66 78 L28 78 L28 40 L38 50 L60 28 Z" fill="#ff6600" />
+          <svg viewBox="0 0 100 100" class="w-10 h-10 shrink-0 rounded-xl bg-white p-1.5 shadow-md" xmlns="http://www.w3.org/2000/svg">
+            <g transform="translate(5, 5) scale(0.9)">
+              <path d="M22 54 L44 32 L34 22 L72 22 L72 60 L62 50 L40 72 Z" fill="#000000" />
+              <path d="M78 46 L56 68 L66 78 L28 78 L28 40 L38 50 L60 28 Z" fill="#ff6600" />
+            </g>
           </svg>
           <div>
             <div class="text-[9px] text-gray-500 uppercase tracking-wider font-semibold">Orange Money</div>
