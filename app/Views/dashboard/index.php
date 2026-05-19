@@ -652,6 +652,65 @@ function generateDescription(svcName, platform) {
   return { start, speed, refill };
 }
 
+// Fonction pour mettre à jour le placeholder du lien selon le service et la plateforme
+function updateLinkPlaceholder(svcName, platform) {
+  const linkInput = document.getElementById('link');
+  if (!linkInput) return;
+
+  const name = svcName.toLowerCase();
+  const plat = platform || '';
+
+  const defaultPlaceholders = {
+    YouTube: 'https://www.youtube.com/watch?v=abcdef',
+    Instagram: 'https://www.instagram.com/monprofil',
+    TikTok: 'https://www.tiktok.com/@monprofil',
+    Facebook: 'https://www.facebook.com/monprofil',
+    Telegram: 'https://t.me/moncanal',
+    LinkedIn: 'https://www.linkedin.com/in/monprofil',
+    Snapchat: 'https://www.snapchat.com/add/moncompte',
+    Spotify: 'https://open.spotify.com/track/abcdef',
+    Threads: 'https://www.threads.net/@monprofil',
+    SEO: 'https://www.mon-site-web.com',
+    Autre: 'https://www.exemple.com/lien'
+  };
+
+  if (plat === 'YouTube') {
+    if (name.includes('subscriber') || name.includes('abon') || name.includes('chaine') || name.includes('channel')) {
+      linkInput.placeholder = 'https://www.youtube.com/@nom_de_chaine';
+    } else {
+      linkInput.placeholder = 'https://www.youtube.com/watch?v=abcdef';
+    }
+  } else if (plat === 'Instagram') {
+    if (name.includes('like') || name.includes('vue') || name.includes('view') || name.includes('post') || name.includes('photo') || name.includes('video') || name.includes('reel')) {
+      linkInput.placeholder = 'https://www.instagram.com/p/abcdef';
+    } else {
+      linkInput.placeholder = 'https://www.instagram.com/monprofil';
+    }
+  } else if (plat === 'TikTok') {
+    if (name.includes('vue') || name.includes('view') || name.includes('like') || name.includes('video') || name.includes('share')) {
+      linkInput.placeholder = 'https://www.tiktok.com/@monprofil/video/123456789';
+    } else {
+      linkInput.placeholder = 'https://www.tiktok.com/@monprofil';
+    }
+  } else if (plat === 'Facebook') {
+    if (name.includes('like') || name.includes('vue') || name.includes('view') || name.includes('post') || name.includes('photo') || name.includes('video') || name.includes('partage')) {
+      linkInput.placeholder = 'https://www.facebook.com/monprofil/posts/123456789';
+    } else {
+      linkInput.placeholder = 'https://www.facebook.com/monprofil';
+    }
+  } else if (plat === 'Spotify') {
+    if (name.includes('playlist')) {
+      linkInput.placeholder = 'https://open.spotify.com/playlist/abcdef';
+    } else if (name.includes('artist') || name.includes('artiste')) {
+      linkInput.placeholder = 'https://open.spotify.com/artist/abcdef';
+    } else {
+      linkInput.placeholder = 'https://open.spotify.com/track/abcdef';
+    }
+  } else {
+    linkInput.placeholder = defaultPlaceholders[plat] || defaultPlaceholders['Autre'];
+  }
+}
+
 // Changement de service sur le formulaire
 function onServiceChanged() {
   const svcSelect = document.getElementById('service_id');
@@ -682,6 +741,9 @@ function onServiceChanged() {
   document.getElementById('desc-speed').textContent      = desc.speed;
   document.getElementById('desc-refill').textContent     = desc.refill;
   document.getElementById('service-description-card').classList.remove('hidden');
+
+  // Mettre à jour le placeholder du lien
+  updateLinkPlaceholder(name, plat);
 
   updatePrice();
 }
