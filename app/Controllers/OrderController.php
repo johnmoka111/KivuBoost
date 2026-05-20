@@ -64,8 +64,8 @@ class OrderController extends Controller
             $this->redirect('/dashboard');
         }
 
-        // --- Calcul du coût dynamique basé sur le selling_price local ---
-        $cost = round(($service['selling_price'] * $quantity) / 1000, 4);
+        // --- Calcul du coût dynamique basé sur le calculated_rate local ---
+        $cost = round(($service['calculated_rate'] * $quantity) / 1000, 4);
 
         // --- Vérification du solde ---
         $user = Auth::user();
@@ -227,7 +227,7 @@ class OrderController extends Controller
             }
 
             // Calcul du coût
-            $cost = round(($service['selling_price'] * $quantity) / 1000, 4);
+            $cost = round(($service['calculated_rate'] * $quantity) / 1000, 4);
 
             // Charger le solde mis à jour à chaque itération pour éviter les doubles dépenses
             $user = $userModel->findById((int)Auth::user()['id']);

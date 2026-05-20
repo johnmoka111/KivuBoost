@@ -268,8 +268,8 @@ class AdminController extends Controller
             'name'                => trim($_POST['name'] ?? ''),
             'min_quantity'        => (int)($_POST['min_quantity'] ?? 10),
             'max_quantity'        => (int)($_POST['max_quantity'] ?? 10000),
-            'buying_price'        => (float)($_POST['buying_price'] ?? 0.0),
-            'selling_price'       => (float)($_POST['selling_price'] ?? 0.0),
+            'original_rate'        => (float)($_POST['original_rate'] ?? 0.0),
+            'calculated_rate'       => (float)($_POST['calculated_rate'] ?? 0.0),
             'is_active'           => isset($_POST['is_active']) ? 1 : 0,
         ];
 
@@ -302,7 +302,7 @@ class AdminController extends Controller
         }
 
         $id           = (int)($_POST['id'] ?? 0);
-        $sellingPrice = (float)($_POST['selling_price'] ?? 0.00);
+        $sellingPrice = (float)($_POST['calculated_rate'] ?? 0.00);
 
         if ($id <= 0 || $sellingPrice <= 0) {
             $this->flash('error', 'Valeurs tarifaires invalides.');
@@ -314,6 +314,52 @@ class AdminController extends Controller
 
         $this->flash('success', 'Tarif mis à jour avec succès.');
         $this->redirect('/admin');
+    }
+
+    // -------------------------------------------------------
+    // GET /admin/settings (Gestion des marges par fournisseur)
+    // -------------------------------------------------------
+    public function settings(): void
+    {
+        Auth::requireAdmin();
+        $providerModel = new Provider();
+        $providers = $providerModel->all();
+
+        $this->render('admin/settings', [
+            'user' => Auth::user(),
+            'providers' => $providers
+        ]);
+    }
+
+    // -------------------------------------------------------
+    // POST /admin/settings/update-margins
+    // -------------------------------------------------------
+    public function updateMargins(): void
+    {
+        Auth::requireAdmin();
+        if (!Auth::verifyCsrf()) {
+            $this->abort(403, 'Token CSRF invalide.');
+        }
+
+        $margins = $_POST['margins'] ?? [];
+        $db = Database::getInstance();
+
+        try {
+            $db->beginTransaction();
+            $stmt = $db->prepare('UPDATE providers SET markup_percentage = ? WHERE id = ?');
+            
+            foreach ($margins as $providerId => $percentage) {
+                $stmt->execute([(int)$percentage, (int)$providerId]);
+            }
+            $db->commit();
+            
+            $this->flash('success', 'Les marges des fournisseurs ont été enregistrées avec succès.');
+        } catch (\Exception $e) {
+            $db->rollBack();
+            $this->flash('error', 'Erreur lors de la mise à jour des marges.');
+        }
+
+        $this->redirect('/admin/settings');
     }
 
     // -------------------------------------------------------
@@ -355,7 +401,7 @@ class AdminController extends Controller
             }
 
             $serviceModel = new Service();
-            $markup = (float)Setting::get('markup_percentage', '20');
+            $markup = (float)$provider['markup_percentage'];
 
             // Récupérer les services existants pour ce fournisseur pour mise à jour/évitement doublons
             $db = Database::getInstance();
@@ -378,16 +424,16 @@ class AdminController extends Controller
 
                 if ($extId <= 0 || empty($name)) continue;
 
-                // Tarification dynamique : prix de vente = prix d'achat + markup %
-                $sellingPrice = round($rate * (1 + $markup / 100), 4);
+                // Tarification dynamique : prix de vente = prix d'achat * (1 + markup %)
+                $calculatedRate = round($rate * (1 + ($markup / 100)), 4);
 
                 $data = [
                     'provider_id'         => $providerId,
                     'external_service_id' => $extId,
                     'category'            => $category,
                     'name'                => $name,
-                    'buying_price'        => $rate,
-                    'selling_price'       => $sellingPrice,
+                    'original_rate'        => $rate,
+                    'calculated_rate'       => $calculatedRate,
                     'min_quantity'        => $min,
                     'max_quantity'        => $max,
                     'is_active'           => 1

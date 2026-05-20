@@ -207,7 +207,7 @@ $pageTitle = 'Administration sécurisée';
           <tbody class="divide-y divide-[#1a2332]">
             <?php foreach ($allServices as $s): ?>
             <?php 
-              $margin = $s['selling_price'] - $s['buying_price'];
+              $margin = $s['calculated_rate'] - $s['original_rate'];
               $marginClass = $margin > 0 ? 'text-emerald-400' : 'text-red-400';
             ?>
             <tr class="hover:bg-white/[0.01] transition-all <?= !$s['is_active'] ? 'opacity-55' : '' ?>">
@@ -218,7 +218,7 @@ $pageTitle = 'Administration sécurisée';
               <td class="px-4 py-3.5 text-xs text-gray-400 font-mono">
                 <?= htmlspecialchars($s['provider_name'] ?? 'Manuel') ?>
               </td>
-              <td class="px-4 py-3.5 font-mono text-gray-500 text-xs">$<?= number_format((float)$s['buying_price'], 4) ?></td>
+              <td class="px-4 py-3.5 font-mono text-gray-500 text-xs">$<?= number_format((float)$s['original_rate'], 4) ?></td>
               <!-- Formulaire d'ajustement tarifaire instantané -->
               <td class="px-4 py-3.5">
                 <form method="POST" action="<?= APP_BASE ?>/admin/services/update-price" class="flex items-center gap-1">
@@ -226,7 +226,7 @@ $pageTitle = 'Administration sécurisée';
                   <input type="hidden" name="id" value="<?= $s['id'] ?>">
                   <div class="relative">
                     <span class="absolute left-2 top-1/2 -translate-y-1/2 text-gray-600 text-xs">$</span>
-                    <input type="number" name="selling_price" step="0.0001" value="<?= (float)$s['selling_price'] ?>" class="bg-[#0a0f1a] border border-[#1a2332] text-white text-xs font-mono rounded w-20 pl-4 pr-1 py-1 text-left focus:border-[#00ff88]/50">
+                    <input type="number" name="calculated_rate" step="0.0001" value="<?= (float)$s['calculated_rate'] ?>" class="bg-[#0a0f1a] border border-[#1a2332] text-white text-xs font-mono rounded w-20 pl-4 pr-1 py-1 text-left focus:border-[#00ff88]/50">
                   </div>
                   <button type="submit" class="flex items-center justify-center text-[10px] bg-white/5 border border-white/10 hover:border-emerald-500 hover:text-emerald-400 text-gray-400 p-1.5 rounded shrink-0">
                     <svg class="w-3 h-3 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
@@ -304,11 +304,11 @@ $pageTitle = 'Administration sécurisée';
         <div class="grid grid-cols-2 gap-3">
           <div>
             <label class="block text-xs font-medium text-gray-400 mb-1.5" for="svc-buying">Prix d'Achat ($)</label>
-            <input type="number" name="buying_price" id="svc-buying" step="0.0001" required placeholder="0.1200" class="input-field w-full px-3 py-2.5 rounded-xl text-sm font-mono">
+            <input type="number" name="original_rate" id="svc-buying" step="0.0001" required placeholder="0.1200" class="input-field w-full px-3 py-2.5 rounded-xl text-sm font-mono">
           </div>
           <div>
             <label class="block text-xs font-medium text-gray-400 mb-1.5" for="svc-selling">Prix de Vente local ($)</label>
-            <input type="number" name="selling_price" id="svc-selling" step="0.0001" required placeholder="1.5000" class="input-field w-full px-3 py-2.5 rounded-xl text-sm font-mono">
+            <input type="number" name="calculated_rate" id="svc-selling" step="0.0001" required placeholder="1.5000" class="input-field w-full px-3 py-2.5 rounded-xl text-sm font-mono">
           </div>
         </div>
 
@@ -612,8 +612,8 @@ function editService(svc) {
   document.getElementById('svc-name').value = svc.name;
   document.getElementById('svc-min').value = svc.min_quantity;
   document.getElementById('svc-max').value = svc.max_quantity;
-  document.getElementById('svc-buying').value = svc.buying_price;
-  document.getElementById('svc-selling').value = svc.selling_price;
+  document.getElementById('svc-buying').value = svc.original_rate;
+  document.getElementById('svc-selling').value = svc.calculated_rate;
   document.getElementById('svc-active').checked = parseInt(svc.is_active) === 1;
 
   document.getElementById('btn-cancel-svc').classList.remove('hidden');

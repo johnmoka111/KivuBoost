@@ -63,16 +63,16 @@ class Service
     public function create(array $data): int
     {
         $stmt = $this->db->prepare(
-            'INSERT INTO services (provider_id, external_service_id, category, name, buying_price, selling_price, min_quantity, max_quantity, is_active)
-             VALUES (:provider_id, :external_service_id, :category, :name, :buying_price, :selling_price, :min_quantity, :max_quantity, :is_active)'
+            'INSERT INTO services (provider_id, external_service_id, category, name, original_rate, calculated_rate, min_quantity, max_quantity, is_active)
+             VALUES (:provider_id, :external_service_id, :category, :name, :original_rate, :calculated_rate, :min_quantity, :max_quantity, :is_active)'
         );
         $stmt->execute([
             ':provider_id'         => (int)$data['provider_id'],
             ':external_service_id' => (int)$data['external_service_id'],
             ':category'            => $data['category'],
             ':name'                => $data['name'],
-            ':buying_price'        => (float)$data['buying_price'],
-            ':selling_price'       => (float)$data['selling_price'],
+            ':original_rate'        => (float)$data['original_rate'],
+            ':calculated_rate'       => (float)$data['calculated_rate'],
             ':min_quantity'        => (int)$data['min_quantity'],
             ':max_quantity'        => (int)$data['max_quantity'],
             ':is_active'           => isset($data['is_active']) ? (int)$data['is_active'] : 1,
@@ -88,8 +88,8 @@ class Service
                 external_service_id = :external_service_id, 
                 category = :category, 
                 name = :name, 
-                buying_price = :buying_price, 
-                selling_price = :selling_price, 
+                original_rate = :original_rate, 
+                calculated_rate = :calculated_rate, 
                 min_quantity = :min_quantity, 
                 max_quantity = :max_quantity, 
                 is_active = :is_active
@@ -100,8 +100,8 @@ class Service
             ':external_service_id' => (int)$data['external_service_id'],
             ':category'            => $data['category'],
             ':name'                => $data['name'],
-            ':buying_price'        => (float)$data['buying_price'],
-            ':selling_price'       => (float)$data['selling_price'],
+            ':original_rate'        => (float)$data['original_rate'],
+            ':calculated_rate'       => (float)$data['calculated_rate'],
             ':min_quantity'        => (int)$data['min_quantity'],
             ':max_quantity'        => (int)$data['max_quantity'],
             ':is_active'           => isset($data['is_active']) ? (int)$data['is_active'] : 1,
@@ -109,12 +109,12 @@ class Service
         ]);
     }
 
-    public function updatePrice(int $id, float $sellingPrice): bool
+    public function updatePrice(int $id, float $calculatedRate): bool
     {
         $stmt = $this->db->prepare(
-            'UPDATE services SET selling_price = ? WHERE id = ?'
+            'UPDATE services SET calculated_rate = ? WHERE id = ?'
         );
-        return $stmt->execute([$sellingPrice, $id]);
+        return $stmt->execute([$calculatedRate, $id]);
     }
 
     public function delete(int $id): bool

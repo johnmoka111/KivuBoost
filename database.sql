@@ -33,6 +33,7 @@ CREATE TABLE IF NOT EXISTS `providers` (
     `name` VARCHAR(100) NOT NULL,          -- Ex: 'SmmFollows', 'Easy SMM Panel'
     `api_url` VARCHAR(255) NOT NULL,       -- Ex: 'https://smmfollows.com'
     `api_key` VARCHAR(255) NOT NULL,       -- La clé API secrète du grossiste
+    `markup_percentage` INT NOT NULL DEFAULT 0, -- Pourcentage de marge spécifique à ce fournisseur
     `status` INT DEFAULT 1                 -- 1 = Actif, 0 = Inactif / Maintenance
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
@@ -45,8 +46,8 @@ CREATE TABLE IF NOT EXISTS `services` (
     `external_service_id` INT,             -- L'ID exact du service CHEZ le grossiste
     `category` VARCHAR(100) NOT NULL,       -- Catégorie (ex: TikTok Followers)
     `name` VARCHAR(255) NOT NULL,           -- Nom affiché au client à Bukavu
-    `buying_price` DECIMAL(10,4) NOT NULL,  -- Le prix d'achat réel chez le fournisseur (ex: 0.1200)
-    `selling_price` DECIMAL(10,4) NOT NULL, -- Le prix que vous affichez à Bukavu (ex: 1.5000)
+    `original_rate` DECIMAL(10,4) NOT NULL,  -- Le prix d'achat réel chez le fournisseur (ex: 0.1200)
+    `calculated_rate` DECIMAL(10,4) NOT NULL, -- Le prix de vente calculé avec la marge (ex: 1.5000)
     `min_quantity` INT NOT NULL,
     `max_quantity` INT NOT NULL,
     `is_active` TINYINT(1) NOT NULL DEFAULT 1,

@@ -989,11 +989,11 @@ function onCategoryChanged() {
   filtered.forEach(svc => {
     const opt = document.createElement('option');
     opt.value = svc.id;
-    opt.dataset.priceUsd = svc.selling_price;
+    opt.dataset.priceUsd = svc.calculated_rate;
     opt.dataset.min = svc.min_quantity;
     opt.dataset.max = svc.max_quantity;
     opt.dataset.name = svc.name;
-    opt.textContent = `ID:${svc.id} — ${svc.name} — ${formatCurrency(parseFloat(svc.selling_price), 3)}/1000`;
+    opt.textContent = `ID:${svc.id} — ${svc.name} — ${formatCurrency(parseFloat(svc.calculated_rate), 3)}/1000`;
     svcSelect.appendChild(opt);
   });
 
@@ -1235,7 +1235,7 @@ function filterModalServices() {
     if (cat !== 'All' && s.categoryName !== cat) return false;
     if (query && !s.name.toLowerCase().includes(query) && !s.categoryName.toLowerCase().includes(query)) return false;
     
-    const price = parseFloat(s.selling_price);
+    const price = parseFloat(s.calculated_rate);
     if (price < priceMin || price > priceMax) return false;
     
     const minQ = parseInt(s.min_quantity);
@@ -1271,7 +1271,7 @@ function filterModalServices() {
         <div class="text-[10px] text-gray-500 mt-1 truncate">${s.categoryName} • Min: ${s.min_quantity.toLocaleString()} - Max: ${s.max_quantity.toLocaleString()}</div>
       </div>
       <div class="text-right shrink-0">
-        <div class="text-xs font-bold text-[#00ff88]">${formatCurrency(parseFloat(s.selling_price), 3)}</div>
+        <div class="text-xs font-bold text-[#00ff88]">${formatCurrency(parseFloat(s.calculated_rate), 3)}</div>
         <div class="text-[9px] text-gray-500 uppercase tracking-wider font-semibold mt-0.5">les 1000</div>
       </div>
       <svg class="w-4 h-4 text-gray-600 shrink-0 ml-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"/></svg>
@@ -1455,11 +1455,11 @@ function onFavoritesCategoryChanged() {
   filtered.forEach(svc => {
     const opt = document.createElement('option');
     opt.value = svc.id;
-    opt.dataset.priceUsd = svc.selling_price;
+    opt.dataset.priceUsd = svc.calculated_rate;
     opt.dataset.min = svc.min_quantity;
     opt.dataset.max = svc.max_quantity;
     opt.dataset.name = svc.name;
-    opt.textContent = `ID:${svc.id} — ${svc.name} — ${formatCurrency(parseFloat(svc.selling_price), 3)}/1000`;
+    opt.textContent = `ID:${svc.id} — ${svc.name} — ${formatCurrency(parseFloat(svc.calculated_rate), 3)}/1000`;
     svcSelect.appendChild(opt);
   });
 
@@ -1497,7 +1497,7 @@ function onSubCategoryChanged() {
   filtered.forEach(svc => {
     const opt = document.createElement('option');
     opt.value = svc.id;
-    opt.textContent = `ID:${svc.id} — ${svc.name} — ${formatCurrency(parseFloat(svc.selling_price), 3)}/1000`;
+    opt.textContent = `ID:${svc.id} — ${svc.name} — ${formatCurrency(parseFloat(svc.calculated_rate), 3)}/1000`;
     svcSelect.appendChild(opt);
   });
 

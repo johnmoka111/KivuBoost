@@ -28,21 +28,21 @@ class Provider
         return $stmt->fetch() ?: null;
     }
 
-    public function create(string $name, string $apiUrl, string $apiKey, int $status = 1): int
+    public function create(string $name, string $apiUrl, string $apiKey, int $status = 1, int $markupPercentage = 0): int
     {
         $stmt = $this->db->prepare(
-            'INSERT INTO providers (name, api_url, api_key, status) VALUES (?, ?, ?, ?)'
+            'INSERT INTO providers (name, api_url, api_key, status, markup_percentage) VALUES (?, ?, ?, ?, ?)'
         );
-        $stmt->execute([$name, $apiUrl, $apiKey, $status]);
+        $stmt->execute([$name, $apiUrl, $apiKey, $status, $markupPercentage]);
         return (int)$this->db->lastInsertId();
     }
 
-    public function update(int $id, string $name, string $apiUrl, string $apiKey, int $status): bool
+    public function update(int $id, string $name, string $apiUrl, string $apiKey, int $status, int $markupPercentage = 0): bool
     {
         $stmt = $this->db->prepare(
-            'UPDATE providers SET name = ?, api_url = ?, api_key = ?, status = ? WHERE id = ?'
+            'UPDATE providers SET name = ?, api_url = ?, api_key = ?, status = ?, markup_percentage = ? WHERE id = ?'
         );
-        return $stmt->execute([$name, $apiUrl, $apiKey, $status, $id]);
+        return $stmt->execute([$name, $apiUrl, $apiKey, $status, $markupPercentage, $id]);
     }
 
     public function delete(int $id): bool
