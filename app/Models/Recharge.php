@@ -14,13 +14,13 @@ class Recharge
         $this->db = Database::getInstance();
     }
 
-    public function create(int $userId, float $amount, string $network, string $transactionId): int
+    public function create(int $userId, float $amount, string $network, string $transactionId, string $currency = 'USD'): int
     {
         $stmt = $this->db->prepare(
-            'INSERT INTO recharges (user_id, amount, network, transaction_id, status)
-             VALUES (?, ?, ?, ?, "Pending")'
+            'INSERT INTO recharges (user_id, amount, currency, network, transaction_id, status)
+             VALUES (?, ?, ?, ?, ?, "Pending")'
         );
-        $stmt->execute([$userId, $amount, $network, $transactionId]);
+        $stmt->execute([$userId, $amount, $currency, $network, $transactionId]);
         return (int)$this->db->lastInsertId();
     }
 

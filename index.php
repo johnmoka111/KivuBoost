@@ -37,12 +37,16 @@ $router->get('/logout',   'AuthController@logout');
 // Client
 $router->get('/',              'DashboardController@index');
 $router->get('/dashboard',     'DashboardController@index');
+$router->get('/history',       'DashboardController@history');
+$router->get('/services',      'DashboardController@services');
 $router->post('/orders/place', 'OrderController@place');
 $router->post('/orders/mass-place', 'OrderController@massPlace');
 $router->post('/subscriptions/create', 'OrderController@createSubscription');
 $router->get('/currency/switch','DashboardController@switchCurrency');
 $router->get('/profile',       'AuthController@profile');
 $router->post('/profile/update','AuthController@updateProfile');
+$router->get('/api-docs',      'ApiController@docs');
+$router->post('/api-docs/generate-key', 'ApiController@generateKey');
 
 // Portefeuille
 $router->get('/recharge',          'RechargeController@index');
@@ -63,6 +67,7 @@ $router->post('/admin/services/sync',       'AdminController@syncServices');
 $router->post('/admin/providers/save',      'AdminController@saveProvider');
 $router->post('/admin/providers/delete',     'AdminController@deleteProvider');
 $router->post('/admin/users/balance',       'AdminController@adjustBalance');
+$router->get('/admin/audit',                'AdminController@audit');
 
 // -------------------------------------------------------
 // Dispatch

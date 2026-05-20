@@ -17,13 +17,12 @@ class Auth
     public static function isAdmin(): bool
     {
         return self::isLoggedIn()
-            && in_array($_SESSION['user_role'] ?? '', ['admin', 'superadmin'], true);
+            && ($_SESSION['user_role'] ?? '') === 'admin';
     }
 
     public static function isSuperAdmin(): bool
     {
-        return self::isLoggedIn()
-            && ($_SESSION['user_role'] ?? '') === 'superadmin';
+        return self::isAdmin();
     }
 
     public static function user(): ?array
@@ -84,6 +83,7 @@ class Auth
         session_regenerate_id(true);
         $_SESSION['user_id']    = $user['id'];
         $_SESSION['user_role']  = $user['role'];
+        $_SESSION['role']       = $user['role']; // Pour compatibilité stricte vanilla PHP
         $_SESSION['user_cache'] = $user;
     }
 

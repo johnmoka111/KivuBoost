@@ -6,6 +6,7 @@ use App\Core\Controller;
 use App\Core\Auth;
 use App\Models\Recharge;
 use App\Models\Setting;
+use App\Core\Audit;
 
 class RechargeController extends Controller
 {
@@ -15,6 +16,11 @@ class RechargeController extends Controller
     public function index(): void
     {
         Auth::requireLogin();
+
+        if (Auth::isAdmin()) {
+            $this->flash('error', 'Accès interdit aux administrateurs sur cette page.');
+            $this->redirect('/admin');
+        }
 
         $user          = Auth::user();
         $rechargeModel = new Recharge();
@@ -45,6 +51,11 @@ class RechargeController extends Controller
     {
         Auth::requireLogin();
 
+        if (Auth::isAdmin()) {
+            $this->flash('error', 'Action non autorisée pour les administrateurs.');
+            $this->redirect('/admin');
+        }
+
         if (!Auth::verifyCsrf()) {
             $this->flash('error', 'Token de sécurité invalide.');
             $this->redirect('/recharge');
@@ -53,6 +64,11 @@ class RechargeController extends Controller
         $network       = trim($_POST['network'] ?? '');
         $amount        = (float)($_POST['amount'] ?? 0);
         $transactionId = trim($_POST['transaction_id'] ?? '');
+        $currency      = strtoupper(trim($_POST['currency'] ?? 'USD'));
+
+        if (!in_array($currency, ['USD', 'CDF'], true)) {
+            $currency = 'USD';
+        }
 
         $allowedNetworks = ['M-Pesa', 'Airtel Money', 'Orange Money', 'Vodacom'];
 
@@ -61,9 +77,18 @@ class RechargeController extends Controller
             $this->redirect('/recharge');
         }
 
-        if ($amount < 1) {
+        if ($currency === 'USD' && $amount < 1) {
             $this->flash('error', 'Le montant minimum est de $1 USD.');
             $this->redirect('/recharge');
+        }
+
+        if ($currency === 'CDF') {
+            $rate   = (float)Setting::get('usd_rate_cdf', '2850');
+            $minCdf = round(1 * $rate, 2);
+            if ($amount < $minCdf) {
+                $this->flash('error', 'Le montant minimum est de ' . number_format($minCdf, 0, ',', ' ') . ' CDF.');
+                $this->redirect('/recharge');
+            }
         }
 
         if (empty($transactionId) || strlen($transactionId) < 4) {
@@ -81,7 +106,8 @@ class RechargeController extends Controller
             $this->redirect('/recharge');
         }
 
-        $rechargeModel->create((int)$user['id'], $amount, $network, $transactionId);
+        $rechargeModel->create((int)$user['id'], $amount, $network, $transactionId, $currency);
+        Audit::log('submit_recharge', "Demande de recharge soumise (Montant : {$amount} {$currency}, Réseau : {$network}, Ref : {$transactionId})");
 
         $this->flash('success', 'Votre demande de recharge a été soumise avec succès. Un administrateur la validera sous peu.');
         $this->redirect('/recharge');

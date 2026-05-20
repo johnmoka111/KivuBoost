@@ -10,7 +10,7 @@ $totalSpentUsd = array_sum(array_column($orders, 'cost'));
 <!-- ===== HEADER STATS ===== -->
 <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
   <!-- Solde (USD / CDF) -->
-  <div class="col-span-2 lg:col-span-1 rounded-xl p-4 border transition-all hover:scale-[1.01]"
+  <div class="col-span-1 rounded-xl p-4 border transition-all hover:scale-[1.01]"
        style="background:#0d1117;border-color:#1a2332;box-shadow:0 0 25px rgba(0,255,136,0.03)">
     <div class="text-xs text-gray-500 mb-1 uppercase tracking-wider font-semibold">Mon Solde</div>
     <div class="text-2xl font-bold flex items-baseline gap-1" style="color:#00ff88">
@@ -27,19 +27,36 @@ $totalSpentUsd = array_sum(array_column($orders, 'cost'));
   </div>
 
   <!-- Total commandes -->
-  <div class="rounded-xl p-4 border transition-all hover:border-gray-700" style="background:#0d1117;border-color:#1a2332">
-    <div class="text-xs text-gray-500 mb-1 uppercase tracking-wider font-semibold">Commandes</div>
-    <div class="text-2xl font-bold text-white"><?= count($orders) ?></div>
-    <div class="text-xs text-gray-600 mt-1">Historique récent</div>
+  <div class="col-span-1 rounded-xl p-4 border transition-all hover:scale-[1.01] flex flex-col justify-between" style="background:#0d1117;border-color:#1a2332">
+    <div>
+      <div class="flex items-center justify-between mb-2 lg:mb-4">
+        <div class="text-[10px] text-gray-400 font-bold tracking-wider uppercase">Commandes</div>
+        <div class="w-6 h-6 lg:w-8 lg:h-8 rounded-full flex items-center justify-center bg-purple-500/10 text-purple-400">
+          <svg class="w-3 h-3 lg:w-4 lg:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"/></svg>
+        </div>
+      </div>
+      <div class="text-xl lg:text-3xl font-black text-white" id="stat-orders"><?= count($orders) ?></div>
+    </div>
+    <a href="<?= APP_BASE ?>/history" class="inline-flex items-center gap-1 mt-3 text-[10px] font-semibold text-purple-400 hover:text-purple-300 transition-colors">
+      Voir l'historique
+      <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+    </a>
   </div>
 
   <!-- Dépensé -->
-  <div class="rounded-xl p-4 border transition-all hover:border-gray-700" style="background:#0d1117;border-color:#1a2332">
-    <div class="text-xs text-gray-500 mb-1 uppercase tracking-wider font-semibold">Dépensé</div>
-    <div class="text-2xl font-bold text-white">
-      <?= Currency::format((float)$totalSpentUsd) ?>
+  <div class="col-span-1 rounded-xl p-4 border transition-all hover:scale-[1.01] flex flex-col justify-between" style="background:#0d1117;border-color:#1a2332">
+    <div>
+      <div class="flex items-center justify-between mb-2 lg:mb-4">
+        <div class="text-[10px] text-gray-400 font-bold tracking-wider uppercase">Dépensé</div>
+        <div class="w-6 h-6 lg:w-8 lg:h-8 rounded-full flex items-center justify-center bg-[#00d4ff]/10 text-[#00d4ff]">
+          <svg class="w-3 h-3 lg:w-4 lg:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+        </div>
+      </div>
+      <div class="text-xl lg:text-3xl font-black text-white" id="stat-spent"><?= Currency::format((float)$totalSpentUsd) ?></div>
     </div>
-    <div class="text-xs text-gray-600 mt-1">Sur vos commandes</div>
+    <div class="inline-flex items-center gap-1 mt-3 text-[10px] font-semibold text-gray-500">
+      Sur vos commandes
+    </div>
   </div>
 
   <!-- Services dispo -->
@@ -55,24 +72,28 @@ $totalSpentUsd = array_sum(array_column($orders, 'cost'));
   <div class="lg:col-span-2 space-y-6">
     <div class="rounded-2xl p-5 lg:p-6 border" style="background:#0d1117;border-color:#1a2332">
       <!-- Tabs header -->
-      <div class="flex items-center gap-2 overflow-x-auto pb-4 mb-4 border-b select-none scrollbar-none" style="border-color:#1a2332">
-        <button type="button" id="tab-new-order" onclick="switchTab('new-order')" class="px-4 py-2 text-xs font-bold rounded-lg flex items-center gap-1.5 shrink-0 transition-all"
+      <div class="relative w-full">
+        <div class="flex items-center gap-2 overflow-x-auto pb-4 mb-4 border-b select-none scrollbar-hide relative z-0" style="border-color:#1a2332; scrollbar-width: none;">
+          <button type="button" id="tab-new-order" onclick="switchTab('new-order')" class="px-4 py-3 md:py-2 text-xs font-bold rounded-lg flex items-center gap-1.5 shrink-0 transition-all"
                 style="background:rgba(0,255,136,0.1);color:#00ff88">
           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
           NOUVELLE COMMANDE
         </button>
-        <button type="button" id="tab-favorites" onclick="switchTab('favorites')" class="px-4 py-2 text-xs font-bold text-gray-500 hover:text-gray-300 rounded-lg flex items-center gap-1.5 shrink-0 transition-all">
+        <button type="button" id="tab-favorites" onclick="switchTab('favorites')" class="px-4 py-3 md:py-2 text-xs font-bold text-gray-500 hover:text-gray-300 rounded-lg flex items-center gap-1.5 shrink-0 transition-all">
           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/></svg>
           MES PRÉFÉRÉS
         </button>
-        <button type="button" id="tab-mass-order" onclick="switchTab('mass-order')" class="px-4 py-2 text-xs font-bold text-gray-500 hover:text-gray-300 rounded-lg flex items-center gap-1.5 shrink-0 transition-all">
+        <button type="button" id="tab-mass-order" onclick="switchTab('mass-order')" class="px-4 py-3 md:py-2 text-xs font-bold text-gray-500 hover:text-gray-300 rounded-lg flex items-center gap-1.5 shrink-0 transition-all">
           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/></svg>
           ORDRE DE MASSE
         </button>
-        <button type="button" id="tab-subscription" onclick="switchTab('subscription')" class="px-4 py-2 text-xs font-bold text-gray-500 hover:text-gray-300 rounded-lg flex items-center gap-1.5 shrink-0 transition-all">
+        <button type="button" id="tab-subscription" onclick="switchTab('subscription')" class="px-4 py-3 md:py-2 text-xs font-bold text-gray-500 hover:text-gray-300 rounded-lg flex items-center gap-1.5 shrink-0 transition-all">
           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 1121.21 8H17"/></svg>
           ABONNEMENT
         </button>
+        </div>
+        <!-- Gradient indicator for horizontal scroll on mobile -->
+        <div class="md:hidden absolute right-0 top-0 bottom-4 w-12 pointer-events-none" style="background: linear-gradient(to left, #0d1117, transparent);"></div>
       </div>
 
       <!-- Container: Search Modal trigger -->
@@ -208,7 +229,6 @@ $totalSpentUsd = array_sum(array_column($orders, 'cost'));
               <span>Prix/1000 : <strong id="info-price" class="text-[#00d4ff]">—</strong></span>
             </div>
           </div>
-
           <!-- Calcul prix temps réel -->
           <div id="price-preview" class="hidden px-4 py-4 rounded-xl border" style="background:rgba(0,255,136,0.04);border-color:rgba(0,255,136,0.2)">
             <div class="flex items-center justify-between">
@@ -392,7 +412,7 @@ $totalSpentUsd = array_sum(array_column($orders, 'cost'));
   </div>
 
   <!-- ================= RIGHT: SIDEBAR FILTERS ================= -->
-  <div class="space-y-6">
+  <div class="space-y-6 order-first lg:order-none">
     <!-- Filter card -->
     <div class="rounded-2xl p-5 border" style="background:#0d1117;border-color:#1a2332">
       <div class="flex items-center justify-between pb-3 border-b mb-4" style="border-color:#1a2332">
@@ -407,12 +427,12 @@ $totalSpentUsd = array_sum(array_column($orders, 'cost'));
       </div>
 
       <!-- Platform Filter Chips -->
-      <div class="flex flex-wrap gap-2 transition-all" id="platform-chips-container">
+      <div class="flex overflow-x-auto lg:flex-wrap gap-2 transition-all pb-2 scrollbar-hide" id="platform-chips-container" style="scrollbar-width: none;">
         <!-- Hydrated dynamically by JS -->
       </div>
 
       <!-- Country Filter Chips -->
-      <div class="flex flex-wrap gap-2 hidden transition-all" id="country-chips-container">
+      <div class="flex overflow-x-auto lg:flex-wrap gap-2 hidden transition-all pb-2 scrollbar-hide" id="country-chips-container" style="scrollbar-width: none;">
         <!-- Hydrated dynamically by JS -->
       </div>
     </div>
@@ -661,10 +681,19 @@ $totalSpentUsd = array_sum(array_column($orders, 'cost'));
     </div>
 
     <!-- Modal Body (Two-columns layout) -->
-    <div class="flex-1 flex flex-col md:flex-row overflow-hidden">
+    <div class="flex-1 flex flex-col md:flex-row overflow-hidden relative">
+      <!-- Mobile Filter Toggle -->
+      <button type="button" class="md:hidden w-full p-3 flex items-center justify-between text-white font-bold bg-[#0a0f1a] border-b z-10" style="border-color:#1a2332" onclick="document.getElementById('modal-filters-sidebar').classList.toggle('hidden')">
+        <span class="flex items-center gap-2">
+          <svg class="w-4 h-4 text-[#00ff88]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"/></svg>
+          Options de filtrage
+        </span>
+        <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+      </button>
+
       <!-- Left sidebar: Filter options -->
-      <div class="w-full md:w-1/3 p-4 border-r overflow-y-auto space-y-4 shrink-0" style="border-color:#1a2332;background:#0d1117">
-        <div class="text-[10px] text-gray-500 font-bold uppercase tracking-wider">Filtres</div>
+      <div id="modal-filters-sidebar" class="hidden md:block w-full md:w-1/3 p-4 border-b md:border-b-0 md:border-r overflow-y-auto space-y-4 shrink-0 absolute md:relative w-full h-full md:h-auto z-20" style="border-color:#1a2332;background:#0d1117">
+        <div class="text-[10px] text-gray-500 font-bold uppercase tracking-wider hidden md:block">Filtres</div>
         
         <!-- Platform selector -->
         <div>
@@ -816,7 +845,7 @@ function initDashboardFilters() {
 
     const meta = platformMeta[platKey];
     const chip = document.createElement('div');
-    chip.className = `platform-chip flex items-center justify-between w-full px-3.5 py-2.5 rounded-xl border text-xs cursor-pointer select-none transition-all ${platKey === 'All' ? 'active' : ''}`;
+    chip.className = `platform-chip flex items-center justify-between w-[200px] lg:w-full shrink-0 px-3.5 py-2.5 rounded-xl border text-xs cursor-pointer select-none transition-all ${platKey === 'All' ? 'active' : ''}`;
     chip.dataset.platform = platKey;
     chip.onclick = () => filterByPlatform(platKey);
 
@@ -841,7 +870,7 @@ function initDashboardFilters() {
     if (country !== 'All' && count === 0) continue;
 
     const chip = document.createElement('div');
-    chip.className = `country-chip flex items-center justify-between w-full px-3.5 py-2.5 rounded-xl border text-xs cursor-pointer select-none transition-all ${country === 'All' ? 'active' : ''}`;
+    chip.className = `country-chip flex items-center justify-between w-[180px] lg:w-full shrink-0 px-3.5 py-2.5 rounded-xl border text-xs cursor-pointer select-none transition-all ${country === 'All' ? 'active' : ''}`;
     chip.dataset.country = country;
     chip.onclick = () => filterByCountry(country);
 

@@ -1,0 +1,15 @@
+import requests
+
+api_url = 'https://votredomaine.com/api/v1/index.php'
+api_key = 'VOTRE_CLE_API'
+
+data = {
+    'api_key': api_key,
+    'action': 'push',
+    'service': 10,
+    'link': 'https://instagram.com/p/XYZ123',
+    'quantity': 1000
+}
+
+response = requests.post(api_url, data=data)
+print(response.json())

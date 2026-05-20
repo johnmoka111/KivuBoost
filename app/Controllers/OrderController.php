@@ -9,6 +9,7 @@ use App\Models\Service;
 use App\Models\Order;
 use App\Models\User;
 use App\Services\SmmApi;
+use App\Core\Audit;
 
 class OrderController extends Controller
 {
@@ -103,6 +104,7 @@ class OrderController extends Controller
             );
 
             $db->commit();
+            Audit::log('place_order', "Commande #{$orderId} créée (Coût : {$cost} USD, Service : {$service['name']}, Quantité : {$quantity})");
 
         } catch (\Throwable $e) {
             $db->rollBack();
@@ -257,6 +259,7 @@ class OrderController extends Controller
                 );
 
                 $db->commit();
+                Audit::log('place_mass_order', "Commande en masse #{$orderId} créée (Coût : {$cost} USD, Service : {$service['name']}, Quantité : {$quantity})");
 
                 // Routage API grossiste
                 $apiUrl = $service['api_url'] ?? '';
@@ -353,6 +356,9 @@ class OrderController extends Controller
             $posts,
             $delay
         ]);
+
+        $subId = $db->lastInsertId();
+        Audit::log('create_subscription', "Abonnement #{$subId} créé pour @{$username} (Service : {$service['name']}, Posts : {$posts})");
 
         $this->flash('success', "Abonnement créé avec succès pour @{$username} ! Notre système suivra automatiquement vos prochaines publications.");
         $this->redirect('/dashboard');

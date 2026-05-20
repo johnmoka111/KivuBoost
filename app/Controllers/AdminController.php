@@ -12,6 +12,7 @@ use App\Models\Service;
 use App\Models\Provider;
 use App\Models\Setting;
 use App\Services\SmmApi;
+use App\Core\Audit;
 
 class AdminController extends Controller
 {
@@ -103,8 +104,22 @@ class AdminController extends Controller
             $db->beginTransaction();
 
             $userModel = new User();
-            $userModel->creditBalance((int)$recharge['user_id'], (float)$recharge['amount']);
+
+            // Créditer le solde unique (en USD) avec conversion si nécessaire
+            $rechargeCurrency = strtoupper($recharge['currency'] ?? 'USD');
+            $creditAmountUsd  = (float)$recharge['amount'];
+            if ($rechargeCurrency === 'CDF') {
+                $rate = (float)Setting::get('usd_rate_cdf', '2850');
+                $creditAmountUsd = round($creditAmountUsd / $rate, 2);
+                $currencyLabel = number_format((float)$recharge['amount'], 0, ',', ' ') . ' CDF';
+            } else {
+                $currencyLabel = '$' . number_format((float)$recharge['amount'], 2);
+            }
+
+            $userModel->creditBalance((int)$recharge['user_id'], $creditAmountUsd);
+
             $rechargeModel->updateStatus($rechargeId, 'Approved', 'Approuvé par ' . Auth::user()['username']);
+            Audit::log('approve_recharge', "Recharge #{$rechargeId} approuvée (Montant : {$currencyLabel}, Utilisateur : {$recharge['username']})");
 
             $db->commit();
         } catch (\Throwable $e) {
@@ -116,10 +131,11 @@ class AdminController extends Controller
         Auth::refreshUser();
 
         $this->flash('success', sprintf(
-            'Recharge #%d de $%.2f approuvée — Compte de %s crédité.',
+            'Recharge #%d de %s approuvée — Compte de %s crédité de $%s USD.',
             $rechargeId,
-            $recharge['amount'],
-            $recharge['username']
+            $currencyLabel,
+            $recharge['username'],
+            number_format($creditAmountUsd, 2)
         ));
         $this->redirect('/admin');
     }
@@ -148,6 +164,7 @@ class AdminController extends Controller
         }
 
         $rechargeModel->updateStatus($rechargeId, 'Rejected', $reason);
+        Audit::log('reject_recharge', "Recharge #{$rechargeId} rejetée (Raison : {$reason}, Utilisateur : {$recharge['username']})");
 
         $this->flash('success', 'Recharge #' . $rechargeId . ' rejetée.');
         $this->redirect('/admin');
@@ -158,7 +175,7 @@ class AdminController extends Controller
     // -------------------------------------------------------
     public function updateSettings(): void
     {
-        Auth::requireSuperAdmin();
+        Auth::requireAdmin();
 
         if (!Auth::verifyCsrf()) {
             $this->flash('error', 'Token invalide.');
@@ -186,6 +203,7 @@ class AdminController extends Controller
         }
 
         $settingModel->setMany($data);
+        Audit::log('update_settings', "Paramètres globaux mis à jour : " . json_encode($data));
 
         $this->flash('success', 'Paramètres mis à jour avec succès.');
         $this->redirect('/admin');
@@ -196,7 +214,7 @@ class AdminController extends Controller
     // -------------------------------------------------------
     public function saveProvider(): void
     {
-        Auth::requireSuperAdmin();
+        Auth::requireAdmin();
 
         if (!Auth::verifyCsrf()) {
             $this->flash('error', 'Token invalide.');
@@ -232,7 +250,7 @@ class AdminController extends Controller
     // -------------------------------------------------------
     public function deleteProvider(): void
     {
-        Auth::requireSuperAdmin();
+        Auth::requireAdmin();
 
         if (!Auth::verifyCsrf()) {
             $this->flash('error', 'Token invalide.');
@@ -485,26 +503,55 @@ class AdminController extends Controller
     // -------------------------------------------------------
     public function adjustBalance(): void
     {
-        Auth::requireSuperAdmin();
+        Auth::requireAdmin();
 
         if (!Auth::verifyCsrf()) {
             $this->flash('error', 'Token invalide.');
             $this->redirect('/admin');
         }
 
-        $userId = (int)($_POST['user_id'] ?? 0);
-        $amount = (float)($_POST['amount'] ?? 0);
+        $userId   = (int)($_POST['user_id'] ?? 0);
+        $amount   = (float)($_POST['amount'] ?? 0);
+        $currency = strtoupper(trim($_POST['wallet_currency'] ?? 'USD'));
 
         if ($userId <= 0) {
             $this->flash('error', 'Utilisateur invalide.');
             $this->redirect('/admin');
         }
 
-        (new User())->adjustBalance($userId, $amount);
+        $userModel = new User();
+        $adjustAmountUsd = $amount;
+        if ($currency === 'CDF') {
+            $rate = (float)Setting::get('usd_rate_cdf', '2850');
+            $adjustAmountUsd = round($amount / $rate, 4);
+            $label = number_format($amount, 0, ',', ' ') . ' CDF';
+        } else {
+            $label = '$' . number_format($amount, 2) . ' USD';
+        }
+
+        $userModel->adjustBalance($userId, $adjustAmountUsd);
+
+        Audit::log('adjust_balance', "Ajustement de solde pour Utilisateur #{$userId} (Montant : {$label}, Équivalent USD : {$adjustAmountUsd})");
+
         Auth::refreshUser();
 
-        $this->flash('success', sprintf('Solde ajusté de %+.2f$ pour l\'utilisateur #%d.', $amount, $userId));
+        $this->flash('success', sprintf('Solde ajusté de %s (équivalent à %+f USD) pour l\'utilisateur #%d.', $label, $adjustAmountUsd, $userId));
         $this->redirect('/admin');
+    }
+
+    // -------------------------------------------------------
+    // GET /admin/audit — Afficher le journal d'audit
+    // -------------------------------------------------------
+    public function audit(): void
+    {
+        Auth::requireAdmin();
+
+        $logs = Audit::getAll();
+
+        $this->render('admin/audit', [
+            'user' => Auth::user(),
+            'logs' => $logs
+        ]);
     }
 
     // -------------------------------------------------------

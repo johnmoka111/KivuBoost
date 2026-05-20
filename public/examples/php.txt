@@ -1,0 +1,24 @@
+<?php
+
+$apiUrl = 'https://votredomaine.com/api/v1/index.php'; // Remplacez par votre domaine
+$apiKey = 'VOTRE_CLE_API'; // Votre jeton d'accès
+
+$data = [
+    'api_key' => $apiKey,
+    'action'  => 'push',
+    'service' => 10, // ID du service
+    'link'    => 'https://instagram.com/p/XYZ123',
+    'quantity'=> 1000
+];
+
+$ch = curl_init($apiUrl);
+curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+curl_setopt($ch, CURLOPT_POST, true);
+curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query($data));
+
+$response = curl_exec($ch);
+curl_close($ch);
+
+$result = json_decode($response, true);
+print_r($result);
+?>

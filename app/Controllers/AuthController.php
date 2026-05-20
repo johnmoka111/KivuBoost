@@ -5,6 +5,7 @@ namespace App\Controllers;
 use App\Core\Controller;
 use App\Core\Auth;
 use App\Models\User;
+use App\Core\Audit;
 
 class AuthController extends Controller
 {
@@ -46,6 +47,7 @@ class AuthController extends Controller
         }
 
         Auth::login($user);
+        Audit::log('login', 'Connexion de l\'utilisateur : ' . $user['username'] . ' (Rôle : ' . $user['role'] . ')');
         $this->flash('success', 'Bienvenue, ' . htmlspecialchars($user['username']) . ' !');
 
         if (Auth::isAdmin()) {
@@ -120,6 +122,7 @@ class AuthController extends Controller
         $user   = $userModel->findById($userId);
 
         Auth::login($user);
+        Audit::log('register', 'Création de compte réussie pour : ' . $username);
         $this->flash('success', 'Compte créé avec succès ! Bienvenue sur BukavuBoost.');
         $this->redirect('/dashboard');
     }
@@ -249,6 +252,7 @@ class AuthController extends Controller
 
         // Rafraîchir les infos de la session
         Auth::refreshUser();
+        Audit::log('update_profile', 'Mise à jour du profil utilisateur');
 
         $this->flash('success', 'Votre compte a été mis à jour avec succès !');
         $this->redirect('/profile');
@@ -268,6 +272,7 @@ class AuthController extends Controller
     // -------------------------------------------------------
     public function logout(): void
     {
+        Audit::log('logout', 'Déconnexion de l\'utilisateur');
         Auth::logout();
         $this->redirect('/login');
     }

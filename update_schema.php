@@ -52,6 +52,20 @@ try {
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;");
     echo "Table 'subscriptions' créée ou déjà existante.<br>";
 
+    // 2c. Créer la table 'audit_logs' si elle n'existe pas
+    $pdo->exec("CREATE TABLE IF NOT EXISTS `audit_logs` (
+      `id` INT AUTO_INCREMENT PRIMARY KEY,
+      `user_id` INT NULL,
+      `username` VARCHAR(50) NULL,
+      `action` VARCHAR(100) NOT NULL,
+      `details` TEXT NULL,
+      `ip_address` VARCHAR(45) NULL,
+      `user_agent` VARCHAR(255) NULL,
+      `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (`user_id`) REFERENCES `users`(`id`) ON DELETE SET NULL
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;");
+    echo "Table 'audit_logs' créée ou déjà existante.<br>";
+
 
     // 3. Ajouter ou mettre à jour le fournisseur d'API avec les clés réelles fournies
     $stmtProv = $pdo->prepare("SELECT id FROM providers WHERE api_url LIKE '%my.smm-panel.com%' LIMIT 1");

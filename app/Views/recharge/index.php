@@ -12,15 +12,19 @@ $pageTitle = 'Recharger mon compte';
     <p class="text-gray-500 text-xs sm:text-sm mt-1">Déposez des fonds instantanément pour activer vos commandes</p>
   </div>
 
-  <!-- Solde actuel -->
+  <!-- Solde actuel (avec switch USD/CDF) -->
   <div class="rounded-2xl p-4 sm:p-5 mb-6 border" style="background:#0d1117;border-color:rgba(0,255,136,0.2);box-shadow:0 0 25px rgba(0,255,136,0.06)">
     <div class="flex items-center justify-between">
       <div>
         <div class="text-[10px] sm:text-xs text-gray-500 uppercase tracking-widest mb-1 font-semibold">Votre Solde Actuel</div>
         <div class="text-2xl sm:text-3xl font-extrabold" style="color:#00ff88"><?= Currency::format((float)$user['balance']) ?></div>
+        <a href="<?= APP_BASE ?>/currency/switch" class="inline-flex items-center gap-1 mt-1.5 text-[10px] text-[#00d4ff] hover:underline font-semibold">
+          <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"/></svg>
+          Afficher en <?= Currency::getActive() === 'USD' ? 'CDF' : 'USD' ?>
+        </a>
       </div>
-      <div class="w-12 h-12 sm:w-14 h-14 rounded-2xl flex items-center justify-center shrink-0" style="background:rgba(0,255,136,0.08)">
-        <svg class="w-6 h-6 sm:w-7 h-7" style="color:#00ff88" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <div class="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl flex items-center justify-center shrink-0" style="background:rgba(0,255,136,0.08)">
+        <svg class="w-6 h-6 sm:w-7 sm:h-7" style="color:#00ff88" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/>
         </svg>
       </div>
@@ -145,23 +149,46 @@ $pageTitle = 'Recharger mon compte';
         </select>
       </div>
 
+      <!-- RG-3.1 : Sélecteur de la devise envoyée -->
+      <div>
+        <label class="block text-xs font-medium text-gray-400 mb-1.5">Devise que vous avez envoyée</label>
+        <div class="grid grid-cols-2 gap-3">
+          <label id="lbl-usd" class="flex items-center gap-3 px-4 py-3 rounded-xl border cursor-pointer transition-all border-[#00ff88]/40 bg-[#00ff88]/5" onclick="selectCurrency('USD')">
+            <input type="radio" name="currency" value="USD" id="radio-usd" checked class="hidden">
+            <div class="w-8 h-8 rounded-full flex items-center justify-center font-black text-sm" style="background:rgba(0,255,136,0.15);color:#00ff88">$</div>
+            <div>
+              <div class="text-xs font-bold text-white">USD</div>
+              <div class="text-[10px] text-gray-500">Dollar Américain</div>
+            </div>
+          </label>
+          <label id="lbl-cdf" class="flex items-center gap-3 px-4 py-3 rounded-xl border cursor-pointer transition-all border-[#1a2332]" onclick="selectCurrency('CDF')">
+            <input type="radio" name="currency" value="CDF" id="radio-cdf" class="hidden">
+            <div class="w-8 h-8 rounded-full flex items-center justify-center font-black text-sm" style="background:rgba(0,212,255,0.1);color:#00d4ff">Fc</div>
+            <div>
+              <div class="text-xs font-bold text-white">CDF</div>
+              <div class="text-[10px] text-gray-500">Franc Congolais</div>
+            </div>
+          </label>
+        </div>
+      </div>
+
       <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <!-- Montant -->
         <div>
-          <label class="block text-xs font-medium text-gray-400 mb-1.5" for="amount">Montant déposé (en USD $)</label>
+          <label class="block text-xs font-medium text-gray-400 mb-1.5" for="amount" id="amount-label">Montant déposé (en USD $)</label>
           <div class="relative">
-            <span class="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-500 text-sm font-bold">$</span>
+            <span id="currency-symbol" class="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-500 text-sm font-bold">$</span>
             <input type="number" name="amount" id="amount" required min="1" step="0.01"
                    placeholder="5.00"
                    class="w-full pl-8 pr-4 py-3 rounded-xl text-sm"
                    style="background:#0a0f1a;border:1px solid #1a2332;color:#e2e8f0;transition:border-color .2s"
                    onfocus="this.style.borderColor='rgba(0,255,136,0.5)'"
                    onblur="this.style.borderColor='#1a2332'"
-                   oninput="updateCdfEquivalent()">
+                   oninput="updateConversionInfo()">
           </div>
-          <!-- Estimateur dynamique CDF -->
-          <div class="text-[11px] text-gray-500 mt-1.5">
-            Equivalent Francs Congolais (CDF) : <strong id="cdf-equivalent" style="color:#00d4ff">0 CDF</strong>
+          <!-- Info de conversion dynamique -->
+          <div class="text-[11px] text-gray-500 mt-1.5" id="conversion-hint">
+            Équivalent CDF : <strong id="cdf-equivalent" style="color:#00d4ff">0 Fc</strong>
           </div>
         </div>
 
@@ -221,26 +248,57 @@ $pageTitle = 'Recharger mon compte';
 
 <!-- ===== JS : Cliquer pour copier & Estimations CDF ===== -->
 <script>
-const exchangeRate = <?= (float)\App\Models\Setting::get('usd_rate_cdf', '2800') ?>;
+const exchangeRate = <?= (float)\App\Models\Setting::get('usd_rate_cdf', '2850') ?>;
+let activeCurrency = 'USD';
+
+function selectCurrency(currency) {
+  activeCurrency = currency;
+  const lblUsd = document.getElementById('lbl-usd');
+  const lblCdf = document.getElementById('lbl-cdf');
+  const symbol = document.getElementById('currency-symbol');
+  const label  = document.getElementById('amount-label');
+  const hint   = document.getElementById('conversion-hint');
+
+  if (currency === 'CDF') {
+    lblCdf.style.borderColor = 'rgba(0,212,255,0.4)';
+    lblCdf.style.background  = 'rgba(0,212,255,0.05)';
+    lblUsd.style.borderColor = '#1a2332';
+    lblUsd.style.background  = 'transparent';
+    symbol.textContent = 'Fc';
+    label.textContent  = 'Montant d\'envoi (en CDF Fc)';
+    document.getElementById('radio-cdf').checked = true;
+    hint.innerHTML = 'Equivalent USD : <strong id="cdf-equivalent" style="color:#00ff88">$0.00</strong>';
+  } else {
+    lblUsd.style.borderColor = 'rgba(0,255,136,0.4)';
+    lblUsd.style.background  = 'rgba(0,255,136,0.05)';
+    lblCdf.style.borderColor = '#1a2332';
+    lblCdf.style.background  = 'transparent';
+    symbol.textContent = '$';
+    label.textContent  = 'Montant d\'envoi (en USD $)';
+    document.getElementById('radio-usd').checked = true;
+    hint.innerHTML = '\u00c9quivalent CDF : <strong id="cdf-equivalent" style="color:#00d4ff">0 Fc</strong>';
+  }
+  updateConversionInfo();
+}
+
+function updateConversionInfo() {
+  const amt = parseFloat(document.getElementById('amount').value) || 0;
+  const el  = document.getElementById('cdf-equivalent');
+  if (!el) return;
+  if (activeCurrency === 'CDF') {
+    el.textContent = '$' + (amt / exchangeRate).toFixed(2);
+  } else {
+    el.textContent = Math.round(amt * exchangeRate).toLocaleString('fr-FR') + ' Fc';
+  }
+}
 
 function copyToClipboard(text, button) {
   navigator.clipboard.writeText(text).then(() => {
     const originalContent = button.innerHTML;
     button.innerHTML = '<span class="text-[9px] text-[#00ff88] font-mono font-bold tracking-tight">Copié !</span>';
-    button.style.borderColor = 'rgba(0,255,136,0.3)';
-    setTimeout(() => {
-      button.innerHTML = originalContent;
-      button.style.borderColor = '';
-    }, 1500);
-  }).catch(() => {
-    // Fallback simple si presse-papier inaccessible
-    alert("Numéro : " + text);
-  });
+    setTimeout(() => { button.innerHTML = originalContent; }, 1500);
+  }).catch(() => { alert('Numéro : ' + text); });
 }
-
-function updateCdfEquivalent() {
-  const amtUsd = parseFloat(document.getElementById('amount').value) || 0;
-  const amtCdf = amtUsd * exchangeRate;
-  document.getElementById('cdf-equivalent').textContent = Math.round(amtCdf).toLocaleString('fr-FR') + ' CDF';
-}
+// legacy compatibility
+function updateCdfEquivalent() { updateConversionInfo(); }
 </script>
