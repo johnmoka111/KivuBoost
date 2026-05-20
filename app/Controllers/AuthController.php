@@ -193,49 +193,57 @@ class AuthController extends Controller
         }
 
         // 3. Traitement de la photo d'avatar (Upload d'image)
-        if (isset($_FILES['avatar']) && $_FILES['avatar']['error'] === UPLOAD_ERR_OK) {
-            $fileTmpPath = $_FILES['avatar']['tmp_name'];
-            $fileName    = $_FILES['avatar']['name'];
-            $fileSize    = $_FILES['avatar']['size'];
-            $fileType    = $_FILES['avatar']['type'];
-            
-            $fileExtension = strtolower(pathinfo($fileName, PATHINFO_EXTENSION));
-            $allowedExtensions = ['jpg', 'jpeg', 'png', 'gif'];
+        if (isset($_FILES['avatar'])) {
+            if ($_FILES['avatar']['error'] === UPLOAD_ERR_OK) {
+                $fileTmpPath = $_FILES['avatar']['tmp_name'];
+                $fileName    = $_FILES['avatar']['name'];
+                $fileSize    = $_FILES['avatar']['size'];
+                $fileType    = $_FILES['avatar']['type'];
+                
+                $fileExtension = strtolower(pathinfo($fileName, PATHINFO_EXTENSION));
+                $allowedExtensions = ['jpg', 'jpeg', 'png', 'gif'];
 
-            if (in_array($fileExtension, $allowedExtensions)) {
-                if ($fileSize <= 3 * 1024 * 1024) { // Limite de 3 Mo
-                    $newFileName = md5(uniqid((string)$userId, true)) . '.' . $fileExtension;
-                    
-                    // S'assurer que le dossier public de stockage existe
-                    $uploadDir = ROOT_PATH . '/public/uploads/avatars/';
-                    if (!is_dir($uploadDir)) {
-                        mkdir($uploadDir, 0755, true);
-                    }
-
-                    $destPath = $uploadDir . $newFileName;
-
-                    if ($this->move_uploaded_path($fileTmpPath, $destPath)) {
-                        // Optionnel : Supprimer l'ancien fichier d'avatar s'il existe
-                        if (!empty($currentUser['avatar']) && file_exists($uploadDir . $currentUser['avatar'])) {
-                            @unlink($uploadDir . $currentUser['avatar']);
+                if (in_array($fileExtension, $allowedExtensions)) {
+                    if ($fileSize <= 10 * 1024 * 1024) { // Limite de 10 Mo
+                        $newFileName = md5(uniqid((string)$userId, true)) . '.' . $fileExtension;
+                        
+                        // S'assurer que le dossier public de stockage existe
+                        $uploadDir = ROOT_PATH . '/public/uploads/avatars/';
+                        if (!is_dir($uploadDir)) {
+                            mkdir($uploadDir, 0755, true);
                         }
-                        $userModel->updateAvatar($userId, $newFileName);
-                    } else {
-                        // Fallback au cas où move_uploaded_file pose problème en environnement Windows restrictif
-                        if (copy($fileTmpPath, $destPath)) {
+
+                        $destPath = $uploadDir . $newFileName;
+
+                        if ($this->move_uploaded_path($fileTmpPath, $destPath)) {
+                            // Optionnel : Supprimer l'ancien fichier d'avatar s'il existe
                             if (!empty($currentUser['avatar']) && file_exists($uploadDir . $currentUser['avatar'])) {
                                 @unlink($uploadDir . $currentUser['avatar']);
                             }
                             $userModel->updateAvatar($userId, $newFileName);
                         } else {
-                            $this->flash('error', 'Erreur d\'écriture lors de l\'enregistrement de la photo.');
+                            // Fallback au cas où move_uploaded_file pose problème en environnement Windows restrictif
+                            if (copy($fileTmpPath, $destPath)) {
+                                if (!empty($currentUser['avatar']) && file_exists($uploadDir . $currentUser['avatar'])) {
+                                    @unlink($uploadDir . $currentUser['avatar']);
+                                }
+                                $userModel->updateAvatar($userId, $newFileName);
+                            } else {
+                                $this->flash('error', 'Erreur d\'écriture lors de l\'enregistrement de la photo.');
+                                $this->redirect('/profile');
+                            }
                         }
+                    } else {
+                        $this->flash('error', 'La photo ne doit pas dépasser 10 Mo.');
+                        $this->redirect('/profile');
                     }
                 } else {
-                    $this->flash('error', 'La photo ne doit pas dépasser 3 Mo.');
+                    $this->flash('error', 'Extensions de photo autorisées : JPG, JPEG, PNG, GIF.');
+                    $this->redirect('/profile');
                 }
-            } else {
-                $this->flash('error', 'Extensions de photo autorisées : JPG, JPEG, PNG, GIF.');
+            } elseif ($_FILES['avatar']['error'] !== UPLOAD_ERR_NO_FILE) {
+                $this->flash('error', 'Erreur lors du téléchargement de l\'image (Code: ' . $_FILES['avatar']['error'] . ')');
+                $this->redirect('/profile');
             }
         }
 
