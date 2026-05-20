@@ -56,163 +56,338 @@ $totalSpentUsd = array_sum(array_column($orders, 'cost'));
     <div class="rounded-2xl p-5 lg:p-6 border" style="background:#0d1117;border-color:#1a2332">
       <!-- Tabs header -->
       <div class="flex items-center gap-2 overflow-x-auto pb-4 mb-4 border-b select-none scrollbar-none" style="border-color:#1a2332">
-        <button type="button" class="px-4 py-2 text-xs font-bold rounded-lg flex items-center gap-1.5 shrink-0 transition-all"
+        <button type="button" id="tab-new-order" onclick="switchTab('new-order')" class="px-4 py-2 text-xs font-bold rounded-lg flex items-center gap-1.5 shrink-0 transition-all"
                 style="background:rgba(0,255,136,0.1);color:#00ff88">
           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
           NOUVELLE COMMANDE
         </button>
-        <button type="button" onclick="alert('Bientôt disponible !')" class="px-4 py-2 text-xs font-bold text-gray-500 hover:text-gray-300 rounded-lg flex items-center gap-1.5 shrink-0 transition-all">
+        <button type="button" id="tab-favorites" onclick="switchTab('favorites')" class="px-4 py-2 text-xs font-bold text-gray-500 hover:text-gray-300 rounded-lg flex items-center gap-1.5 shrink-0 transition-all">
           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/></svg>
           MES PRÉFÉRÉS
         </button>
-        <button type="button" onclick="alert('Bientôt disponible !')" class="px-4 py-2 text-xs font-bold text-gray-500 hover:text-gray-300 rounded-lg flex items-center gap-1.5 shrink-0 transition-all">
+        <button type="button" id="tab-mass-order" onclick="switchTab('mass-order')" class="px-4 py-2 text-xs font-bold text-gray-500 hover:text-gray-300 rounded-lg flex items-center gap-1.5 shrink-0 transition-all">
           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/></svg>
           ORDRE DE MASSE
         </button>
-        <button type="button" onclick="alert('Bientôt disponible !')" class="px-4 py-2 text-xs font-bold text-gray-500 hover:text-gray-300 rounded-lg flex items-center gap-1.5 shrink-0 transition-all">
+        <button type="button" id="tab-subscription" onclick="switchTab('subscription')" class="px-4 py-2 text-xs font-bold text-gray-500 hover:text-gray-300 rounded-lg flex items-center gap-1.5 shrink-0 transition-all">
           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 1121.21 8H17"/></svg>
           ABONNEMENT
         </button>
       </div>
 
-      <!-- Quick Search / Filter Bar -->
-      <div class="relative mb-5 flex items-center gap-2 p-3 rounded-xl cursor-pointer hover:border-gray-600 transition-all border"
-           style="background:#0a0f1a;border-color:#1a2332"
-           onclick="openSearchModal()">
-        <div class="flex items-center gap-3 text-gray-400 flex-1">
-          <svg class="w-5 h-5 text-gray-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
-          <div class="text-xs text-gray-400 select-none">
-            Services de recherche et de navigation <span class="hidden md:inline text-gray-600">• Filtres, prix, plateformes et plus encore</span>
+      <!-- Container: Search Modal trigger -->
+      <div id="search-trigger-container">
+        <!-- Quick Search / Filter Bar -->
+        <div class="relative mb-5 flex items-center gap-2 p-3 rounded-xl cursor-pointer hover:border-gray-600 transition-all border"
+             style="background:#0a0f1a;border-color:#1a2332"
+             onclick="openSearchModal()">
+          <div class="flex items-center gap-3 text-gray-400 flex-1">
+            <svg class="w-5 h-5 text-gray-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+            <div class="text-xs text-gray-400 select-none">
+              Services de recherche et de navigation <span class="hidden md:inline text-gray-600">• Filtres, prix, plateformes et plus encore</span>
+            </div>
           </div>
+          <button type="button" class="px-2.5 py-1 text-[10px] font-bold rounded bg-emerald-500/10 text-[#00ff88] border border-emerald-500/20 uppercase tracking-wide shrink-0">
+            🔍 Filtres
+          </button>
         </div>
-        <button type="button" class="px-2.5 py-1 text-[10px] font-bold rounded bg-emerald-500/10 text-[#00ff88] border border-emerald-500/20 uppercase tracking-wide shrink-0">
-          🔍 Filtres
-        </button>
       </div>
 
-      <form method="POST" action="<?= APP_BASE ?>/orders/place" id="orderForm" class="space-y-4">
-        <?= Auth::csrfField() ?>
-
-        <!-- Category Dropdown -->
-        <div>
-          <label class="block text-xs font-semibold text-gray-400 mb-1.5 uppercase tracking-wider" for="category_select">
-            Catégorie
-          </label>
-          <select id="category_select" class="w-full px-4 py-3 rounded-xl text-sm"
-                  style="background:#0a0f1a;border:1px solid #1a2332;color:#e2e8f0"
-                  onchange="onCategoryChanged()">
-            <!-- Hydrated by JS -->
-          </select>
+      <!-- VIEW 1 & 2: NOUVELLE COMMANDE & FAVORITES -->
+      <div id="new-order-container">
+        <!-- Empty Favorites Placeholder -->
+        <div id="favorites-empty-placeholder" class="hidden text-center py-12 text-gray-500 space-y-4">
+          <div class="text-4xl">⭐</div>
+          <p class="text-sm">Vous n'avez pas encore ajouté de services à vos préférés.</p>
+          <p class="text-xs max-w-sm mx-auto leading-relaxed">
+            Pour ajouter un service, cliquez sur le bouton <strong class="text-yellow-400">★ Favori</strong> à côté du choix de service dans l'onglet <strong>Nouvelle Commande</strong>.
+          </p>
         </div>
 
-        <!-- Service Dropdown -->
-        <div>
-          <label class="block text-xs font-semibold text-gray-400 mb-1.5 uppercase tracking-wider" for="service_id">
-            Service
-          </label>
-          <select name="service_id" id="service_id" required
-                  class="w-full px-4 py-3 rounded-xl text-sm"
-                  style="background:#0a0f1a;border:1px solid #1a2332;color:#e2e8f0"
-                  onchange="onServiceChanged()">
-            <!-- Hydrated by JS -->
-          </select>
-        </div>
+        <form method="POST" action="<?= APP_BASE ?>/orders/place" id="orderForm" class="space-y-4">
+          <?= Auth::csrfField() ?>
 
-        <!-- Service Detail Dynamic Card -->
-        <div id="service-description-card" class="hidden rounded-xl p-4 border space-y-3" style="background:#0a0f1a;border-color:#1a2332">
-          <div class="text-xs font-bold text-white border-b pb-2 flex items-center gap-1.5" style="border-color:#1a2332">
-            <svg class="w-4 h-4 text-[#00ff88]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-            Description &amp; Garanties du Service
-          </div>
-          <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
-            <div class="flex items-center gap-2 text-gray-400">
-              <span class="text-base">🚀</span>
-              <div>
-                <div class="text-[10px] text-gray-500 uppercase tracking-wider font-semibold">Démarrage</div>
-                <strong id="desc-start-time" class="text-white">—</strong>
-              </div>
-            </div>
-            <div class="flex items-center gap-2 text-gray-400">
-              <span class="text-base">⚡</span>
-              <div>
-                <div class="text-[10px] text-gray-500 uppercase tracking-wider font-semibold">Vitesse</div>
-                <strong id="desc-speed" class="text-white">—</strong>
-              </div>
-            </div>
-            <div class="flex items-center gap-2 text-gray-400">
-              <span class="text-base">🔄</span>
-              <div>
-                <div class="text-[10px] text-gray-500 uppercase tracking-wider font-semibold">Garantie</div>
-                <strong id="desc-refill" class="text-white">—</strong>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
-          <!-- Lien -->
-          <div>
-            <label class="block text-xs font-semibold text-gray-400 mb-1.5 uppercase tracking-wider" for="link">
-              Lien du profil / publication
+          <!-- Category Dropdown -->
+          <div id="category_select_group">
+            <label class="block text-xs font-semibold text-gray-400 mb-1.5 uppercase tracking-wider" for="category_select">
+              Catégorie
             </label>
-            <input type="url" name="link" id="link" required
-                   placeholder="https://www.instagram.com/monprofil"
+            <select id="category_select" class="w-full px-4 py-3 rounded-xl text-sm"
+                    style="background:#0a0f1a;border:1px solid #1a2332;color:#e2e8f0"
+                    onchange="onCategoryChanged()">
+              <!-- Hydrated by JS -->
+            </select>
+          </div>
+
+          <!-- Service Dropdown -->
+          <div id="service_id_group">
+            <div class="flex items-center justify-between mb-1.5">
+              <label class="block text-xs font-semibold text-gray-400 uppercase tracking-wider" for="service_id">
+                Service
+              </label>
+              <button type="button" id="favorite-btn" onclick="toggleFavoriteCurrentService()" class="text-xs text-gray-500 hover:text-yellow-400 flex items-center gap-1 transition-all select-none focus:outline-none">
+                <svg class="w-3.5 h-3.5 fill-current" viewBox="0 0 24 24" id="favorite-star-icon">
+                  <path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/>
+                </svg>
+                <span id="favorite-btn-text">Ajouter aux Favoris</span>
+              </button>
+            </div>
+            <select name="service_id" id="service_id" required
+                    class="w-full px-4 py-3 rounded-xl text-sm"
+                    style="background:#0a0f1a;border:1px solid #1a2332;color:#e2e8f0"
+                    onchange="onServiceChanged()">
+              <!-- Hydrated by JS -->
+            </select>
+          </div>
+
+          <!-- Service Detail Dynamic Card -->
+          <div id="service-description-card" class="hidden rounded-xl p-4 border space-y-3" style="background:#0a0f1a;border-color:#1a2332">
+            <div class="text-xs font-bold text-white border-b pb-2 flex items-center gap-1.5" style="border-color:#1a2332">
+              <svg class="w-4 h-4 text-[#00ff88]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+              Description &amp; Garanties du Service
+            </div>
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
+              <div class="flex items-center gap-2 text-gray-400">
+                <span class="text-base">🚀</span>
+                <div>
+                  <div class="text-[10px] text-gray-500 uppercase tracking-wider font-semibold">Démarrage</div>
+                  <strong id="desc-start-time" class="text-white">—</strong>
+                </div>
+              </div>
+              <div class="flex items-center gap-2 text-gray-400">
+                <span class="text-base">⚡</span>
+                <div>
+                  <div class="text-[10px] text-gray-500 uppercase tracking-wider font-semibold">Vitesse</div>
+                  <strong id="desc-speed" class="text-white">—</strong>
+                </div>
+              </div>
+              <div class="flex items-center gap-2 text-gray-400">
+                <span class="text-base">🔄</span>
+                <div>
+                  <div class="text-[10px] text-gray-500 uppercase tracking-wider font-semibold">Garantie</div>
+                  <strong id="desc-refill" class="text-white">—</strong>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            <!-- Lien -->
+            <div>
+              <label class="block text-xs font-semibold text-gray-400 mb-1.5 uppercase tracking-wider" for="link">
+                Lien du profil / publication
+              </label>
+              <input type="url" name="link" id="link" required
+                     placeholder="https://www.instagram.com/monprofil"
+                     class="w-full px-4 py-3 rounded-xl text-sm"
+                     style="background:#0a0f1a;border:1px solid #1a2332;color:#e2e8f0;transition:border-color .2s"
+                     onfocus="this.style.borderColor='rgba(0,255,136,0.5)'"
+                     onblur="this.style.borderColor='#1a2332'">
+            </div>
+
+            <!-- Quantité -->
+            <div>
+              <label class="block text-xs font-semibold text-gray-400 mb-1.5 uppercase tracking-wider" for="quantity">
+                Quantité
+              </label>
+              <input type="number" name="quantity" id="quantity" required min="1"
+                     placeholder="ex: 1000"
+                     class="w-full px-4 py-3 rounded-xl text-sm"
+                     style="background:#0a0f1a;border:1px solid #1a2332;color:#e2e8f0;transition:border-color .2s"
+                     onfocus="this.style.borderColor='rgba(0,255,136,0.5)'"
+                     onblur="this.style.borderColor='#1a2332'"
+                     oninput="updatePrice()">
+            </div>
+          </div>
+
+          <!-- Info service sélectionné -->
+          <div id="service-info" class="hidden px-4 py-3 rounded-xl text-xs" style="background:rgba(0,212,255,0.05);border:1px solid rgba(0,212,255,0.15)">
+            <div class="flex flex-wrap gap-4 text-gray-400">
+              <span>Minimum : <strong id="info-min" class="text-white">—</strong></span>
+              <span>Maximum : <strong id="info-max" class="text-white">—</strong></span>
+              <span>Prix/1000 : <strong id="info-price" class="text-[#00d4ff]">—</strong></span>
+            </div>
+          </div>
+
+          <!-- Calcul prix temps réel -->
+          <div id="price-preview" class="hidden px-4 py-4 rounded-xl border" style="background:rgba(0,255,136,0.04);border-color:rgba(0,255,136,0.2)">
+            <div class="flex items-center justify-between">
+              <div>
+                <div class="text-xs text-gray-500 mb-1">Coût total estimé</div>
+                <div class="text-2xl font-bold" style="color:#00ff88"><span id="total-price">—</span></div>
+              </div>
+              <div class="text-right">
+                <div class="text-xs text-gray-500 mb-1">Votre solde après</div>
+                <div class="text-lg font-semibold" id="balance-after" style="color:#00d4ff">—</div>
+              </div>
+            </div>
+            <div id="balance-warning" class="hidden mt-3 text-xs text-red-400 flex items-center gap-1.5">
+              <svg class="w-4 h-4 shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+              </svg>
+              Solde insuffisant — <a href="<?= APP_BASE ?>/recharge" style="color:#00d4ff" class="hover:underline">Recharger maintenant</a>
+            </div>
+          </div>
+
+          <button type="submit" id="submit-btn"
+                  class="w-full py-3.5 rounded-xl text-sm font-bold transition-all hover:brightness-110 active:scale-[0.99]"
+                  style="background:linear-gradient(135deg,#00ff88,#00c466);color:#050811;box-shadow:0 4px 15px rgba(0,255,136,0.2)">
+            Passer la commande
+          </button>
+        </form>
+      </div>
+
+      <!-- VIEW 3: ORDRE DE MASSE -->
+      <div id="mass-order-container" class="hidden">
+        <form method="POST" action="<?= APP_BASE ?>/orders/mass-place" class="space-y-4">
+          <?= Auth::csrfField() ?>
+          <div>
+            <label class="block text-xs font-semibold text-gray-400 mb-1.5 uppercase tracking-wider" for="mass_order">
+              Lignes de commande en masse
+            </label>
+            <textarea name="mass_order" id="mass_order" required rows="8"
+                      placeholder="service_id | quantité | lien&#10;Exemple:&#10;135 | 1000 | https://www.tiktok.com/@nom/video/12345&#10;135 | 500 | https://www.tiktok.com/@nom/video/67890"
+                      class="w-full px-4 py-3 rounded-xl text-sm font-mono"
+                      style="background:#0a0f1a;border:1px solid #1a2332;color:#e2e8f0;transition:border-color .2s;height:180px;"
+                      onfocus="this.style.borderColor='rgba(0,255,136,0.5)'"
+                      onblur="this.style.borderColor='#1a2332'"></textarea>
+          </div>
+          
+          <div class="rounded-xl p-4 border text-xs text-gray-400 leading-relaxed space-y-1.5" style="background:#0a0f1a;border-color:#1a2332">
+            <span class="font-bold text-white flex items-center gap-1.5">
+              💡 Comment l'utiliser :
+            </span>
+            <p>1. Entrez chaque commande sur une ligne distincte.</p>
+            <p>2. Séparez l'ID du service, la quantité et le lien cible par une barre verticale <code>|</code>.</p>
+            <p>3. Assurez-vous d'avoir un solde suffisant pour toutes les commandes cumulées.</p>
+          </div>
+
+          <button type="submit"
+                  class="w-full py-3.5 rounded-xl text-sm font-bold transition-all hover:brightness-110 active:scale-[0.99]"
+                  style="background:linear-gradient(135deg,#00ff88,#00c466);color:#050811;box-shadow:0 4px 15px rgba(0,255,136,0.2)">
+            Passer la commande de masse
+          </button>
+        </form>
+      </div>
+
+      <!-- VIEW 4: ABONNEMENT -->
+      <div id="subscription-container" class="hidden">
+        <form method="POST" action="<?= APP_BASE ?>/subscriptions/create" class="space-y-4">
+          <?= Auth::csrfField() ?>
+
+          <!-- Platform Selector for Subscription -->
+          <div>
+            <label class="block text-xs font-semibold text-gray-400 mb-1.5 uppercase tracking-wider" for="sub_category_select">
+              Catégorie de service
+            </label>
+            <select id="sub_category_select" class="w-full px-4 py-3 rounded-xl text-sm"
+                    style="background:#0a0f1a;border:1px solid #1a2332;color:#e2e8f0"
+                    onchange="onSubCategoryChanged()">
+              <!-- Hydrated dynamically -->
+            </select>
+          </div>
+
+          <!-- Service Selector for Subscription -->
+          <div>
+            <label class="block text-xs font-semibold text-gray-400 mb-1.5 uppercase tracking-wider" for="sub_service_id">
+              Service
+            </label>
+            <select name="service_id" id="sub_service_id" required
+                    class="w-full px-4 py-3 rounded-xl text-sm"
+                    style="background:#0a0f1a;border:1px solid #1a2332;color:#e2e8f0"
+                    onchange="onSubServiceChanged()">
+              <!-- Hydrated dynamically -->
+            </select>
+          </div>
+
+          <!-- Account/Username -->
+          <div>
+            <label class="block text-xs font-semibold text-gray-400 mb-1.5 uppercase tracking-wider" for="sub_username">
+              Nom d'utilisateur (sans @)
+            </label>
+            <input type="text" name="username" id="sub_username" required
+                   placeholder="ex: moncompte_instagram"
                    class="w-full px-4 py-3 rounded-xl text-sm"
                    style="background:#0a0f1a;border:1px solid #1a2332;color:#e2e8f0;transition:border-color .2s"
                    onfocus="this.style.borderColor='rgba(0,255,136,0.5)'"
                    onblur="this.style.borderColor='#1a2332'">
           </div>
 
-          <!-- Quantité -->
-          <div>
-            <label class="block text-xs font-semibold text-gray-400 mb-1.5 uppercase tracking-wider" for="quantity">
-              Quantité
-            </label>
-            <input type="number" name="quantity" id="quantity" required min="1"
-                   placeholder="ex: 1000"
-                   class="w-full px-4 py-3 rounded-xl text-sm"
-                   style="background:#0a0f1a;border:1px solid #1a2332;color:#e2e8f0;transition:border-color .2s"
-                   onfocus="this.style.borderColor='rgba(0,255,136,0.5)'"
-                   onblur="this.style.borderColor='#1a2332'"
-                   oninput="updatePrice()">
-          </div>
-        </div>
-
-        <!-- Info service sélectionné -->
-        <div id="service-info" class="hidden px-4 py-3 rounded-xl text-xs" style="background:rgba(0,212,255,0.05);border:1px solid rgba(0,212,255,0.15)">
-          <div class="flex flex-wrap gap-4 text-gray-400">
-            <span>Minimum : <strong id="info-min" class="text-white">—</strong></span>
-            <span>Maximum : <strong id="info-max" class="text-white">—</strong></span>
-            <span>Prix/1000 : <strong id="info-price" class="text-[#00d4ff]">—</strong></span>
-          </div>
-        </div>
-
-        <!-- Calcul prix temps réel -->
-        <div id="price-preview" class="hidden px-4 py-4 rounded-xl border" style="background:rgba(0,255,136,0.04);border-color:rgba(0,255,136,0.2)">
-          <div class="flex items-center justify-between">
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <!-- Min Qty -->
             <div>
-              <div class="text-xs text-gray-500 mb-1">Coût total estimé</div>
-              <div class="text-2xl font-bold" style="color:#00ff88"><span id="total-price">—</span></div>
+              <label class="block text-xs font-semibold text-gray-400 mb-1.5 uppercase tracking-wider" for="sub_min_quantity">
+                Quantité Minimale
+              </label>
+              <input type="number" name="min_quantity" id="sub_min_quantity" required min="1"
+                     placeholder="ex: 100"
+                     class="w-full px-4 py-3 rounded-xl text-sm"
+                     style="background:#0a0f1a;border:1px solid #1a2332;color:#e2e8f0;transition:border-color .2s"
+                     onfocus="this.style.borderColor='rgba(0,255,136,0.5)'"
+                     onblur="this.style.borderColor='#1a2332'">
             </div>
-            <div class="text-right">
-              <div class="text-xs text-gray-500 mb-1">Votre solde après</div>
-              <div class="text-lg font-semibold" id="balance-after" style="color:#00d4ff">—</div>
-            </div>
-          </div>
-          <div id="balance-warning" class="hidden mt-3 text-xs text-red-400 flex items-center gap-1.5">
-            <svg class="w-4 h-4 shrink-0" fill="currentColor" viewBox="0 0 20 20">
-              <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
-            </svg>
-            Solde insuffisant — <a href="<?= APP_BASE ?>/recharge" style="color:#00d4ff" class="hover:underline">Recharger maintenant</a>
-          </div>
-        </div>
 
-        <button type="submit" id="submit-btn"
-                class="w-full py-3.5 rounded-xl text-sm font-bold transition-all hover:brightness-110 active:scale-[0.99]"
-                style="background:linear-gradient(135deg,#00ff88,#00c466);color:#050811;box-shadow:0 4px 15px rgba(0,255,136,0.2)">
-          Passer la commande
-        </button>
-      </form>
+            <!-- Max Qty -->
+            <div>
+              <label class="block text-xs font-semibold text-gray-400 mb-1.5 uppercase tracking-wider" for="sub_max_quantity">
+                Quantité Maximale
+              </label>
+              <input type="number" name="max_quantity" id="sub_max_quantity" required min="1"
+                     placeholder="ex: 500"
+                     class="w-full px-4 py-3 rounded-xl text-sm"
+                     style="background:#0a0f1a;border:1px solid #1a2332;color:#e2e8f0;transition:border-color .2s"
+                     onfocus="this.style.borderColor='rgba(0,255,136,0.5)'"
+                     onblur="this.style.borderColor='#1a2332'">
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <!-- Posts count limit -->
+            <div>
+              <label class="block text-xs font-semibold text-gray-400 mb-1.5 uppercase tracking-wider" for="sub_posts">
+                Nombre de Publications futures
+              </label>
+              <input type="number" name="posts" id="sub_posts" required min="1" max="100"
+                     placeholder="ex: 5"
+                     class="w-full px-4 py-3 rounded-xl text-sm"
+                     style="background:#0a0f1a;border:1px solid #1a2332;color:#e2e8f0;transition:border-color .2s"
+                     onfocus="this.style.borderColor='rgba(0,255,136,0.5)'"
+                     onblur="this.style.borderColor='#1a2332'">
+            </div>
+
+            <!-- Delay -->
+            <div>
+              <label class="block text-xs font-semibold text-gray-400 mb-1.5 uppercase tracking-wider" for="sub_delay">
+                Délai (Minutes)
+              </label>
+              <select name="delay" id="sub_delay"
+                      class="w-full px-4 py-3 rounded-xl text-sm"
+                      style="background:#0a0f1a;border:1px solid #1a2332;color:#e2e8f0">
+                <option value="0">Aucun délai (Instantané)</option>
+                <option value="5">5 minutes</option>
+                <option value="15">15 minutes</option>
+                <option value="30">30 minutes</option>
+                <option value="60">60 minutes</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="rounded-xl p-4 border text-xs text-gray-400 leading-relaxed" style="background:#0a0f1a;border-color:#1a2332">
+            <span class="font-bold text-white flex items-center gap-1.5">
+              🔄 Comment fonctionne l'abonnement :
+            </span>
+            <p class="mt-1">
+              Notre système vérifie votre profil toutes les 15 minutes. Dès qu'un nouveau post est détecté, le système envoie automatiquement une commande avec une quantité aléatoire comprise entre le min et le max. Votre solde sera débité à chaque publication.
+            </p>
+          </div>
+
+          <button type="submit"
+                  class="w-full py-3.5 rounded-xl text-sm font-bold transition-all hover:brightness-110 active:scale-[0.99]"
+                  style="background:linear-gradient(135deg,#00ff88,#00c466);color:#050811;box-shadow:0 4px 15px rgba(0,255,136,0.2)">
+            Créer l'abonnement
+          </button>
+        </form>
+      </div>
     </div>
   </div>
 
@@ -225,14 +400,19 @@ $totalSpentUsd = array_sum(array_column($orders, 'cost'));
           <svg class="w-4 h-4 text-[#00ff88]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"/></svg>
           <span class="text-sm font-bold text-white">Filtre</span>
         </div>
-        <div class="flex items-center gap-1">
-          <button type="button" class="px-2.5 py-1 text-[10px] rounded bg-[#00ff88]/10 text-[#00ff88] font-bold border border-[#00ff88]/20">Plateformes</button>
-          <button type="button" onclick="alert('Filtre par pays bientôt disponible !')" class="px-2.5 py-1 text-[10px] rounded text-gray-500 font-semibold hover:text-gray-300">Pays</button>
+        <div class="flex items-center gap-1 bg-white/[0.02] p-1 rounded-lg border" style="border-color:#1a2332">
+          <button type="button" id="filter-tab-platforms" onclick="switchFilterTab('platforms')" class="px-2.5 py-1 text-[10px] rounded bg-[#00ff88]/10 text-[#00ff88] font-bold border border-[#00ff88]/20 transition-all">Plateformes</button>
+          <button type="button" id="filter-tab-countries" onclick="switchFilterTab('countries')" class="px-2.5 py-1 text-[10px] rounded text-gray-500 font-semibold hover:text-white transition-all border border-transparent">Pays</button>
         </div>
       </div>
 
-      <!-- Platform Filter Chips (Group list) -->
-      <div class="flex flex-wrap gap-2" id="platform-chips-container">
+      <!-- Platform Filter Chips -->
+      <div class="flex flex-wrap gap-2 transition-all" id="platform-chips-container">
+        <!-- Hydrated dynamically by JS -->
+      </div>
+
+      <!-- Country Filter Chips -->
+      <div class="flex flex-wrap gap-2 hidden transition-all" id="country-chips-container">
         <!-- Hydrated dynamically by JS -->
       </div>
     </div>
@@ -366,6 +546,96 @@ $totalSpentUsd = array_sum(array_column($orders, 'cost'));
            class="inline-block mt-3 text-xs hover:underline truncate max-w-full text-[#00d4ff]">
           <?= htmlspecialchars($order['link']) ?>
         </a>
+      </div>
+      <?php endforeach; ?>
+    </div>
+  <?php endif; ?>
+</div>
+
+<!-- ===== HISTORIQUE DES ABONNEMENTS ===== -->
+<div class="rounded-2xl border mt-6" style="background:#0d1117;border-color:#1a2332">
+  <div class="flex items-center justify-between px-5 py-4 border-b" style="border-color:#1a2332">
+    <div class="flex items-center gap-2">
+      <div class="w-8 h-8 rounded-lg flex items-center justify-center" style="background:rgba(0,255,136,0.1)">
+        <svg class="w-4 h-4" style="color:#00ff88" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 1121.21 8H17"/>
+        </svg>
+      </div>
+      <h2 class="text-base font-bold text-white">Mes Abonnements Automatiques</h2>
+    </div>
+    <span class="text-xs text-gray-500"><?= count($subscriptions ?? []) ?> abonnement(s)</span>
+  </div>
+
+  <?php if (empty($subscriptions)): ?>
+    <div class="text-center py-16 text-gray-600">
+      <svg class="w-12 h-12 mx-auto mb-3 opacity-30" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 4v5h.582m15.356 2A8.001 8.001 0 1121.21 8H17"/>
+      </svg>
+      <p class="text-sm">Aucun abonnement actif pour le moment.</p>
+      <p class="text-xs mt-1">Créez un abonnement automatique depuis l'onglet ci-dessus !</p>
+    </div>
+  <?php else: ?>
+
+    <!-- Table Desktop -->
+    <div class="hidden lg:block overflow-x-auto">
+      <table class="w-full text-sm">
+        <thead>
+          <tr style="border-bottom:1px solid #1a2332">
+            <th class="text-left px-5 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">ID</th>
+            <th class="text-left px-5 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Service</th>
+            <th class="text-left px-5 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Compte Cible</th>
+            <th class="text-left px-5 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Quantité Min - Max</th>
+            <th class="text-left px-5 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Posts Restants</th>
+            <th class="text-left px-5 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Statut</th>
+            <th class="text-left px-5 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Date de création</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y" style="divide-color:#1a2332">
+          <?php foreach ($subscriptions as $sub): ?>
+          <tr class="hover:bg-white/[0.02] transition-colors">
+            <td class="px-5 py-3.5 text-gray-500 font-mono text-xs">#<?= $sub['id'] ?></td>
+            <td class="px-5 py-3.5">
+              <div class="text-white text-xs font-semibold"><?= htmlspecialchars($sub['service_name'] ?? '—') ?></div>
+              <div class="text-gray-500 text-xs mt-0.5"><?= htmlspecialchars($sub['category'] ?? '') ?></div>
+            </td>
+            <td class="px-5 py-3.5 font-bold text-[#00d4ff] text-xs">
+              @<?= htmlspecialchars($sub['username']) ?>
+            </td>
+            <td class="px-5 py-3.5 text-white text-xs font-mono"><?= number_format($sub['min_quantity']) ?> - <?= number_format($sub['max_quantity']) ?></td>
+            <td class="px-5 py-3.5 text-white text-xs font-mono"><?= (int)$sub['posts'] ?> posts</td>
+            <td class="px-5 py-3.5">
+              <span class="px-2.5 py-1 rounded-full font-medium text-xs bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                <?= htmlspecialchars($sub['status']) ?>
+              </span>
+            </td>
+            <td class="px-5 py-3.5 text-gray-500 text-xs">
+              <?= date('d/m/Y H:i', strtotime($sub['created_at'])) ?>
+            </td>
+          </tr>
+          <?php endforeach; ?>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Cards Mobile -->
+    <div class="lg:hidden divide-y" style="divide-color:#1a2332">
+      <?php foreach ($subscriptions as $sub): ?>
+      <div class="px-4 py-4">
+        <div class="flex items-start justify-between mb-2">
+          <div class="flex-1 min-w-0 pr-3">
+            <div class="text-sm font-semibold text-white truncate"><?= htmlspecialchars($sub['service_name'] ?? '—') ?></div>
+            <div class="text-xs text-gray-500 mt-0.5 truncate"><?= htmlspecialchars($sub['category'] ?? '') ?></div>
+          </div>
+          <span class="px-2.5 py-1 rounded-full font-medium text-xs bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 shrink-0">
+            <?= htmlspecialchars($sub['status']) ?>
+          </span>
+        </div>
+        <div class="flex flex-wrap gap-4 text-xs mt-3 text-gray-400">
+          <span>Compte : <strong class="text-[#00d4ff]">@<?= htmlspecialchars($sub['username']) ?></strong></span>
+          <span>Qté : <strong class="text-white"><?= number_format($sub['min_quantity']) ?>-<?= number_format($sub['max_quantity']) ?></strong></span>
+          <span>Posts : <strong class="text-white"><?= (int)$sub['posts'] ?></strong></span>
+          <span>Date : <strong class="text-white"><?= date('d/m H:i', strtotime($sub['created_at'])) ?></strong></span>
+        </div>
       </div>
       <?php endforeach; ?>
     </div>
@@ -509,37 +779,44 @@ function getPlatformFromCategory(categoryName) {
 function initDashboardFilters() {
   parsedServicesList = [];
   const platformCounts = { All: 0, YouTube: 0, Instagram: 0, TikTok: 0, Facebook: 0, LinkedIn: 0, Snapchat: 0, Telegram: 0, Spotify: 0, Threads: 0, SEO: 0, Autre: 0 };
+  const countryCounts = { All: 0 };
 
   // Aplatir l'objet PHP
   for (const category in rawServices) {
     const list = rawServices[category];
     const platform = getPlatformFromCategory(category);
+    const country = getCountryFromCategory(category);
     
     list.forEach(svc => {
       const flattened = {
         ...svc,
         categoryName: category,
-        platform: platform
+        platform: platform,
+        country: country
       };
       parsedServicesList.push(flattened);
       platformCounts[platform]++;
       platformCounts['All']++;
+
+      if (country) {
+        if (!countryCounts[country]) countryCounts[country] = 0;
+        countryCounts[country]++;
+      }
+      countryCounts['All']++;
     });
   }
 
   // Générer les chips de plateforme
-  const container = document.getElementById('platform-chips-container');
-  container.innerHTML = '';
+  const pContainer = document.getElementById('platform-chips-container');
+  pContainer.innerHTML = '';
 
   for (const platKey in platformMeta) {
     const count = platformCounts[platKey] || 0;
-    if (platKey !== 'All' && count === 0) continue; // Cacher si aucun service de cette plateforme
+    if (platKey !== 'All' && count === 0) continue; 
 
     const meta = platformMeta[platKey];
     const chip = document.createElement('div');
-    chip.className = `platform-chip flex items-center justify-between w-full px-3.5 py-2.5 rounded-xl border text-xs cursor-pointer select-none transition-all ${
-      platKey === 'All' ? 'active' : ''
-    }`;
+    chip.className = `platform-chip flex items-center justify-between w-full px-3.5 py-2.5 rounded-xl border text-xs cursor-pointer select-none transition-all ${platKey === 'All' ? 'active' : ''}`;
     chip.dataset.platform = platKey;
     chip.onclick = () => filterByPlatform(platKey);
 
@@ -550,12 +827,107 @@ function initDashboardFilters() {
       </div>
       <span class="text-[10px] px-2 py-0.5 rounded-full font-bold" style="background:rgba(255,255,255,0.05);color:#a0aec0">${count}</span>
     `;
+    pContainer.appendChild(chip);
+  }
 
-    container.appendChild(chip);
+  // Générer les chips de pays
+  const cContainer = document.getElementById('country-chips-container');
+  cContainer.innerHTML = '';
+
+  const countryIcon = `<svg class="w-4 h-4 text-orange-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>`;
+
+  for (const country in countryCounts) {
+    const count = countryCounts[country];
+    if (country !== 'All' && count === 0) continue;
+
+    const chip = document.createElement('div');
+    chip.className = `country-chip flex items-center justify-between w-full px-3.5 py-2.5 rounded-xl border text-xs cursor-pointer select-none transition-all ${country === 'All' ? 'active' : ''}`;
+    chip.dataset.country = country;
+    chip.onclick = () => filterByCountry(country);
+
+    chip.innerHTML = `
+      <div class="flex items-center gap-2">
+        ${country === 'All' ? platformMeta['All'].svg : countryIcon}
+        <span class="text-white font-medium">${country === 'All' ? 'Tous les Pays' : country}</span>
+      </div>
+      <span class="text-[10px] px-2 py-0.5 rounded-full font-bold" style="background:rgba(255,255,255,0.05);color:#a0aec0">${count}</span>
+    `;
+    cContainer.appendChild(chip);
   }
 
   // Hydrater le formulaire principal
   filterByPlatform('All');
+}
+
+function switchFilterTab(tab) {
+  const pTab = document.getElementById('filter-tab-platforms');
+  const cTab = document.getElementById('filter-tab-countries');
+  const pContainer = document.getElementById('platform-chips-container');
+  const cContainer = document.getElementById('country-chips-container');
+
+  if (tab === 'platforms') {
+    pTab.className = "px-2.5 py-1 text-[10px] rounded bg-[#00ff88]/10 text-[#00ff88] font-bold border border-[#00ff88]/20 transition-all";
+    cTab.className = "px-2.5 py-1 text-[10px] rounded text-gray-500 font-semibold hover:text-white transition-all border border-transparent";
+    pContainer.classList.remove('hidden');
+    cContainer.classList.add('hidden');
+    filterByPlatform(currentPlatformFilter);
+  } else {
+    cTab.className = "px-2.5 py-1 text-[10px] rounded bg-orange-500/10 text-orange-400 font-bold border border-orange-500/20 transition-all";
+    pTab.className = "px-2.5 py-1 text-[10px] rounded text-gray-500 font-semibold hover:text-white transition-all border border-transparent";
+    cContainer.classList.remove('hidden');
+    pContainer.classList.add('hidden');
+    filterByCountry(currentCountryFilter);
+  }
+}
+
+// Extraction du pays basé sur la catégorie
+function getCountryFromCategory(categoryName) {
+  const match = categoryName.match(/(France|USA|UK|Brazil|India|Russia|Germany|Nigeria|Arab|Africa|Global)/i);
+  return match ? match[1].charAt(0).toUpperCase() + match[1].slice(1).toLowerCase() : null;
+}
+
+let currentCountryFilter = 'All';
+
+// Filtrage par pays sélectionné
+function filterByCountry(country) {
+  currentCountryFilter = country;
+  
+  document.querySelectorAll('.country-chip').forEach(chip => {
+    if (chip.dataset.country === country) {
+      chip.style.background = 'rgba(249,115,22,0.08)'; // orange-500/10
+      chip.style.borderColor = '#fb923c'; // orange-400
+      chip.querySelector('span.text-white').style.color = '#fb923c';
+    } else {
+      chip.style.background = 'rgba(255,255,255,0.01)';
+      chip.style.borderColor = '#1a2332';
+      chip.querySelector('span.text-white').style.color = '#ffffff';
+    }
+  });
+
+  const catSelect = document.getElementById('category_select');
+  catSelect.innerHTML = '';
+
+  const matchingCategories = new Set();
+  parsedServicesList.forEach(s => {
+    if (country === 'All' || s.country === country) {
+      matchingCategories.add(s.categoryName);
+    }
+  });
+
+  if (matchingCategories.size === 0) {
+    catSelect.innerHTML = '<option value="">— Aucun service disponible —</option>';
+    document.getElementById('service_id').innerHTML = '';
+    return;
+  }
+
+  matchingCategories.forEach(catName => {
+    const opt = document.createElement('option');
+    opt.value = catName;
+    opt.textContent = catName;
+    catSelect.appendChild(opt);
+  });
+
+  onCategoryChanged();
 }
 
 // Filtrage par plateforme sélectionnée
@@ -604,6 +976,10 @@ function filterByPlatform(platformKey) {
 
 // Changement de catégorie sur le formulaire
 function onCategoryChanged() {
+  if (currentActiveTab === 'favorites') {
+    onFavoritesCategoryChanged();
+    return;
+  }
   const catName = document.getElementById('category_select').value;
   const svcSelect = document.getElementById('service_id');
   svcSelect.innerHTML = '';
@@ -746,6 +1122,7 @@ function onServiceChanged() {
   updateLinkPlaceholder(name, plat);
 
   updatePrice();
+  updateFavoriteButtonState();
 }
 
 // Calcul du coût et validation du solde
@@ -928,6 +1305,248 @@ function selectServiceFromModal(serviceId, categoryName, platform) {
   setTimeout(() => qtyInput.classList.remove('ring-2', 'ring-[#00ff88]'), 1500);
 }
 
+// ================= TABS & FAVORITES & SUBSCRIPTIONS LOGIC =================
+let currentActiveTab = 'new-order';
+
+function switchTab(tabId) {
+  currentActiveTab = tabId;
+  
+  const tabs = ['new-order', 'favorites', 'mass-order', 'subscription'];
+  tabs.forEach(t => {
+    const btn = document.getElementById(`tab-${t}`);
+    if (!btn) return;
+    if (t === tabId) {
+      btn.style.background = 'rgba(0,255,136,0.1)';
+      btn.style.color = '#00ff88';
+    } else {
+      btn.style.background = 'transparent';
+      btn.style.color = '#a0aec0';
+    }
+  });
+
+  document.getElementById('new-order-container').classList.add('hidden');
+  document.getElementById('mass-order-container').classList.add('hidden');
+  document.getElementById('subscription-container').classList.add('hidden');
+  document.getElementById('favorites-empty-placeholder').classList.add('hidden');
+  
+  if (tabId === 'new-order' || tabId === 'favorites') {
+    document.getElementById('search-trigger-container').classList.remove('hidden');
+  } else {
+    document.getElementById('search-trigger-container').classList.add('hidden');
+  }
+
+  if (tabId === 'new-order') {
+    document.getElementById('new-order-container').classList.remove('hidden');
+    document.getElementById('orderForm').classList.remove('hidden');
+    document.getElementById('favorite-btn').classList.remove('hidden');
+    filterByPlatform(currentPlatformFilter);
+  } else if (tabId === 'favorites') {
+    document.getElementById('new-order-container').classList.remove('hidden');
+    
+    const favorites = getFavoriteServices();
+    if (favorites.length === 0) {
+      document.getElementById('orderForm').classList.add('hidden');
+      document.getElementById('favorites-empty-placeholder').classList.remove('hidden');
+    } else {
+      document.getElementById('orderForm').classList.remove('hidden');
+      document.getElementById('favorite-btn').classList.add('hidden');
+      hydrateFavoritesForm();
+    }
+  } else if (tabId === 'mass-order') {
+    document.getElementById('mass-order-container').classList.remove('hidden');
+  } else if (tabId === 'subscription') {
+    document.getElementById('subscription-container').classList.remove('hidden');
+    initSubscriptionForm();
+  }
+}
+
+function getFavoriteServices() {
+  return JSON.parse(localStorage.getItem('favorite_services') || '[]');
+}
+
+function setFavoriteServices(favorites) {
+  localStorage.setItem('favorite_services', JSON.stringify(favorites));
+}
+
+function isServiceFavorited(serviceId) {
+  return getFavoriteServices().includes(parseInt(serviceId));
+}
+
+function toggleFavoriteCurrentService() {
+  const svcSelect = document.getElementById('service_id');
+  if (!svcSelect) return;
+  const svcId = parseInt(svcSelect.value);
+  if (!svcId) return;
+
+  let favorites = getFavoriteServices();
+  if (favorites.includes(svcId)) {
+    favorites = favorites.filter(id => id !== svcId);
+    showNotification('Service retiré des favoris !', 'info');
+  } else {
+    favorites.push(svcId);
+    showNotification('Service ajouté aux favoris !', 'success');
+  }
+  setFavoriteServices(favorites);
+  updateFavoriteButtonState();
+}
+
+function updateFavoriteButtonState() {
+  const svcSelect = document.getElementById('service_id');
+  const starIcon = document.getElementById('favorite-star-icon');
+  const btnText = document.getElementById('favorite-btn-text');
+  if (!svcSelect || !starIcon || !btnText) return;
+
+  const svcId = parseInt(svcSelect.value);
+  if (!svcId) {
+    document.getElementById('favorite-btn').style.opacity = '0.5';
+    return;
+  }
+  document.getElementById('favorite-btn').style.opacity = '1';
+
+  if (isServiceFavorited(svcId)) {
+    starIcon.style.color = '#eab308';
+    btnText.textContent = 'Retirer des Favoris';
+    btnText.style.color = '#eab308';
+  } else {
+    starIcon.style.color = '#6b7280';
+    btnText.textContent = 'Ajouter aux Favoris';
+    btnText.style.color = '#6b7280';
+  }
+}
+
+function hydrateFavoritesForm() {
+  const catSelect = document.getElementById('category_select');
+  if (!catSelect) return;
+  catSelect.innerHTML = '';
+  
+  const favorites = getFavoriteServices();
+  const favoriteServices = parsedServicesList.filter(s => favorites.includes(parseInt(s.id)));
+  
+  const matchingCategories = new Set();
+  favoriteServices.forEach(s => {
+    matchingCategories.add(s.categoryName);
+  });
+
+  if (matchingCategories.size === 0) {
+    catSelect.innerHTML = '<option value="">— Aucun favori trouvé —</option>';
+    document.getElementById('service_id').innerHTML = '';
+    return;
+  }
+
+  matchingCategories.forEach(catName => {
+    const opt = document.createElement('option');
+    opt.value = catName;
+    opt.textContent = catName;
+    catSelect.appendChild(opt);
+  });
+
+  onFavoritesCategoryChanged();
+}
+
+function onFavoritesCategoryChanged() {
+  const catName = document.getElementById('category_select').value;
+  const svcSelect = document.getElementById('service_id');
+  if (!svcSelect) return;
+  svcSelect.innerHTML = '';
+
+  const favorites = getFavoriteServices();
+  const filtered = parsedServicesList.filter(s => s.categoryName === catName && favorites.includes(parseInt(s.id)));
+
+  filtered.forEach(svc => {
+    const opt = document.createElement('option');
+    opt.value = svc.id;
+    opt.dataset.priceUsd = svc.selling_price;
+    opt.dataset.min = svc.min_quantity;
+    opt.dataset.max = svc.max_quantity;
+    opt.dataset.name = svc.name;
+    opt.textContent = `ID:${svc.id} — ${svc.name} — ${formatCurrency(parseFloat(svc.selling_price), 3)}/1000`;
+    svcSelect.appendChild(opt);
+  });
+
+  onServiceChanged();
+}
+
+function initSubscriptionForm() {
+  const catSelect = document.getElementById('sub_category_select');
+  if (!catSelect) return;
+  catSelect.innerHTML = '';
+
+  const matchingCategories = new Set();
+  parsedServicesList.forEach(s => {
+    matchingCategories.add(s.categoryName);
+  });
+
+  matchingCategories.forEach(catName => {
+    const opt = document.createElement('option');
+    opt.value = catName;
+    opt.textContent = catName;
+    catSelect.appendChild(opt);
+  });
+
+  onSubCategoryChanged();
+}
+
+function onSubCategoryChanged() {
+  const catName = document.getElementById('sub_category_select').value;
+  const svcSelect = document.getElementById('sub_service_id');
+  if (!svcSelect) return;
+  svcSelect.innerHTML = '';
+
+  const filtered = parsedServicesList.filter(s => s.categoryName === catName);
+
+  filtered.forEach(svc => {
+    const opt = document.createElement('option');
+    opt.value = svc.id;
+    opt.textContent = `ID:${svc.id} — ${svc.name} — ${formatCurrency(parseFloat(svc.selling_price), 3)}/1000`;
+    svcSelect.appendChild(opt);
+  });
+
+  onSubServiceChanged();
+}
+
+function onSubServiceChanged() {
+  // Subscription rate representation or notes can go here if needed.
+}
+
+function showNotification(message, type = 'success') {
+  let container = document.getElementById('toast-container');
+  if (!container) {
+    container = document.createElement('div');
+    container.id = 'toast-container';
+    container.className = 'fixed bottom-5 right-5 z-[200] flex flex-col gap-2 pointer-events-none';
+    document.body.appendChild(container);
+  }
+
+  const toast = document.createElement('div');
+  toast.className = 'px-4 py-3 rounded-xl text-xs font-bold text-white shadow-xl transition-all duration-300 transform translate-y-2 opacity-0 pointer-events-auto border flex items-center gap-2';
+  
+  if (type === 'success') {
+    toast.style.background = 'rgba(0,255,136,0.1)';
+    toast.style.borderColor = 'rgba(0,255,136,0.3)';
+    toast.style.color = '#00ff88';
+    toast.innerHTML = '<span>✅</span> ' + message;
+  } else {
+    toast.style.background = 'rgba(0,212,255,0.1)';
+    toast.style.borderColor = 'rgba(0,212,255,0.3)';
+    toast.style.color = '#00d4ff';
+    toast.innerHTML = '<span>ℹ️</span> ' + message;
+  }
+
+  container.appendChild(toast);
+
+  setTimeout(() => {
+    toast.classList.remove('translate-y-2', 'opacity-0');
+  }, 10);
+
+  setTimeout(() => {
+    toast.classList.add('opacity-0', 'translate-y-2');
+    setTimeout(() => toast.remove(), 300);
+  }, 3000);
+}
+
 // Initialiser le dashboard au chargement
-window.addEventListener('DOMContentLoaded', initDashboardFilters);
+window.addEventListener('DOMContentLoaded', () => {
+  initDashboardFilters();
+  updateFavoriteButtonState();
+});
 </script>

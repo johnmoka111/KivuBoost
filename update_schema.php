@@ -35,6 +35,24 @@ try {
         echo "Paramètre 'usd_rate_cdf' existe déjà.<br>";
     }
 
+    // 2b. Créer la table 'subscriptions' si elle n'existe pas
+    $pdo->exec("CREATE TABLE IF NOT EXISTS `subscriptions` (
+      `id` INT AUTO_INCREMENT PRIMARY KEY,
+      `user_id` INT NOT NULL,
+      `service_id` INT NOT NULL,
+      `username` VARCHAR(100) NOT NULL,
+      `min_quantity` INT NOT NULL,
+      `max_quantity` INT NOT NULL,
+      `posts` INT NOT NULL,
+      `delay` INT DEFAULT 0,
+      `status` ENUM('Active', 'Completed', 'Paused', 'Canceled') NOT NULL DEFAULT 'Active',
+      `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (`user_id`) REFERENCES `users`(`id`) ON DELETE CASCADE,
+      FOREIGN KEY (`service_id`) REFERENCES `services`(`id`) ON DELETE CASCADE
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;");
+    echo "Table 'subscriptions' créée ou déjà existante.<br>";
+
+
     // 3. Ajouter ou mettre à jour le fournisseur d'API avec les clés réelles fournies
     $stmtProv = $pdo->prepare("SELECT id FROM providers WHERE api_url LIKE '%my.smm-panel.com%' LIMIT 1");
     $stmtProv->execute();

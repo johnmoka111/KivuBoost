@@ -28,10 +28,23 @@ class DashboardController extends Controller
         // Récupérer l'historique des commandes de l'utilisateur connecté
         $orders = $orderModel->getByUser((int)$user['id']);
 
+        // Récupérer les abonnements de l'utilisateur connecté
+        $db = \App\Core\Database::getInstance();
+        $stmtSub = $db->prepare("
+            SELECT sub.*, s.name AS service_name, s.category
+            FROM subscriptions sub
+            LEFT JOIN services s ON s.id = sub.service_id
+            WHERE sub.user_id = ?
+            ORDER BY sub.created_at DESC
+        ");
+        $stmtSub->execute([$user['id']]);
+        $subscriptions = $stmtSub->fetchAll();
+
         $this->render('dashboard/index', [
-            'user'     => $user,
-            'services' => $services,
-            'orders'   => $orders,
+            'user'          => $user,
+            'services'      => $services,
+            'orders'        => $orders,
+            'subscriptions' => $subscriptions,
         ]);
     }
 

@@ -38,6 +38,8 @@ $router->get('/logout',   'AuthController@logout');
 $router->get('/',              'DashboardController@index');
 $router->get('/dashboard',     'DashboardController@index');
 $router->post('/orders/place', 'OrderController@place');
+$router->post('/orders/mass-place', 'OrderController@massPlace');
+$router->post('/subscriptions/create', 'OrderController@createSubscription');
 $router->get('/currency/switch','DashboardController@switchCurrency');
 $router->get('/profile',       'AuthController@profile');
 $router->post('/profile/update','AuthController@updateProfile');
