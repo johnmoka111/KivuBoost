@@ -4,6 +4,7 @@ $pageTitle = 'Créer un compte';
 ?>
 
 <div class="mb-6 text-center">
+  <img src="<?= APP_BASE ?>/assets/logo.jpeg" alt="BukavuBoost Logo" class="w-16 h-16 rounded-full object-cover mx-auto mb-4 shadow-[0_0_15px_rgba(0,255,136,0.2)] border border-[#1a2332]">
   <h2 class="text-xl font-bold text-white">Créer un compte</h2>
   <p class="text-gray-500 text-sm mt-1">Rejoignez BukavuBoost et boostez vos réseaux</p>
 </div>
