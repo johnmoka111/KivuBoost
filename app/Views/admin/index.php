@@ -499,10 +499,8 @@ $pageTitle = 'Administration sécurisée';
           <input type="text" name="site_name" value="<?= htmlspecialchars($allSettings['site_name'] ?? 'BukavuBoost') ?>" class="input-field w-full px-3 py-2.5 rounded-xl text-sm">
         </div>
 
-        <div>
-          <label class="block text-xs font-medium text-gray-400 mb-1.5">Marge Client Globale (markup en % pour synchro automatique)</label>
-          <input type="number" name="markup_percentage" value="<?= htmlspecialchars($allSettings['markup_percentage'] ?? '20') ?>" class="input-field w-full px-3 py-2.5 rounded-xl text-sm">
-        </div>
+        <!-- Ancien champ de marge globale rendu obsolète par admin_settings.php -->
+        <input type="hidden" name="markup_percentage" value="0">
 
         <div>
           <label class="block text-xs font-medium text-gray-400 mb-1.5">Taux de change (1 USD = X CDF) pour le switch monétaire et les recharges en Francs Congolais</label>
