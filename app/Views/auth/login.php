@@ -4,9 +4,9 @@ $pageTitle = 'Connexion';
 ?>
 
 <div class="mb-6 text-center">
-  <img src="<?= APP_BASE ?>/assets/logo.jpeg" alt="BukavuBoost Logo" class="w-16 h-16 rounded-full object-cover mx-auto mb-4 shadow-[0_0_15px_rgba(0,255,136,0.2)] border border-[#1a2332]">
+  <img src="<?= APP_BASE ?>/assets/logo.jpeg" alt="KivuBoost Logo" class="w-16 h-16 rounded-full object-cover mx-auto mb-4 shadow-[0_0_15px_rgba(0,255,136,0.2)] border border-[#1a2332]">
   <h2 class="text-xl font-bold text-white">Connexion</h2>
-  <p class="text-gray-500 text-sm mt-1">Accédez à votre espace BukavuBoost</p>
+  <p class="text-gray-500 text-sm mt-1">Accédez à votre espace KivuBoost</p>
 </div>
 
 <form method="POST" action="<?= APP_BASE ?>/login" class="space-y-4" novalidate>

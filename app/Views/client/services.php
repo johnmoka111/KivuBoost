@@ -84,6 +84,93 @@ $pageTitle = 'Grille des Tarifs';
 
 </div>
 
+<!-- ================= SERVICE DETAILS MODAL ================= -->
+<div id="service-details-modal" onclick="if(event.target === this) closeServiceDetailsModal()" class="fixed inset-0 z-[100] hidden items-center justify-center p-4" style="background:rgba(5,8,17,0.75);backdrop-filter:blur(15px);-webkit-backdrop-filter:blur(15px);">
+  <!-- Modal box -->
+  <div class="relative w-full max-w-lg rounded-2xl border overflow-hidden shadow-2xl transition-all scale-95 opacity-0 duration-300 max-h-[90vh] md:max-h-[85vh] flex flex-col"
+       id="details-modal-box"
+       style="background:#0d1117;border-color:#1a2332;box-shadow:0 15px 40px rgba(0,0,0,0.6)">
+    
+    <!-- Header -->
+    <div class="p-4 border-b flex items-center justify-between shrink-0" style="border-color:#1a2332;background:#0a0f1a">
+      <h3 class="font-bold text-white text-xs flex items-center gap-2" id="modal-details-title">
+        <!-- Will be set dynamically -->
+      </h3>
+      <button type="button" onclick="closeServiceDetailsModal()" class="w-6 h-6 rounded-full flex items-center justify-center text-gray-500 hover:text-white transition-all bg-white/[0.04] hover:bg-white/[0.08]">
+        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+      </button>
+    </div>
+
+    <!-- Body (Scrollable) -->
+    <div class="p-5 space-y-4 overflow-y-auto flex-1 style-scrollbar" style="scrollbar-width: thin; scrollbar-color: #1a2332 transparent;">
+      <!-- Service name and ID -->
+      <div>
+        <div class="text-[9px] text-gray-500 uppercase tracking-widest font-semibold" id="modal-details-category">CATEGORIE</div>
+        <h4 class="text-sm font-bold text-white mt-1 leading-snug" id="modal-details-name">Service Name</h4>
+        <div class="text-[10px] text-gray-500 font-mono mt-0.5" id="modal-details-id">ID du service : #123</div>
+      </div>
+
+      <!-- Unified 2x2 Grid for Prices and limits -->
+      <div class="grid grid-cols-2 gap-3">
+        <!-- Prix USD -->
+        <div class="p-3 rounded-xl border flex flex-col justify-center" style="background:#0a0f1a;border-color:#1a2332">
+          <span class="text-[9px] text-gray-500 uppercase tracking-wider font-semibold">Prix USD (les 1000)</span>
+          <span class="text-base font-black mt-0.5 leading-none" style="color:#00d4ff" id="modal-details-price-usd">$0.00</span>
+        </div>
+        <!-- Prix CDF -->
+        <div class="p-3 rounded-xl border flex flex-col justify-center" style="background:#0a0f1a;border-color:#1a2332">
+          <span class="text-[9px] text-gray-500 uppercase tracking-wider font-semibold">Prix CDF (les 1000)</span>
+          <span class="text-base font-black mt-0.5 leading-none" style="color:#a78bfa" id="modal-details-price-cdf">0 Fc</span>
+        </div>
+        <!-- Min Qty -->
+        <div class="p-3 rounded-xl bg-white/[0.01] border border-white/[0.03] flex flex-col justify-center">
+          <span class="text-[9px] text-gray-500 uppercase tracking-wider font-semibold">Commande Min</span>
+          <span class="text-xs font-bold text-gray-200 mt-0.5 leading-none" id="modal-details-min">100</span>
+        </div>
+        <!-- Max Qty -->
+        <div class="p-3 rounded-xl bg-white/[0.01] border border-white/[0.03] flex flex-col justify-center">
+          <span class="text-[9px] text-gray-500 uppercase tracking-wider font-semibold">Commande Max</span>
+          <span class="text-xs font-bold text-gray-200 mt-0.5 leading-none" id="modal-details-max">10 000</span>
+        </div>
+      </div>
+
+      <!-- Description card (fancy metrics - 3-column Layout) -->
+      <div class="rounded-xl p-3.5 border space-y-2.5 shrink-0" style="background:#0a0f1a;border-color:#1a2332">
+        <div class="text-[10px] font-bold text-white border-b pb-1.5 flex items-center gap-1.5" style="border-color:#1a2332">
+          <svg class="w-3.5 h-3.5 text-[#00ff88]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+          Métriques & Garanties de livraison
+        </div>
+        <div class="grid grid-cols-3 gap-2.5">
+          <div class="flex flex-col bg-white/[0.01] p-2 rounded-lg border border-white/[0.02] min-w-0">
+            <span class="text-[8px] text-gray-500 font-semibold mb-0.5 uppercase tracking-wider"> Démarrage</span>
+            <strong id="modal-details-start" class="text-[10px] text-white truncate">—</strong>
+          </div>
+          <div class="flex flex-col bg-white/[0.01] p-2 rounded-lg border border-white/[0.02] min-w-0">
+            <span class="text-[8px] text-gray-500 font-semibold mb-0.5 uppercase tracking-wider"> Vitesse</span>
+            <strong id="modal-details-speed" class="text-[10px] text-white truncate">—</strong>
+          </div>
+          <div class="flex flex-col bg-white/[0.01] p-2 rounded-lg border border-white/[0.02] min-w-0">
+            <span class="text-[8px] text-gray-500 font-semibold mb-0.5 uppercase tracking-wider"> Garantie</span>
+            <strong id="modal-details-refill" class="text-[10px] text-white truncate">—</strong>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Footer button -->
+    <div class="p-4 border-t flex items-center gap-3 bg-[#0a0f1a] shrink-0" style="border-color:#1a2332">
+      <button type="button" onclick="closeServiceDetailsModal()" class="flex-1 py-2.5 rounded-xl text-xs font-bold text-gray-400 hover:text-white transition-all bg-white/[0.04] hover:bg-white/[0.08] text-center border border-white/[0.05]">
+        Fermer
+      </button>
+      <a href="#" id="modal-details-order-btn" class="flex-1 py-2.5 rounded-xl text-xs font-bold transition-all text-center hover:brightness-110 active:scale-[0.99] flex items-center justify-center gap-1"
+         style="background:linear-gradient(135deg,#00ff88,#00c466);color:#050811;box-shadow:0 4px 12px rgba(0,255,136,0.15)">
+        Commander
+        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
+      </a>
+    </div>
+  </div>
+</div>
+
 <!-- ================= JS: FILTERING LOGIC ================= -->
 <script>
 // Récupérer les données PHP structurées
@@ -228,7 +315,7 @@ function renderResults(results) {
     const maintenanceBadge = (s.is_active != 1) ? `<span class="px-2 py-0.5 bg-red-500/10 text-red-500 border border-red-500/20 rounded text-[10px] uppercase font-bold tracking-widest ml-2">En Maintenance</span>` : '';
 
     const html = `
-      <div class="p-4 hover:bg-white/[0.02] transition-colors flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <div onclick="openServiceDetailsModal(${s.id})" class="p-4 hover:bg-white/[0.04] cursor-pointer transition-all flex flex-col md:flex-row md:items-center justify-between gap-4 group">
         <div class="flex items-start gap-3 flex-1">
           <div class="mt-1">${meta.svg}</div>
           <div>
@@ -240,7 +327,7 @@ function renderResults(results) {
             <div class="text-xs text-gray-500 mt-1">${s.categoryName}</div>
           </div>
         </div>
-        <div class="flex items-center gap-6 shrink-0 md:w-1/3 justify-between md:justify-end">
+        <div class="flex items-center gap-6 shrink-0 md:w-5/12 justify-between md:justify-end">
           <div class="text-right">
             <div class="text-[10px] text-gray-500 uppercase tracking-wider font-semibold">Min - Max</div>
             <div class="text-xs text-gray-300 font-mono">${s.min_quantity} - ${s.max_quantity}</div>
@@ -250,11 +337,91 @@ function renderResults(results) {
             <div class="text-sm font-bold font-mono" style="color:#00d4ff">${price.usd}</div>
             <div class="text-[10px] font-semibold font-mono mt-0.5" style="color:#a78bfa">${price.cdf} <span class="text-gray-600 font-normal">les 1000</span></div>
           </div>
+          <div class="hidden md:flex items-center justify-center w-8 h-8 rounded-full bg-white/[0.02] border border-white/[0.05] text-gray-400 group-hover:text-white group-hover:bg-white/[0.08] transition-all shrink-0">
+             <svg class="w-4 h-4 transform group-hover:translate-x-0.5 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"/></svg>
+          </div>
         </div>
       </div>
     `;
     container.insertAdjacentHTML('beforeend', html);
   });
+}
+
+// Générateur automatique de description haut de gamme basé sur le service
+function generateDescription(svcName, platform) {
+  const name = svcName.toLowerCase();
+  let start = 'Instantané (0-15 min)';
+  let speed = '15 000 par jour';
+  let refill = 'Garantie de recharge 30 jours';
+
+  if (name.includes('views') || name.includes('vues') || name.includes('play')) {
+    start = 'Rapide (0-1 heure)';
+    speed = '50 000 - 100 000 / jour';
+    refill = 'Garantie Sans perte (À vie)';
+  } else if (name.includes('likes') || name.includes('j\'aime') || name.includes('coeurs')) {
+    start = 'Instantané (0-5 min)';
+    speed = '20 000 / jour';
+    refill = 'Bouton de recharge actif';
+  } else if (name.includes('followers') || name.includes('abonnés') || name.includes('membres')) {
+    start = 'Progressif (1-12 heures)';
+    speed = '5 000 - 10 000 / jour';
+    refill = 'Garantie de non-diminution 30 jours';
+  } else if (name.includes('custom') || name.includes('comment') || name.includes('avis')) {
+    start = 'Manuel (1-2 heures)';
+    speed = '1 000 / jour';
+    refill = '100% profils réels';
+  }
+
+  return { start, speed, refill };
+}
+
+function openServiceDetailsModal(serviceId) {
+  const s = parsedServicesList.find(item => item.id == serviceId);
+  if (!s) return;
+
+  const meta = platformMeta[s.platform] || platformMeta['Autre'];
+  const price = formatDualPrice(s.calculated_rate);
+  const desc = generateDescription(s.name, s.platform);
+
+  // Set contents
+  document.getElementById('modal-details-title').innerHTML = `${meta.svg} ${s.platform}`;
+  document.getElementById('modal-details-category').textContent = s.categoryName;
+  document.getElementById('modal-details-name').textContent = s.name;
+  document.getElementById('modal-details-id').textContent = `ID du service : #${s.id}`;
+  document.getElementById('modal-details-price-usd').textContent = price.usd;
+  document.getElementById('modal-details-price-cdf').textContent = price.cdf;
+  document.getElementById('modal-details-min').textContent = parseInt(s.min_quantity).toLocaleString();
+  document.getElementById('modal-details-max').textContent = parseInt(s.max_quantity).toLocaleString();
+  
+  document.getElementById('modal-details-start').textContent = desc.start;
+  document.getElementById('modal-details-speed').textContent = desc.speed;
+  document.getElementById('modal-details-refill').textContent = desc.refill;
+
+  // Order button href
+  document.getElementById('modal-details-order-btn').href = `<?= APP_BASE ?>/dashboard?service_id=${s.id}`;
+
+  // Show modal
+  const modal = document.getElementById('service-details-modal');
+  const box = document.getElementById('details-modal-box');
+  
+  modal.classList.remove('hidden');
+  modal.classList.add('flex');
+  setTimeout(() => {
+    box.classList.remove('scale-95', 'opacity-0');
+    box.classList.add('scale-100', 'opacity-100');
+  }, 10);
+}
+
+function closeServiceDetailsModal() {
+  const modal = document.getElementById('service-details-modal');
+  const box = document.getElementById('details-modal-box');
+
+  box.classList.remove('scale-100', 'opacity-100');
+  box.classList.add('scale-95', 'opacity-0');
+  setTimeout(() => {
+    modal.classList.remove('flex');
+    modal.classList.add('hidden');
+  }, 300);
 }
 
 // Initialize on load

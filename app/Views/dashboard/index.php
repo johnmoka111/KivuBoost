@@ -70,7 +70,7 @@ $totalSpentUsd = array_sum(array_column($orders, 'cost'));
 <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
   <!-- ================= LEFT: ORDER FORM ================= -->
   <div class="lg:col-span-2 space-y-6">
-    <div class="rounded-2xl p-5 lg:p-6 border" style="background:#0d1117;border-color:#1a2332">
+    <div class="rounded-2xl p-4 md:p-6 border w-full" style="background:#0d1117;border-color:#1a2332">
       <!-- Tabs header -->
       <div class="relative w-full">
         <div class="flex items-center gap-2 overflow-x-auto pb-4 mb-4 border-b select-none scrollbar-hide relative z-0" style="border-color:#1a2332; scrollbar-width: none;">
@@ -87,10 +87,7 @@ $totalSpentUsd = array_sum(array_column($orders, 'cost'));
           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/></svg>
           ORDRE DE MASSE
         </button>
-        <button type="button" id="tab-subscription" onclick="switchTab('subscription')" class="px-4 py-3 md:py-2 text-xs font-bold text-gray-500 hover:text-gray-300 rounded-lg flex items-center gap-1.5 shrink-0 transition-all">
-          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 1121.21 8H17"/></svg>
-          ABONNEMENT
-        </button>
+
         </div>
         <!-- Gradient indicator for horizontal scroll on mobile -->
         <div class="md:hidden absolute right-0 top-0 bottom-4 w-12 pointer-events-none" style="background: linear-gradient(to left, #0d1117, transparent);"></div>
@@ -109,7 +106,7 @@ $totalSpentUsd = array_sum(array_column($orders, 'cost'));
             </div>
           </div>
           <button type="button" class="px-2.5 py-1 text-[10px] font-bold rounded bg-emerald-500/10 text-[#00ff88] border border-emerald-500/20 uppercase tracking-wide shrink-0">
-            🔍 Filtres
+             Filtres
           </button>
         </div>
       </div>
@@ -118,7 +115,7 @@ $totalSpentUsd = array_sum(array_column($orders, 'cost'));
       <div id="new-order-container">
         <!-- Empty Favorites Placeholder -->
         <div id="favorites-empty-placeholder" class="hidden text-center py-12 text-gray-500 space-y-4">
-          <div class="text-4xl">⭐</div>
+          <div class="text-4xl"></div>
           <p class="text-sm">Vous n'avez pas encore ajouté de services à vos préférés.</p>
           <p class="text-xs max-w-sm mx-auto leading-relaxed">
             Pour ajouter un service, cliquez sur le bouton <strong class="text-yellow-400">★ Favori</strong> à côté du choix de service dans l'onglet <strong>Nouvelle Commande</strong>.
@@ -169,21 +166,21 @@ $totalSpentUsd = array_sum(array_column($orders, 'cost'));
             </div>
             <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
               <div class="flex items-center gap-2 text-gray-400">
-                <span class="text-base">🚀</span>
+                <span class="text-base"></span>
                 <div>
                   <div class="text-[10px] text-gray-500 uppercase tracking-wider font-semibold">Démarrage</div>
                   <strong id="desc-start-time" class="text-white">—</strong>
                 </div>
               </div>
               <div class="flex items-center gap-2 text-gray-400">
-                <span class="text-base">⚡</span>
+                <span class="text-base"></span>
                 <div>
                   <div class="text-[10px] text-gray-500 uppercase tracking-wider font-semibold">Vitesse</div>
                   <strong id="desc-speed" class="text-white">—</strong>
                 </div>
               </div>
               <div class="flex items-center gap-2 text-gray-400">
-                <span class="text-base">🔄</span>
+                <span class="text-base"></span>
                 <div>
                   <div class="text-[10px] text-gray-500 uppercase tracking-wider font-semibold">Garantie</div>
                   <strong id="desc-refill" class="text-white">—</strong>
@@ -275,7 +272,7 @@ $totalSpentUsd = array_sum(array_column($orders, 'cost'));
           
           <div class="rounded-xl p-4 border text-xs text-gray-400 leading-relaxed space-y-1.5" style="background:#0a0f1a;border-color:#1a2332">
             <span class="font-bold text-white flex items-center gap-1.5">
-              💡 Comment l'utiliser :
+               Comment l'utiliser :
             </span>
             <p>1. Entrez chaque commande sur une ligne distincte.</p>
             <p>2. Séparez l'ID du service, la quantité et le lien cible par une barre verticale <code>|</code>.</p>
@@ -290,124 +287,7 @@ $totalSpentUsd = array_sum(array_column($orders, 'cost'));
         </form>
       </div>
 
-      <!-- VIEW 4: ABONNEMENT -->
-      <div id="subscription-container" class="hidden">
-        <form method="POST" action="<?= APP_BASE ?>/subscriptions/create" class="space-y-4">
-          <?= Auth::csrfField() ?>
 
-          <!-- Platform Selector for Subscription -->
-          <div>
-            <label class="block text-xs font-semibold text-gray-400 mb-1.5 uppercase tracking-wider" for="sub_category_select">
-              Catégorie de service
-            </label>
-            <select id="sub_category_select" class="w-full px-4 py-3 rounded-xl text-sm"
-                    style="background:#0a0f1a;border:1px solid #1a2332;color:#e2e8f0"
-                    onchange="onSubCategoryChanged()">
-              <!-- Hydrated dynamically -->
-            </select>
-          </div>
-
-          <!-- Service Selector for Subscription -->
-          <div>
-            <label class="block text-xs font-semibold text-gray-400 mb-1.5 uppercase tracking-wider" for="sub_service_id">
-              Service
-            </label>
-            <select name="service_id" id="sub_service_id" required
-                    class="w-full px-4 py-3 rounded-xl text-sm"
-                    style="background:#0a0f1a;border:1px solid #1a2332;color:#e2e8f0"
-                    onchange="onSubServiceChanged()">
-              <!-- Hydrated dynamically -->
-            </select>
-          </div>
-
-          <!-- Account/Username -->
-          <div>
-            <label class="block text-xs font-semibold text-gray-400 mb-1.5 uppercase tracking-wider" for="sub_username">
-              Nom d'utilisateur (sans @)
-            </label>
-            <input type="text" name="username" id="sub_username" required
-                   placeholder="ex: moncompte_instagram"
-                   class="w-full px-4 py-3 rounded-xl text-sm"
-                   style="background:#0a0f1a;border:1px solid #1a2332;color:#e2e8f0;transition:border-color .2s"
-                   onfocus="this.style.borderColor='rgba(0,255,136,0.5)'"
-                   onblur="this.style.borderColor='#1a2332'">
-          </div>
-
-          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <!-- Min Qty -->
-            <div>
-              <label class="block text-xs font-semibold text-gray-400 mb-1.5 uppercase tracking-wider" for="sub_min_quantity">
-                Quantité Minimale
-              </label>
-              <input type="number" name="min_quantity" id="sub_min_quantity" required min="1"
-                     placeholder="ex: 100"
-                     class="w-full px-4 py-3 rounded-xl text-sm"
-                     style="background:#0a0f1a;border:1px solid #1a2332;color:#e2e8f0;transition:border-color .2s"
-                     onfocus="this.style.borderColor='rgba(0,255,136,0.5)'"
-                     onblur="this.style.borderColor='#1a2332'">
-            </div>
-
-            <!-- Max Qty -->
-            <div>
-              <label class="block text-xs font-semibold text-gray-400 mb-1.5 uppercase tracking-wider" for="sub_max_quantity">
-                Quantité Maximale
-              </label>
-              <input type="number" name="max_quantity" id="sub_max_quantity" required min="1"
-                     placeholder="ex: 500"
-                     class="w-full px-4 py-3 rounded-xl text-sm"
-                     style="background:#0a0f1a;border:1px solid #1a2332;color:#e2e8f0;transition:border-color .2s"
-                     onfocus="this.style.borderColor='rgba(0,255,136,0.5)'"
-                     onblur="this.style.borderColor='#1a2332'">
-            </div>
-          </div>
-
-          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <!-- Posts count limit -->
-            <div>
-              <label class="block text-xs font-semibold text-gray-400 mb-1.5 uppercase tracking-wider" for="sub_posts">
-                Nombre de Publications futures
-              </label>
-              <input type="number" name="posts" id="sub_posts" required min="1" max="100"
-                     placeholder="ex: 5"
-                     class="w-full px-4 py-3 rounded-xl text-sm"
-                     style="background:#0a0f1a;border:1px solid #1a2332;color:#e2e8f0;transition:border-color .2s"
-                     onfocus="this.style.borderColor='rgba(0,255,136,0.5)'"
-                     onblur="this.style.borderColor='#1a2332'">
-            </div>
-
-            <!-- Delay -->
-            <div>
-              <label class="block text-xs font-semibold text-gray-400 mb-1.5 uppercase tracking-wider" for="sub_delay">
-                Délai (Minutes)
-              </label>
-              <select name="delay" id="sub_delay"
-                      class="w-full px-4 py-3 rounded-xl text-sm"
-                      style="background:#0a0f1a;border:1px solid #1a2332;color:#e2e8f0">
-                <option value="0">Aucun délai (Instantané)</option>
-                <option value="5">5 minutes</option>
-                <option value="15">15 minutes</option>
-                <option value="30">30 minutes</option>
-                <option value="60">60 minutes</option>
-              </select>
-            </div>
-          </div>
-
-          <div class="rounded-xl p-4 border text-xs text-gray-400 leading-relaxed" style="background:#0a0f1a;border-color:#1a2332">
-            <span class="font-bold text-white flex items-center gap-1.5">
-              🔄 Comment fonctionne l'abonnement :
-            </span>
-            <p class="mt-1">
-              Notre système vérifie votre profil toutes les 15 minutes. Dès qu'un nouveau post est détecté, le système envoie automatiquement une commande avec une quantité aléatoire comprise entre le min et le max. Votre solde sera débité à chaque publication.
-            </p>
-          </div>
-
-          <button type="submit"
-                  class="w-full py-3.5 rounded-xl text-sm font-bold transition-all hover:brightness-110 active:scale-[0.99]"
-                  style="background:linear-gradient(135deg,#00ff88,#00c466);color:#050811;box-shadow:0 4px 15px rgba(0,255,136,0.2)">
-            Créer l'abonnement
-          </button>
-        </form>
-      </div>
     </div>
   </div>
 
@@ -440,7 +320,7 @@ $totalSpentUsd = array_sum(array_column($orders, 'cost'));
     <!-- Instructions card -->
     <div class="rounded-2xl p-5 border text-xs space-y-3" style="background:#0d1117;border-color:#1a2332">
       <div class="font-bold text-white flex items-center gap-2">
-        <span>💡</span> Information &amp; Guide
+        <span></span> Information &amp; Guide
       </div>
       <p class="text-gray-400 leading-relaxed">
         Suivez ces consignes simples pour garantir la livraison rapide de vos commandes :
@@ -456,16 +336,16 @@ $totalSpentUsd = array_sum(array_column($orders, 'cost'));
 
 <!-- ===== HISTORIQUE DES COMMANDES ===== -->
 <div class="rounded-2xl border mt-6" style="background:#0d1117;border-color:#1a2332">
-  <div class="flex items-center justify-between px-5 py-4 border-b" style="border-color:#1a2332">
+  <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 px-5 py-4 border-b" style="border-color:#1a2332">
     <div class="flex items-center gap-2">
-      <div class="w-8 h-8 rounded-lg flex items-center justify-center" style="background:rgba(0,212,255,0.1)">
+      <div class="w-8 h-8 rounded-lg flex items-center justify-center shrink-0" style="background:rgba(0,212,255,0.1)">
         <svg class="w-4 h-4" style="color:#00d4ff" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
         </svg>
       </div>
       <h2 class="text-base font-bold text-white">Mes Commandes Récentes</h2>
     </div>
-    <span class="text-xs text-gray-500"><?= count($orders) ?> commande(s)</span>
+    <span class="text-xs text-gray-500 whitespace-nowrap hidden sm:inline"><?= count($orders) ?> cmd(s)</span>
   </div>
 
   <?php if (empty($orders)): ?>
@@ -479,7 +359,7 @@ $totalSpentUsd = array_sum(array_column($orders, 'cost'));
   <?php else: ?>
 
     <!-- Table Desktop -->
-    <div class="hidden lg:block overflow-x-auto">
+    <div class="hidden md:block overflow-x-auto w-full">
       <table class="w-full text-sm">
         <thead>
           <tr style="border-bottom:1px solid #1a2332">
@@ -495,7 +375,7 @@ $totalSpentUsd = array_sum(array_column($orders, 'cost'));
         <tbody class="divide-y" style="divide-color:#1a2332">
           <?php foreach ($orders as $order): ?>
           <tr class="hover:bg-white/[0.02] transition-colors">
-            <td class="px-5 py-3.5 text-gray-500 font-mono text-xs">#<?= $order['id'] ?></td>
+            <td class="px-5 py-3.5 text-gray-500 font-mono text-xs">#<?= str_pad($order['id'], 5, '0', STR_PAD_LEFT) ?></td>
             <td class="px-5 py-3.5">
               <div class="text-white text-xs font-semibold"><?= htmlspecialchars($order['service_name'] ?? '—') ?></div>
               <div class="text-gray-500 text-xs mt-0.5"><?= htmlspecialchars($order['category'] ?? '') ?></div>
@@ -513,11 +393,11 @@ $totalSpentUsd = array_sum(array_column($orders, 'cost'));
             <td class="px-5 py-3.5">
               <?php
               $badgeClass = match(strtolower($order['status'])) {
-                  'pending'    => 'badge-pending',
+                  'pending'   => 'badge-pending',
                   'processing' => 'badge-processing',
-                  'completed'  => 'badge-completed',
-                  'canceled'   => 'badge-canceled',
-                  'partial'    => 'badge-partial',
+                  'completed' => 'badge-completed',
+                  'canceled'  => 'badge-canceled',
+                  'partial'   => 'badge-partial',
                   default      => 'badge-pending',
               };
               ?>
@@ -534,133 +414,83 @@ $totalSpentUsd = array_sum(array_column($orders, 'cost'));
       </table>
     </div>
 
-    <!-- Cards Mobile (Optimisé Sans Scroll) -->
-    <div class="lg:hidden divide-y" style="divide-color:#1a2332">
+    <!-- ====== CARDS MOBILE ====== -->
+    <div class="md:hidden p-4 space-y-4 bg-[#0a0f1a] rounded-b-2xl">
       <?php foreach ($orders as $order): ?>
       <?php
-      $badgeClass = match(strtolower($order['status'])) {
-          'pending'    => 'badge-pending',
-          'processing' => 'badge-processing',
-          'completed'  => 'badge-completed',
-          'canceled'   => 'badge-canceled',
-          'partial'    => 'badge-partial',
-          default      => 'badge-pending',
-      };
+        $statusVal = strtolower($order['status']);
+        $badgeClass = match($statusVal) {
+            'pending'    => 'bg-yellow-500/10 text-yellow-400 border border-yellow-500/20',
+            'processing' => 'bg-blue-500/10 text-blue-400 border border-blue-500/20',
+            'completed'  => 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20',
+            'canceled'   => 'bg-red-500/10 text-red-400 border border-red-500/20',
+            'partial'    => 'bg-orange-500/10 text-orange-400 border border-orange-500/20',
+            default      => 'bg-gray-500/10 text-gray-400 border border-gray-500/20',
+        };
+        $statusLabel = match($statusVal) {
+            'pending'    => 'En attente',
+            'processing' => 'En cours',
+            'completed'  => 'Complété',
+            'canceled'   => 'Annulé',
+            'partial'    => 'Partiel',
+            default      => htmlspecialchars($order['status']),
+        };
       ?>
-      <div class="px-4 py-4">
-        <div class="flex items-start justify-between mb-2">
-          <div class="flex-1 min-w-0 pr-3">
-            <div class="text-sm font-semibold text-white truncate"><?= htmlspecialchars($order['service_name'] ?? '—') ?></div>
-            <div class="text-xs text-gray-500 mt-0.5 truncate"><?= htmlspecialchars($order['category'] ?? '') ?></div>
-          </div>
-          <span class="<?= $badgeClass ?> text-xs px-2.5 py-1 rounded-full font-medium shrink-0">
-            <?= htmlspecialchars($order['status']) ?>
-          </span>
-        </div>
-        <div class="flex flex-wrap gap-4 text-xs mt-3 text-gray-400">
-          <span>Qté : <strong class="text-white"><?= number_format($order['quantity']) ?></strong></span>
-          <span>Coût : <strong style="color:#00ff88"><?= Currency::format((float)$order['cost'], 3) ?></strong></span>
-          <span>Date : <strong class="text-white"><?= date('d/m H:i', strtotime($order['created_at'])) ?></strong></span>
-        </div>
-        <a href="<?= htmlspecialchars($order['link']) ?>" target="_blank" rel="noopener"
-           class="inline-block mt-3 text-xs hover:underline truncate max-w-full text-[#00d4ff]">
-          <?= htmlspecialchars($order['link']) ?>
-        </a>
-      </div>
-      <?php endforeach; ?>
-    </div>
-  <?php endif; ?>
-</div>
-
-<!-- ===== HISTORIQUE DES ABONNEMENTS ===== -->
-<div class="rounded-2xl border mt-6" style="background:#0d1117;border-color:#1a2332">
-  <div class="flex items-center justify-between px-5 py-4 border-b" style="border-color:#1a2332">
-    <div class="flex items-center gap-2">
-      <div class="w-8 h-8 rounded-lg flex items-center justify-center" style="background:rgba(0,255,136,0.1)">
-        <svg class="w-4 h-4" style="color:#00ff88" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 1121.21 8H17"/>
-        </svg>
-      </div>
-      <h2 class="text-base font-bold text-white">Mes Abonnements Automatiques</h2>
-    </div>
-    <span class="text-xs text-gray-500"><?= count($subscriptions ?? []) ?> abonnement(s)</span>
-  </div>
-
-  <?php if (empty($subscriptions)): ?>
-    <div class="text-center py-16 text-gray-600">
-      <svg class="w-12 h-12 mx-auto mb-3 opacity-30" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 4v5h.582m15.356 2A8.001 8.001 0 1121.21 8H17"/>
-      </svg>
-      <p class="text-sm">Aucun abonnement actif pour le moment.</p>
-      <p class="text-xs mt-1">Créez un abonnement automatique depuis l'onglet ci-dessus !</p>
-    </div>
-  <?php else: ?>
-
-    <!-- Table Desktop -->
-    <div class="hidden lg:block overflow-x-auto">
-      <table class="w-full text-sm">
-        <thead>
-          <tr style="border-bottom:1px solid #1a2332">
-            <th class="text-left px-5 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">ID</th>
-            <th class="text-left px-5 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Service</th>
-            <th class="text-left px-5 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Compte Cible</th>
-            <th class="text-left px-5 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Quantité Min - Max</th>
-            <th class="text-left px-5 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Posts Restants</th>
-            <th class="text-left px-5 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Statut</th>
-            <th class="text-left px-5 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Date de création</th>
-          </tr>
-        </thead>
-        <tbody class="divide-y" style="divide-color:#1a2332">
-          <?php foreach ($subscriptions as $sub): ?>
-          <tr class="hover:bg-white/[0.02] transition-colors">
-            <td class="px-5 py-3.5 text-gray-500 font-mono text-xs">#<?= $sub['id'] ?></td>
-            <td class="px-5 py-3.5">
-              <div class="text-white text-xs font-semibold"><?= htmlspecialchars($sub['service_name'] ?? '—') ?></div>
-              <div class="text-gray-500 text-xs mt-0.5"><?= htmlspecialchars($sub['category'] ?? '') ?></div>
-            </td>
-            <td class="px-5 py-3.5 font-bold text-[#00d4ff] text-xs">
-              @<?= htmlspecialchars($sub['username']) ?>
-            </td>
-            <td class="px-5 py-3.5 text-white text-xs font-mono"><?= number_format($sub['min_quantity']) ?> - <?= number_format($sub['max_quantity']) ?></td>
-            <td class="px-5 py-3.5 text-white text-xs font-mono"><?= (int)$sub['posts'] ?> posts</td>
-            <td class="px-5 py-3.5">
-              <span class="px-2.5 py-1 rounded-full font-medium text-xs bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
-                <?= htmlspecialchars($sub['status']) ?>
+      <div class="p-4 rounded-xl border transition-all shadow-sm" style="background:#0d1117; border-color:#1a2332;">
+        <div class="flex items-start justify-between mb-3 gap-2">
+          <div class="flex-1 min-w-0">
+            <div class="flex items-center gap-2 mb-1.5">
+              <span class="text-[10px] font-mono font-bold text-gray-500 bg-[#1a2332]/50 px-1.5 py-0.5 rounded">#<?= $order['id'] ?></span>
+              <?php if (!empty($order['category'])): ?>
+              <span class="text-[10px] px-2 py-0.5 rounded-full font-medium bg-[#1a2332] text-gray-400 truncate">
+                <?= htmlspecialchars($order['category']) ?>
               </span>
-            </td>
-            <td class="px-5 py-3.5 text-gray-500 text-xs">
-              <?= date('d/m/Y H:i', strtotime($sub['created_at'])) ?>
-            </td>
-          </tr>
-          <?php endforeach; ?>
-        </tbody>
-      </table>
-    </div>
-
-    <!-- Cards Mobile -->
-    <div class="lg:hidden divide-y" style="divide-color:#1a2332">
-      <?php foreach ($subscriptions as $sub): ?>
-      <div class="px-4 py-4">
-        <div class="flex items-start justify-between mb-2">
-          <div class="flex-1 min-w-0 pr-3">
-            <div class="text-sm font-semibold text-white truncate"><?= htmlspecialchars($sub['service_name'] ?? '—') ?></div>
-            <div class="text-xs text-gray-500 mt-0.5 truncate"><?= htmlspecialchars($sub['category'] ?? '') ?></div>
+              <?php endif; ?>
+            </div>
+            <div class="text-sm font-semibold text-white leading-snug break-words"><?= htmlspecialchars($order['service_name'] ?? '—') ?></div>
           </div>
-          <span class="px-2.5 py-1 rounded-full font-medium text-xs bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 shrink-0">
-            <?= htmlspecialchars($sub['status']) ?>
-          </span>
         </div>
-        <div class="flex flex-wrap gap-4 text-xs mt-3 text-gray-400">
-          <span>Compte : <strong class="text-[#00d4ff]">@<?= htmlspecialchars($sub['username']) ?></strong></span>
-          <span>Qté : <strong class="text-white"><?= number_format($sub['min_quantity']) ?>-<?= number_format($sub['max_quantity']) ?></strong></span>
-          <span>Posts : <strong class="text-white"><?= (int)$sub['posts'] ?></strong></span>
-          <span>Date : <strong class="text-white"><?= date('d/m H:i', strtotime($sub['created_at'])) ?></strong></span>
+
+        <!-- Lien -->
+        <div class="mb-3 bg-[#0a0f1a] rounded-lg p-2 border border-[#1a2332]">
+          <a href="<?= htmlspecialchars($order['link']) ?>" target="_blank" rel="noopener"
+             class="text-xs hover:underline truncate block text-[#00d4ff] flex items-center gap-1.5">
+            <svg class="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"/></svg>
+            <?= htmlspecialchars($order['link']) ?>
+          </a>
+        </div>
+
+        <!-- Méta infos -->
+        <div class="flex items-center justify-between border-t pt-3 mt-1" style="border-color:#1a2332">
+          <div class="flex flex-col gap-1">
+            <span class="text-[10px] text-gray-500 uppercase font-semibold tracking-wider">Quantité</span>
+            <strong class="text-white font-mono text-sm"><?= number_format($order['quantity']) ?></strong>
+          </div>
+          <div class="flex flex-col gap-1 text-right">
+            <span class="text-[10px] text-gray-500 uppercase font-semibold tracking-wider">Montant</span>
+            <strong class="font-mono text-sm" style="color:#00ff88"><?= Currency::format((float)$order['cost'], 3) ?></strong>
+          </div>
+        </div>
+        
+        <div class="flex items-center justify-between mt-3">
+           <span class="inline-flex items-center gap-1 text-[10px] px-2.5 py-1 rounded-full font-semibold <?= $badgeClass ?>">
+            <?php if ($statusVal === 'processing'): ?>
+              <span class="w-1.5 h-1.5 rounded-full bg-blue-400 animate-pulse inline-block"></span>
+            <?php elseif ($statusVal === 'pending'): ?>
+              <span class="w-1.5 h-1.5 rounded-full bg-yellow-400 inline-block"></span>
+            <?php elseif ($statusVal === 'completed'): ?>
+              <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 inline-block"></span>
+            <?php endif; ?>
+            <?= $statusLabel ?>
+          </span>
+          <span class="text-[10px] text-gray-500"><?= date('d/m/Y H:i', strtotime($order['created_at'])) ?></span>
         </div>
       </div>
       <?php endforeach; ?>
     </div>
   <?php endif; ?>
 </div>
+
 
 <!-- ================= SEARCH & FILTER MODAL (IMAGE 5 STYLE) ================= -->
 <div id="search-modal" class="fixed inset-0 z-[100] hidden items-center justify-center p-4" style="background:rgba(5,8,17,0.75);backdrop-filter:blur(15px);-webkit-backdrop-filter:blur(15px);">
@@ -1553,7 +1383,7 @@ function showNotification(message, type = 'success') {
     toast.style.background = 'rgba(0,255,136,0.1)';
     toast.style.borderColor = 'rgba(0,255,136,0.3)';
     toast.style.color = '#00ff88';
-    toast.innerHTML = '<span>✅</span> ' + message;
+    toast.innerHTML = '<span></span> ' + message;
   } else {
     toast.style.background = 'rgba(0,212,255,0.1)';
     toast.style.borderColor = 'rgba(0,212,255,0.3)';
@@ -1573,9 +1403,25 @@ function showNotification(message, type = 'success') {
   }, 3000);
 }
 
+function handleUrlServiceSelection() {
+  const urlParams = new URLSearchParams(window.location.search);
+  const serviceId = urlParams.get('service_id');
+  if (!serviceId) return;
+
+  const svc = parsedServicesList.find(s => s.id == serviceId);
+  if (!svc) return;
+
+  // Use the robust modal selection helper
+  selectServiceFromModal(svc.id, svc.categoryName, svc.platform);
+  
+  // Show a nice Toast notification to guide the user
+  showNotification(`Service "${svc.name}" sélectionné ! Remplissez les informations pour commander.`, 'success');
+}
+
 // Initialiser le dashboard au chargement
 window.addEventListener('DOMContentLoaded', () => {
   initDashboardFilters();
   updateFavoriteButtonState();
+  handleUrlServiceSelection();
 });
 </script>

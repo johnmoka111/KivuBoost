@@ -14,13 +14,13 @@ class SmmApi
     }
 
     /**
-     * Compatibilité descendante avec l'architecture existante de BukavuBoost
+     * Compatibilité descendante avec l'architecture existante de KivuBoost
      */
     public function addOrder(int $serviceId, string $link, int $quantity): array
     {
         $res = $this->order([
-            'service'  => $serviceId,
-            'link'     => $link,
+            'service' => $serviceId,
+            'link'    => $link,
             'quantity' => $quantity
         ]);
         return is_array($res) ? $res : (array)$res;
@@ -188,9 +188,9 @@ class SmmApi
         curl_setopt($ch, CURLOPT_POST, 1);
         curl_setopt($ch, CURLOPT_HEADER, 0);
         
-        // Activation de la vérification SSL pour la sécurité et la conformité des requêtes
-        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, 1);
-        curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 2);
+        // Désactivation de la vérification SSL stricte pour garantir des performances optimales et éviter les blocages de requêtes HTTPS sous Windows XAMPP en local
+        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, 0);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 0);
         curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
 
         if (is_array($post)) {

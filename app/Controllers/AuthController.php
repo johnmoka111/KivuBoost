@@ -121,9 +121,16 @@ class AuthController extends Controller
         $userId = $userModel->create($username, $email, $passwordHash);
         $user   = $userModel->findById($userId);
 
+        // Déclencheur SMTP : Confirmation d'Inscription
+        sendKivuBoostMail($email, "Bienvenue sur KivuBoost !", "register", [
+            'username'  => $username,
+            'userEmail' => $email,
+            'loginUrl'  => APP_URL . '/login'
+        ]);
+
         Auth::login($user);
         Audit::log('register', 'Création de compte réussie pour : ' . $username);
-        $this->flash('success', 'Compte créé avec succès ! Bienvenue sur BukavuBoost.');
+        $this->flash('success', 'Compte créé avec succès ! Bienvenue sur KivuBoost.');
         $this->redirect('/dashboard');
     }
 
@@ -274,6 +281,6 @@ class AuthController extends Controller
     {
         Audit::log('logout', 'Déconnexion de l\'utilisateur');
         Auth::logout();
-        $this->redirect('/login');
+        $this->redirect('/');
     }
 }

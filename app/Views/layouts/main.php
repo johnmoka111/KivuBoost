@@ -3,8 +3,9 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title><?= htmlspecialchars($pageTitle ?? APP_NAME) ?> — BukavuBoost</title>
-  <meta name="description" content="BukavuBoost — Panel SMM professionnel pour Bukavu, RDC. Boostez vos réseaux sociaux rapidement.">
+  <meta name="csrf-token" content="<?= App\Core\Auth::csrfToken() ?>">
+  <title><?= htmlspecialchars($pageTitle ?? APP_NAME) ?> — KivuBoost</title>
+  <meta name="description" content="KivuBoost — Panel SMM professionnel de référence en RDC. Boostez vos réseaux sociaux rapidement.">
   <link rel="icon" type="image/jpeg" href="<?= APP_BASE ?>/assets/logo.jpeg">
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
@@ -84,14 +85,15 @@ function isActive(string $path): string {
 <!-- ===== DESKTOP LAYOUT ===== -->
 <div class="flex min-h-screen">
 
-  <!-- Sidebar (Desktop) -->
-  <aside class="hidden lg:flex flex-col w-64 fixed top-0 left-0 h-full border-r border-[#1a2332] z-40" style="background:#0a0f1a">
+
+  <!-- Sidebar (Desktop uniquement) -->
+  <aside id="sidebar-drawer" class="hidden md:flex fixed top-0 left-0 h-full w-64 border-r border-[#1a2332] z-50 flex-col" style="background:#0a0f1a">
     <!-- Logo -->
     <div class="px-6 py-6 border-b border-[#1a2332]">
       <a href="<?= $base ?>/dashboard" class="flex items-center gap-3">
-        <img src="<?= $base ?>/assets/logo.jpeg" alt="BukavuBoost" class="w-10 h-10 rounded-full object-cover shadow-[0_0_15px_rgba(0,255,136,0.2)] border border-[#1a2332]">
+        <img src="<?= $base ?>/assets/logo.jpeg" alt="KivuBoost" class="w-10 h-10 rounded-full object-cover shadow-[0_0_15px_rgba(0,255,136,0.2)] border border-[#1a2332]">
         <div>
-          <div class="font-bold text-white text-base leading-tight">BukavuBoost</div>
+          <div class="font-bold text-white text-base leading-tight">KivuBoost</div>
           <div class="text-[10px] text-gray-500 uppercase tracking-widest">SMM Panel</div>
         </div>
       </a>
@@ -157,7 +159,11 @@ function isActive(string $path): string {
         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/></svg>
         Grille des Tarifs
       </a>
-      <?php if (!Auth::isAdmin()): ?>
+      <a href="<?= $base ?>/actualites" class="sidebar-item <?= isActive('/actualites') ? 'active' : '' ?> flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-gray-300">
+        <svg class="w-4 h-4 text-emerald-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 12h6"/></svg>
+        Actualités
+      </a>
+      <?php if (!empty(Auth::user()) && !Auth::isAdmin()): ?>
       <a href="<?= $base ?>/api-docs" class="sidebar-item <?= isActive('/api-docs') ? 'active' : '' ?> flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-gray-300">
         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"/></svg>
         Connecteur API
@@ -172,19 +178,40 @@ function isActive(string $path): string {
       <div class="pt-4 pb-1">
         <div class="text-[10px] font-semibold text-gray-600 uppercase tracking-widest px-3">Administration</div>
       </div>
-      <a href="<?= $base ?>/admin" class="sidebar-item <?= isActive('/admin') ? 'active' : '' ?> flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-gray-300">
-        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+      <?php
+        $isAdminRegieActive = (isActive('/admin') === 'active')
+          && (isActive('/admin/settings') !== 'active')
+          && (isActive('/admin/audit') !== 'active')
+          && (isActive('/admin/configuration') !== 'active');
+      ?>
+      <a href="<?= $base ?>/admin" class="sidebar-item <?= $isAdminRegieActive ? 'active' : '' ?> flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-gray-300">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"/></svg>
         Régie Admin
       </a>
+      <a href="<?= $base ?>/admin/configuration" class="sidebar-item <?= isActive('/admin/configuration') ? 'active' : '' ?> flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-gray-300">
+        <svg class="w-4 h-4 text-cyan-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 016 0z"/></svg>
+        Configuration
+      </a>
       <a href="<?= $base ?>/admin/settings" class="sidebar-item <?= isActive('/admin/settings') ? 'active' : '' ?> flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-gray-300">
-        <svg class="w-4 h-4 text-emerald-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"/></svg> 
+        <svg class="w-4 h-4 text-emerald-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"/></svg>
         Paramètres des Marges
       </a>
       <a href="<?= $base ?>/admin/audit" class="sidebar-item <?= isActive('/admin/audit') ? 'active' : '' ?> flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-gray-300">
         <svg class="w-4 h-4 text-amber-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg> 
         Journal d'Audit
       </a>
-
+      <a href="<?= $base ?>/admin/support" class="sidebar-item <?= isActive('/admin/support') ? 'active' : '' ?> flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-gray-300">
+        <svg class="w-4 h-4 text-emerald-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8h2a2 2 0 012 2v6a2 2 0 01-2 2h-2v4l-4-4H9a1.994 1.994 0 01-1.414-.586m0 0L11 14h4a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2v4l.586-.586z"/></svg>
+        Support Client
+      </a>
+      <a href="<?= $base ?>/admin/campaign" class="sidebar-item <?= isActive('/admin/campaign') ? 'active' : '' ?> flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-gray-300">
+        <svg class="w-4 h-4 text-purple-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z"/></svg>
+        Diffuseur de Campagnes
+      </a>
+      <a href="<?= $base ?>/admin/actualites" class="sidebar-item <?= isActive('/admin/actualites') ? 'active' : '' ?> flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-gray-300">
+        <svg class="w-4 h-4 text-pink-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+        Rédiger une Actualité
+      </a>
 
       <?php endif; ?>
     </nav>
@@ -199,13 +226,13 @@ function isActive(string $path): string {
   </aside>
 
   <!-- Main Content -->
-  <main class="flex-1 lg:ml-64 flex flex-col min-h-screen">
+  <main class="flex-1 md:ml-64 flex flex-col min-h-screen w-full overflow-x-hidden">
 
     <!-- Top bar (Desktop - Admin Only) -->
     <?php if (Auth::isAdmin()): ?>
-    <header class="hidden lg:flex items-center justify-between px-6 py-3.5 border-b border-[#1a2332] sticky top-0 z-30" style="background:#0a0f1a;">
+    <header class="hidden md:flex items-center justify-between px-6 py-3.5 border-b border-[#1a2332] sticky top-0 z-30" style="background:#0a0f1a;">
       <div>
-        <h2 class="text-sm font-bold text-gray-400 uppercase tracking-wider"><?= $pageTitle ?? 'BukavuBoost Administration' ?></h2>
+        <h2 class="text-sm font-bold text-gray-400 uppercase tracking-wider"><?= $pageTitle ?? 'KivuBoost Administration' ?></h2>
       </div>
       <div class="flex items-center gap-4">
         <!-- Profil Admin -->
@@ -235,11 +262,14 @@ function isActive(string $path): string {
     <?php endif; ?>
 
     <!-- Top bar (Mobile) -->
-    <header class="lg:hidden flex items-center justify-between px-4 py-3 border-b border-[#1a2332] sticky top-0 z-30" style="background:#0a0f1a">
-      <a href="<?= $base ?>/dashboard" class="flex items-center gap-2">
-        <img src="<?= $base ?>/assets/logo.jpeg" alt="BukavuBoost" class="w-8 h-8 rounded-full object-cover shadow-[0_0_10px_rgba(0,255,136,0.2)] border border-[#1a2332]">
-        <span class="font-bold text-white text-sm">BukavuBoost</span>
-      </a>
+    <header class="md:hidden flex items-center justify-between px-4 py-3 border-b border-[#1a2332] sticky top-0 z-30" style="background:#0a0f1a">
+      <div class="flex items-center gap-3">
+        <!-- Logo -->
+        <a href="<?= $base ?>/dashboard" class="flex items-center gap-2">
+          <img src="<?= $base ?>/assets/logo.jpeg" alt="KivuBoost" class="w-8 h-8 rounded-full object-cover shadow-[0_0_10px_rgba(0,255,136,0.2)] border border-[#1a2332]">
+          <span class="font-bold text-white text-sm">KivuBoost</span>
+        </a>
+      </div>
       <div class="flex items-center gap-3">
         <!-- Infos Monétaire en Mobile -->
         <div class="text-right">
@@ -279,42 +309,24 @@ function isActive(string $path): string {
     <?php endif; ?>
 
     <!-- Page Content -->
-    <div class="flex-1 px-4 py-4 lg:px-6 lg:py-6 pb-24 lg:pb-6">
+    <div class="flex-1 px-4 py-4 md:px-6 md:py-6 pb-24 md:pb-6 w-full">
       <?= $content ?>
     </div>
+
+    <!-- Footer -->
+    <footer class="mt-auto py-6 border-t border-[#1a2332] text-center" style="background:#0a0f1a">
+      <p class="text-[10px] sm:text-xs text-gray-500 font-medium">
+        &copy; <?= date('Y') ?> KivuBoost. Tous droits réservés.
+      </p>
+    </footer>
   </main>
 </div>
 
-<!-- ===== MOBILE BOTTOM NAVIGATION ===== -->
-<nav class="lg:hidden fixed bottom-0 left-0 right-0 border-t z-50 flex pb-safe items-center justify-around" style="background:rgba(5,8,17,0.92);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-color:#1a2332;box-shadow:0 -8px 32px rgba(0,0,0,0.5);height:68px;">
-  <a href="<?= $base ?>/dashboard" class="flex flex-col items-center justify-center w-full h-full gap-1 transition-all <?= isActive('/dashboard') || $currentPath === $base . '/' ? 'text-[#00ff88] font-bold' : 'text-gray-500 hover:text-gray-300' ?>">
-    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
-    <span class="text-[10px] tracking-wide">Accueil</span>
-  </a>
-  <?php if (!Auth::isAdmin()): ?>
-  <a href="<?= $base ?>/recharge" class="flex flex-col items-center justify-center w-full h-full gap-1 transition-all <?= isActive('/recharge') ? 'text-[#00ff88] font-bold' : 'text-gray-500 hover:text-gray-300' ?>">
-    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/></svg>
-    <span class="text-[10px] tracking-wide">Solde</span>
-  </a>
-  <?php endif; ?>
-  <a href="<?= $base ?>/services" class="flex flex-col items-center justify-center w-full h-full gap-1 transition-all <?= isActive('/services') ? 'text-[#00ff88] font-bold' : 'text-gray-500 hover:text-gray-300' ?>">
-    <div class="relative">
-      <div class="absolute -top-1 -right-1 w-2.5 h-2.5 bg-[#00d4ff] rounded-full border-2 border-[#050811]"></div>
-      <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/></svg>
-    </div>
-    <span class="text-[10px] tracking-wide">Services</span>
-  </a>
-  <a href="<?= $base ?>/history" class="flex flex-col items-center justify-center w-full h-full gap-1 transition-all <?= isActive('/history') ? 'text-[#00ff88] font-bold' : 'text-gray-500 hover:text-gray-300' ?>">
-    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
-    <span class="text-[10px] tracking-wide">Suivi</span>
-  </a>
-  <?php if (Auth::isAdmin()): ?>
-  <a href="<?= $base ?>/admin" class="flex flex-col items-center justify-center w-full h-full gap-1 transition-all <?= isActive('/admin') ? 'text-[#00ff88] font-bold' : 'text-gray-500 hover:text-gray-300' ?>">
-    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
-    <span class="text-[10px] tracking-wide">Admin</span>
-  </a>
-  <?php endif; ?>
-</nav>
+  <!-- Bottom Navigation Bar (Mobile Only) -->
+  <?php include __DIR__ . '/bottom_nav.php'; ?>
+
+  <!-- Support Hub component (WhatsApp, Facebook, Instagram) -->
+  <?php include __DIR__ . '/support_hub.php'; ?>
 
 </body>
 </html>

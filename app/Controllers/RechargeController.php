@@ -29,18 +29,18 @@ class RechargeController extends Controller
 
         // Récupération des numéros depuis les settings
         $settings = [
-            'mpesa_number'   => Setting::get('mpesa_number',  '+243XXXXXXXXX'),
-            'airtel_number'  => Setting::get('airtel_number', '+243XXXXXXXXX'),
-            'orange_number'  => Setting::get('orange_number', '+243XXXXXXXXX'),
+            'mpesa_number'  => Setting::get('mpesa_number',  '+243XXXXXXXXX'),
+            'airtel_number' => Setting::get('airtel_number', '+243XXXXXXXXX'),
+            'orange_number' => Setting::get('orange_number', '+243XXXXXXXXX'),
             'vodacom_number' => Setting::get('vodacom_number','+243XXXXXXXXX'),
             'pawapay_enabled'=> Setting::get('pawapay_enabled', '0'),
             'visapay_enabled'=> Setting::get('visapay_enabled', '0'),
         ];
 
         $this->render('recharge/index', [
-            'user'      => $user,
+            'user'     => $user,
             'recharges' => $recharges,
-            'settings'  => $settings,
+            'settings' => $settings,
         ]);
     }
 

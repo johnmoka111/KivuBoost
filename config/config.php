@@ -1,6 +1,6 @@
 <?php
 // ============================================================
-// BukavuBoost — Configuration Centrale
+// KivuBoost — Configuration Centrale
 // ============================================================
 
 // --- Base de données ---
@@ -10,9 +10,12 @@ define('DB_USER', 'root');
 define('DB_PASS', '');
 
 // --- Application ---
-define('APP_NAME',    'BukavuBoost');
+define('APP_NAME',    'KivuBoost');
 define('APP_BASE',    '/KivuBoost');        // Chemin de base dans l'URL
 define('APP_URL',     'http://' . ($_SERVER['HTTP_HOST'] ?? 'localhost') . '/KivuBoost');
+
+// --- fuseau horaire local (Bukavu/Lubumbashi - UTC+2) ---
+date_default_timezone_set('Africa/Lubumbashi');
 
 // --- Sécurité ---
 define('CSRF_SECRET', 'b0k@vuB00st_C5RF_53cr3t_2024!');
@@ -34,3 +37,6 @@ spl_autoload_register(function (string $class): void {
         }
     }
 });
+
+// --- Chargement du système de messagerie SMTP (PHPMailer) ---
+require_once ROOT_PATH . '/config/mailer_config.php';

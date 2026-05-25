@@ -15,8 +15,10 @@ class Audit
                 session_start();
             }
             
-            $userId   = isset($_SESSION['user']['id']) ? (int)$_SESSION['user']['id'] : null;
-            $username = isset($_SESSION['user']['username']) ? $_SESSION['user']['username'] : null;
+            $currentUser = \App\Core\Auth::user();
+            
+            $userId   = $currentUser ? (int)$currentUser['id'] : null;
+            $username = $currentUser ? $currentUser['username'] : null;
             
             $ip = $_SERVER['REMOTE_ADDR'] ?? '127.0.0.1';
             $ua = $_SERVER['HTTP_USER_AGENT'] ?? 'Unknown';
@@ -34,7 +36,14 @@ class Audit
     public static function getAll(): array
     {
         $db = Database::getInstance();
-        $stmt = $db->query("SELECT * FROM audit_logs ORDER BY created_at DESC LIMIT 500");
+        $stmt = $db->query("
+            SELECT a.id, a.user_id, a.action, a.details, a.ip_address, a.user_agent, a.created_at, 
+                   COALESCE(u.username, a.username) AS username
+            FROM audit_logs a
+            LEFT JOIN users u ON a.user_id = u.id
+            ORDER BY a.created_at DESC 
+            LIMIT 500
+        ");
         return $stmt->fetchAll();
     }
 }

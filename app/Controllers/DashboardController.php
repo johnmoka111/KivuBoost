@@ -41,9 +41,9 @@ class DashboardController extends Controller
         $subscriptions = $stmtSub->fetchAll();
 
         $this->render('dashboard/index', [
-            'user'          => $user,
-            'services'      => $services,
-            'orders'        => $orders,
+            'user'         => $user,
+            'services'     => $services,
+            'orders'       => $orders,
             'subscriptions' => $subscriptions,
         ]);
     }
@@ -83,8 +83,8 @@ class DashboardController extends Controller
         }
 
         $this->render('client/history', [
-            'user'          => $user,
-            'orders'        => $orders,
+            'user'         => $user,
+            'orders'       => $orders,
             'subscriptions' => $subscriptions,
         ]);
     }
@@ -101,8 +101,8 @@ class DashboardController extends Controller
         $services = $serviceModel->groupedByCategory();
 
         $this->render('client/services', [
-            'user'          => $user,
-            'services'      => $services,
+            'user'         => $user,
+            'services'     => $services,
         ]);
     }
 

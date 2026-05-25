@@ -28,7 +28,7 @@ class Service
     public function allForAdmin(): array
     {
         return $this->db->query(
-            'SELECT s.*, p.name AS provider_name 
+            'SELECT s.*, p.name AS provider_name, p.status AS provider_status 
              FROM services s 
              LEFT JOIN providers p ON p.id = s.provider_id 
              ORDER BY s.category, s.name'
@@ -67,15 +67,15 @@ class Service
              VALUES (:provider_id, :external_service_id, :category, :name, :original_rate, :calculated_rate, :min_quantity, :max_quantity, :is_active)'
         );
         $stmt->execute([
-            ':provider_id'         => (int)$data['provider_id'],
+            ':provider_id'        => (int)$data['provider_id'],
             ':external_service_id' => (int)$data['external_service_id'],
-            ':category'            => $data['category'],
-            ':name'                => $data['name'],
-            ':original_rate'        => (float)$data['original_rate'],
-            ':calculated_rate'       => (float)$data['calculated_rate'],
-            ':min_quantity'        => (int)$data['min_quantity'],
-            ':max_quantity'        => (int)$data['max_quantity'],
-            ':is_active'           => isset($data['is_active']) ? (int)$data['is_active'] : 1,
+            ':category'           => $data['category'],
+            ':name'               => $data['name'],
+            ':original_rate'       => (float)$data['original_rate'],
+            ':calculated_rate'      => (float)$data['calculated_rate'],
+            ':min_quantity'       => (int)$data['min_quantity'],
+            ':max_quantity'       => (int)$data['max_quantity'],
+            ':is_active'          => isset($data['is_active']) ? (int)$data['is_active'] : 1,
         ]);
         return (int)$this->db->lastInsertId();
     }
@@ -96,16 +96,16 @@ class Service
              WHERE id = :id'
         );
         return $stmt->execute([
-            ':provider_id'         => (int)$data['provider_id'],
+            ':provider_id'        => (int)$data['provider_id'],
             ':external_service_id' => (int)$data['external_service_id'],
-            ':category'            => $data['category'],
-            ':name'                => $data['name'],
-            ':original_rate'        => (float)$data['original_rate'],
-            ':calculated_rate'       => (float)$data['calculated_rate'],
-            ':min_quantity'        => (int)$data['min_quantity'],
-            ':max_quantity'        => (int)$data['max_quantity'],
-            ':is_active'           => isset($data['is_active']) ? (int)$data['is_active'] : 1,
-            ':id'                  => $id,
+            ':category'           => $data['category'],
+            ':name'               => $data['name'],
+            ':original_rate'       => (float)$data['original_rate'],
+            ':calculated_rate'      => (float)$data['calculated_rate'],
+            ':min_quantity'       => (int)$data['min_quantity'],
+            ':max_quantity'       => (int)$data['max_quantity'],
+            ':is_active'          => isset($data['is_active']) ? (int)$data['is_active'] : 1,
+            ':id'                 => $id,
         ]);
     }
 

@@ -109,6 +109,14 @@ class Auth
         return hash_equals($_SESSION['csrf_token'] ?? '', $token);
     }
 
+    /**
+     * Vérifie un token CSRF passé explicitement (utile pour les requêtes AJAX).
+     */
+    public static function verifyCsrfToken(string $token): bool
+    {
+        return hash_equals($_SESSION['csrf_token'] ?? '', $token);
+    }
+
     public static function csrfField(): string
     {
         return '<input type="hidden" name="_csrf" value="' . self::csrfToken() . '">';

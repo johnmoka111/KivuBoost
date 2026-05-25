@@ -8,6 +8,10 @@ RewriteBase /KivuBoost/
 RewriteRule ^app/           - [F,L]
 RewriteRule ^config/        - [F,L]
 
+# --- Canonique : /index.php → / (évite le 404 du routeur) ---
+RewriteCond %{THE_REQUEST} \s/+KivuBoost/index\.php[\s?] [NC]
+RewriteRule ^index\.php$ / [R=301,L]
+
 # --- Ne pas réécrire les vraies ressources statiques ---
 RewriteCond %{REQUEST_FILENAME} -f [OR]
 RewriteCond %{REQUEST_FILENAME} -d

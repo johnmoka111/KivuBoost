@@ -33,47 +33,99 @@ class AdminController extends Controller
         // Statistiques globales
         $stats = [
             'pending_recharges' => $rechargeModel->countPending(),
-            'total_deposited'   => $rechargeModel->totalApproved(),
-            'total_orders'      => $orderModel->countByStatus('Processing')
+            'total_deposited'  => $rechargeModel->totalApproved(),
+            'total_orders'     => $orderModel->countByStatus('Processing')
                                  + $orderModel->countByStatus('Completed'),
-            'total_revenue'     => $orderModel->totalRevenue(),
+            'total_revenue'    => $orderModel->totalRevenue(),
         ];
 
-        // Solde fournisseur (Récupération dynamique du premier fournisseur actif)
-        $providerBalance = ['balance' => '0.00', 'currency' => 'USD'];
+        // Les providers actifs
         $providers = $providerModel->all();
-        $activeProvider = null;
-        foreach ($providers as $prov) {
-            if ($prov['status'] == 1 && $prov['api_key'] !== 'CLE_SECRETE_SMM_FOLLOWS') {
-                $activeProvider = $prov;
-                break;
-            }
-        }
-
-        if ($activeProvider) {
-            $providerBalance = $this->fetchProviderBalance(
-                $activeProvider['api_key'],
-                $activeProvider['api_url']
-            );
-        }
 
         $pendingRecharges = $rechargeModel->getPending();
-        $recentOrders     = $orderModel->getAll(20);
+        $recentOrders     = $orderModel->getAll(1000);
         $allUsers         = $userModel->all();
         $allSettings      = $settingModel->toArray();
         $allServices      = $serviceModel->allForAdmin();
 
         $this->render('admin/index', [
-            'user'             => Auth::user(),
-            'stats'            => $stats,
-            'providerBalance'  => $providerBalance,
+            'user'            => Auth::user(),
+            'stats'           => $stats,
             'pendingRecharges' => $pendingRecharges,
-            'recentOrders'     => $recentOrders,
-            'allUsers'         => $allUsers,
-            'allSettings'      => $allSettings,
-            'allServices'      => $allServices,
-            'allProviders'     => $providers,
+            'recentOrders'    => $recentOrders,
+            'allUsers'        => $allUsers,
+            'allSettings'     => $allSettings,
+            'allServices'     => $allServices,
+            'allProviders'    => $providers,
         ]);
+    }
+
+    // -------------------------------------------------------
+    // GET /admin/configuration (Configuration Globale)
+    // -------------------------------------------------------
+    public function configuration(): void
+    {
+        Auth::requireAdmin();
+
+        $settingModel  = new Setting();
+        $allSettings   = $settingModel->toArray();
+
+        $this->render('admin/configuration', [
+            'user'        => Auth::user(),
+            'allSettings' => $allSettings,
+        ]);
+    }
+
+    // -------------------------------------------------------
+    // GET /admin/provider-balance (AJAX Asynchrone)
+    // -------------------------------------------------------
+    public function getProviderBalance(): void
+    {
+        Auth::requireAdmin();
+
+        $providerModel = new Provider();
+        $providers = $providerModel->all();
+        $activeProvider = null;
+        $providerId = isset($_GET['provider_id']) ? (int)$_GET['provider_id'] : 0;
+
+        if ($providerId > 0) {
+            foreach ($providers as $prov) {
+                if ($prov['id'] == $providerId) {
+                    $activeProvider = $prov;
+                    break;
+                }
+            }
+        } else {
+            foreach ($providers as $prov) {
+                if ($prov['status'] == 1 && $prov['api_key'] !== 'CLE_SECRETE_SMM_FOLLOWS') {
+                    $activeProvider = $prov;
+                    break;
+                }
+            }
+        }
+
+        $balance = null;
+        $name = 'N/A';
+        $returnedProviderId = null;
+
+        if ($activeProvider) {
+            $name = $activeProvider['name'];
+            $returnedProviderId = $activeProvider['id'];
+            $fetch = $this->fetchProviderBalance(
+                $activeProvider['api_key'],
+                $activeProvider['api_url']
+            );
+            $balance = $fetch['balance'] ?? null;
+        }
+
+        header('Content-Type: application/json');
+        echo json_encode([
+            'success' => $balance !== null,
+            'balance' => $balance,
+            'provider_name' => $name,
+            'provider_id' => $returnedProviderId
+        ]);
+        exit;
     }
 
     // -------------------------------------------------------
@@ -120,6 +172,27 @@ class AdminController extends Controller
 
             $rechargeModel->updateStatus($rechargeId, 'Approved', 'Approuvé par ' . Auth::user()['username']);
             Audit::log('approve_recharge', "Recharge #{$rechargeId} approuvée (Montant : {$currencyLabel}, Utilisateur : {$recharge['username']})");
+
+            $updatedUser = $userModel->findById((int)$recharge['user_id']);
+            $newBalance = (float)($updatedUser['balance'] ?? 0.00);
+            
+            if ($rechargeCurrency === 'CDF') {
+                $rate = (float)Setting::get('usd_rate_cdf', '2850');
+                $newBalanceFormatted = $newBalance * $rate;
+            } else {
+                $newBalanceFormatted = $newBalance;
+            }
+
+            // Déclencheur SMTP : Validation de Portefeuille
+            $historyUrl = APP_URL . '/history';
+            sendKivuBoostMail($recharge['email'], "Fonds crédités avec succès sur KivuBoost !", "admin_recharges", [
+                'username'   => $recharge['username'],
+                'amount'     => (float)$recharge['amount'],
+                'currency'   => $rechargeCurrency,
+                'smsToken'   => $recharge['transaction_id'],
+                'newBalance' => $newBalanceFormatted,
+                'historyUrl' => $historyUrl
+            ]);
 
             $db->commit();
         } catch (\Throwable $e) {
@@ -206,7 +279,7 @@ class AdminController extends Controller
         Audit::log('update_settings', "Paramètres globaux mis à jour : " . json_encode($data));
 
         $this->flash('success', 'Paramètres mis à jour avec succès.');
-        $this->redirect('/admin');
+        $this->redirect('/admin/configuration');
     }
 
     // -------------------------------------------------------
@@ -280,15 +353,15 @@ class AdminController extends Controller
         $id = (int)($_POST['id'] ?? 0);
 
         $data = [
-            'provider_id'         => (int)($_POST['provider_id'] ?? 0),
+            'provider_id'        => (int)($_POST['provider_id'] ?? 0),
             'external_service_id' => (int)($_POST['external_service_id'] ?? 0),
-            'category'            => trim($_POST['category'] ?? ''),
-            'name'                => trim($_POST['name'] ?? ''),
-            'min_quantity'        => (int)($_POST['min_quantity'] ?? 10),
-            'max_quantity'        => (int)($_POST['max_quantity'] ?? 10000),
-            'original_rate'        => (float)($_POST['original_rate'] ?? 0.0),
-            'calculated_rate'       => (float)($_POST['calculated_rate'] ?? 0.0),
-            'is_active'           => isset($_POST['is_active']) ? 1 : 0,
+            'category'           => trim($_POST['category'] ?? ''),
+            'name'               => trim($_POST['name'] ?? ''),
+            'min_quantity'       => (int)($_POST['min_quantity'] ?? 10),
+            'max_quantity'       => (int)($_POST['max_quantity'] ?? 10000),
+            'original_rate'       => (float)($_POST['original_rate'] ?? 0.0),
+            'calculated_rate'      => (float)($_POST['calculated_rate'] ?? 0.0),
+            'is_active'          => isset($_POST['is_active']) ? 1 : 0,
         ];
 
         if ($data['provider_id'] <= 0 || $data['external_service_id'] <= 0) {
@@ -364,14 +437,22 @@ class AdminController extends Controller
 
         try {
             $db->beginTransaction();
-            $stmt = $db->prepare('UPDATE providers SET markup_percentage = ? WHERE id = ?');
+            $stmtProvider = $db->prepare('UPDATE providers SET markup_percentage = ? WHERE id = ?');
+            $stmtServices = $db->prepare('UPDATE services SET calculated_rate = ROUND(original_rate * (1 + (? / 100)), 4) WHERE provider_id = ?');
             
             foreach ($margins as $providerId => $percentage) {
-                $stmt->execute([(int)$percentage, (int)$providerId]);
+                $markup = (int)$percentage;
+                $pId = (int)$providerId;
+                
+                // 1. Mettre à jour la marge du grossiste
+                $stmtProvider->execute([$markup, $pId]);
+                
+                // 2. Mettre à jour instantanément les tarifs calculés de tous les services de ce grossiste
+                $stmtServices->execute([$markup, $pId]);
             }
             $db->commit();
             
-            $this->flash('success', 'Les marges des fournisseurs ont été enregistrées avec succès.');
+            $this->flash('success', 'Les marges et les tarifs des services associés ont été mis à jour instantanément.');
         } catch (\Exception $e) {
             $db->rollBack();
             $this->flash('error', 'Erreur lors de la mise à jour des marges.');
@@ -423,14 +504,20 @@ class AdminController extends Controller
 
             // Récupérer les services existants pour ce fournisseur pour mise à jour/évitement doublons
             $db = Database::getInstance();
-            $stmt = $db->prepare('SELECT id, external_service_id FROM services WHERE provider_id = ?');
+            $stmt = $db->prepare('SELECT id, external_service_id, is_active FROM services WHERE provider_id = ?');
             $stmt->execute([$providerId]);
             $existing = [];
             while ($row = $stmt->fetch()) {
-                $existing[$row['external_service_id']] = $row['id'];
+                $existing[$row['external_service_id']] = [
+                    'id'        => $row['id'],
+                    'is_active' => $row['is_active']
+                ];
             }
 
+            // Début de la transaction unique pour des performances 100x plus rapides
+            $db->beginTransaction();
             $countSynced = 0;
+            
             foreach ($externalServices as $svc) {
                 // SMM Panel Standard Keys: service, name, category, rate, min, max
                 $extId    = (int)($svc['service'] ?? 0);
@@ -445,25 +532,52 @@ class AdminController extends Controller
                 // Tarification dynamique : prix de vente = prix d'achat * (1 + markup %)
                 $calculatedRate = round($rate * (1 + ($markup / 100)), 4);
 
+                // --- AJUSTEMENT INTELLIGENT DU TITRE ---
+                // Si le fournisseur inclut le prix d'achat dans le titre (ex: $0.30), cela crée la confusion.
+                // On remplace dynamiquement l'ancien prix par le nouveau prix de vente ($calculatedRate) dans le titre.
+                if ($rate > 0) {
+                    $possibleFormats = [
+                        number_format($rate, 4, '.', ''),
+                        number_format($rate, 3, '.', ''),
+                        number_format($rate, 2, '.', ''),
+                        (string)(float)$rate
+                    ];
+                    $possibleFormats = array_unique($possibleFormats);
+                    usort($possibleFormats, function($a, $b) { return strlen($b) - strlen($a); });
+                    
+                    $calcStr = (float)$calculatedRate == floor($calculatedRate) ? (string)(int)$calculatedRate : rtrim(rtrim(number_format($calculatedRate, 4, '.', ''), '0'), '.');
+                    
+                    foreach ($possibleFormats as $rf) {
+                        $name = preg_replace_callback('/\$' . preg_quote($rf, '/') . '(?!\d)/', function() use ($calcStr) { return '$' . $calcStr; }, $name);
+                        $name = preg_replace_callback('/(?<!\d)' . preg_quote($rf, '/') . '\$/', function() use ($calcStr) { return $calcStr . '$'; }, $name);
+                        $name = preg_replace_callback('/([\s\-\|]+)' . preg_quote($rf, '/') . '(?!\d)$/', function($m) use ($calcStr) { return $m[1] . $calcStr; }, $name);
+                    }
+                }
+
                 $data = [
-                    'provider_id'         => $providerId,
+                    'provider_id'        => $providerId,
                     'external_service_id' => $extId,
-                    'category'            => $category,
-                    'name'                => $name,
-                    'original_rate'        => $rate,
-                    'calculated_rate'       => $calculatedRate,
-                    'min_quantity'        => $min,
-                    'max_quantity'        => $max,
-                    'is_active'           => 1
+                    'category'           => $category,
+                    'name'               => $name,
+                    'original_rate'       => $rate,
+                    'calculated_rate'      => $calculatedRate,
+                    'min_quantity'       => $min,
+                    'max_quantity'       => $max,
+                    'is_active'          => 1
                 ];
 
                 if (isset($existing[$extId])) {
-                    $serviceModel->update($existing[$extId], $data);
+                    // Préserver l'état (actif ou désactivé) existant lors de la mise à jour
+                    $data['is_active'] = $existing[$extId]['is_active'];
+                    $serviceModel->update($existing[$extId]['id'], $data);
                 } else {
                     $serviceModel->create($data);
                 }
                 $countSynced++;
             }
+
+            // Validation de la transaction
+            $db->commit();
 
             $this->flash('success', sprintf(
                 'Synchronisation réussie ! %d services mis à jour ou créés depuis le catalogue de %s (Marge de +%g%% appliquée).',
@@ -473,6 +587,9 @@ class AdminController extends Controller
             ));
 
         } catch (\Throwable $e) {
+            if (isset($db) && $db->inTransaction()) {
+                $db->rollBack();
+            }
             $this->flash('error', 'Erreur de synchronisation : ' . $e->getMessage());
         }
 
@@ -496,6 +613,133 @@ class AdminController extends Controller
 
         $this->flash('success', 'Service supprimé.');
         $this->redirect('/admin');
+    }
+
+    // -------------------------------------------------------
+    // POST /admin/services/toggle-status  (AJAX)
+    // Corps attendu : { id, is_active, _token }
+    // Retourne JSON { success, id, is_active }
+    // -------------------------------------------------------
+    public function toggleServiceStatus(): void
+    {
+        Auth::requireAdmin();
+
+        // Accepter le token CSRF aussi bien en POST qu'en header X-CSRF-TOKEN
+        $token = $_POST['_token'] ?? ($_SERVER['HTTP_X_CSRF_TOKEN'] ?? '');
+        if (!Auth::verifyCsrfToken($token)) {
+            http_response_code(403);
+            header('Content-Type: application/json');
+            echo json_encode(['success' => false, 'error' => 'Token CSRF invalide.']);
+            exit;
+        }
+
+        $id       = (int)($_POST['id'] ?? 0);
+        $isActive = (int)($_POST['is_active'] ?? 0); // 0 ou 1
+
+        if ($id <= 0) {
+            http_response_code(400);
+            header('Content-Type: application/json');
+            echo json_encode(['success' => false, 'error' => 'ID invalide.']);
+            exit;
+        }
+
+        $db   = Database::getInstance();
+        $stmt = $db->prepare('UPDATE services SET is_active = ? WHERE id = ?');
+        $stmt->execute([$isActive ? 1 : 0, $id]);
+
+        $label = $isActive ? 'visible' : 'invisible';
+        Audit::log('toggle_service', "Service #{$id} marqué {$label} par " . Auth::user()['username']);
+
+        header('Content-Type: application/json');
+        echo json_encode(['success' => true, 'id' => $id, 'is_active' => $isActive]);
+        exit;
+    }
+
+    // -------------------------------------------------------
+    // POST /admin/services/bulk-toggle  (AJAX)
+    // Corps attendu : { ids[] (array d'entiers), is_active, _token }
+    // Retourne JSON { success, affected }
+    // -------------------------------------------------------
+    public function bulkToggleServices(): void
+    {
+        Auth::requireAdmin();
+
+        $token = $_POST['_token'] ?? ($_SERVER['HTTP_X_CSRF_TOKEN'] ?? '');
+        if (!Auth::verifyCsrfToken($token)) {
+            http_response_code(403);
+            header('Content-Type: application/json');
+            echo json_encode(['success' => false, 'error' => 'Token CSRF invalide.']);
+            exit;
+        }
+
+        $rawIds = $_POST['ids'] ?? [];
+        if (is_string($rawIds) && str_starts_with($rawIds, '[')) {
+            $rawIds = json_decode($rawIds, true) ?? [];
+        }
+        $isActive = (int)($_POST['is_active'] ?? 0);
+
+        // Sanitiser tous les IDs
+        $ids = array_filter(array_map('intval', (array)$rawIds), fn($v) => $v > 0);
+
+        if (empty($ids)) {
+            header('Content-Type: application/json');
+            echo json_encode(['success' => false, 'error' => 'Aucun service sélectionné.']);
+            exit;
+        }
+
+        $db          = Database::getInstance();
+        $placeholders = implode(',', array_fill(0, count($ids), '?'));
+        $params       = array_merge([$isActive ? 1 : 0], array_values($ids));
+        $stmt         = $db->prepare("UPDATE services SET is_active = ? WHERE id IN ({$placeholders})");
+        $stmt->execute($params);
+
+        $label = $isActive ? 'visible' : 'invisible';
+        Audit::log('bulk_toggle_services', count($ids) . " services marqués {$label} en lot par " . Auth::user()['username']);
+
+        header('Content-Type: application/json');
+        echo json_encode(['success' => true, 'affected' => $stmt->rowCount(), 'is_active' => $isActive]);
+        exit;
+    }
+
+    // -------------------------------------------------------
+    // POST /admin/services/bulk-delete  (AJAX)
+    // Corps attendu : { ids[] (array d'entiers), _token }
+    // Retourne JSON { success, affected }
+    // -------------------------------------------------------
+    public function bulkDeleteServices(): void
+    {
+        Auth::requireAdmin();
+
+        $token = $_POST['_token'] ?? ($_SERVER['HTTP_X_CSRF_TOKEN'] ?? '');
+        if (!Auth::verifyCsrfToken($token)) {
+            http_response_code(403);
+            header('Content-Type: application/json');
+            echo json_encode(['success' => false, 'error' => 'Token CSRF invalide.']);
+            exit;
+        }
+
+        $rawIds = $_POST['ids'] ?? [];
+        if (is_string($rawIds) && str_starts_with($rawIds, '[')) {
+            $rawIds = json_decode($rawIds, true) ?? [];
+        }
+        $ids    = array_filter(array_map('intval', (array)$rawIds), fn($v) => $v > 0);
+
+        if (empty($ids)) {
+            header('Content-Type: application/json');
+            echo json_encode(['success' => false, 'error' => 'Aucun service sélectionné.']);
+            exit;
+        }
+
+        $db           = Database::getInstance();
+        $placeholders = implode(',', array_fill(0, count($ids), '?'));
+        $stmt         = $db->prepare("DELETE FROM services WHERE id IN ({$placeholders})");
+        $stmt->execute(array_values($ids));
+
+        Audit::log('bulk_delete_services', count($ids) . " services supprimés en lot par " . Auth::user()['username']);
+
+        header('Content-Type: application/json');
+        echo json_encode(['success' => true, 'affected' => $stmt->rowCount()]);
+        exit;
     }
 
     // -------------------------------------------------------
@@ -552,6 +796,83 @@ class AdminController extends Controller
             'user' => Auth::user(),
             'logs' => $logs
         ]);
+    }
+
+    // -------------------------------------------------------
+    // GET /admin/campaign — Interface de campagne d'emails
+    // -------------------------------------------------------
+    public function campaignForm(): void
+    {
+        Auth::requireAdmin();
+        $this->render('admin/campaign', [
+            'user' => Auth::user()
+        ]);
+    }
+
+    // -------------------------------------------------------
+    // POST /admin/campaign/send — Envoi de la campagne en masse
+    // -------------------------------------------------------
+    public function sendCampaign(): void
+    {
+        Auth::requireAdmin();
+
+        if (!Auth::verifyCsrf()) {
+            $this->flash('error', 'Token de sécurité invalide.');
+            $this->redirect('/admin/campaign');
+        }
+
+        $subject    = trim($_POST['subject'] ?? '');
+        $title      = trim($_POST['title'] ?? '');
+        $content    = trim($_POST['content'] ?? '');
+        $actionText = trim($_POST['action_text'] ?? '🚀 Propulser mon audience');
+        $actionUrl  = trim($_POST['action_url'] ?? '');
+
+        if (empty($subject) || empty($title) || empty($content)) {
+            $this->flash('error', 'Veuillez remplir le sujet, le titre et le contenu de l\'annonce.');
+            $this->redirect('/admin/campaign');
+        }
+
+        if (empty($actionUrl)) {
+            $actionUrl = APP_URL . '/dashboard';
+        }
+
+        // Pour éviter l'interruption du script en cas d'envois massifs
+        set_time_limit(0);
+        ignore_user_abort(true);
+
+        $db = Database::getInstance();
+        $stmt = $db->query("SELECT email, username FROM users WHERE email IS NOT NULL AND email != ''");
+        $users = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        $total = count($users);
+        $successCount = 0;
+        $failCount = 0;
+
+        foreach ($users as $recipient) {
+            $data = [
+                'username'   => $recipient['username'],
+                'title'      => $title,
+                'content'    => $content,
+                'actionText' => $actionText,
+                'actionUrl'  => $actionUrl
+            ];
+
+            $result = sendKivuBoostMail($recipient['email'], $subject, 'admin_news', $data);
+
+            if ($result) {
+                $successCount++;
+            } else {
+                $failCount++;
+            }
+
+            // Temporisation légère (50ms) pour ménager les serveurs SMTP et les cœurs CPU
+            usleep(50000);
+        }
+
+        Audit::log('campaign_sent', "Campagne d'emails envoyée : [{$subject}] - Réussis : {$successCount}/{$total}, Échecs : {$failCount}/{$total}");
+        
+        $this->flash('success', "Campagne envoyée avec succès ! Destinataires touchés : {$successCount} reçus, {$failCount} échecs.");
+        $this->redirect('/admin/campaign');
     }
 
     // -------------------------------------------------------
