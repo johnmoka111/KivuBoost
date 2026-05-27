@@ -20,6 +20,10 @@ date_default_timezone_set('Africa/Lubumbashi');
 // --- Sécurité ---
 define('CSRF_SECRET', 'b0k@vuB00st_C5RF_53cr3t_2024!');
 
+// --- Clé de test/placeholder pour les fournisseurs non encore configurés ---
+// Un fournisseur dont l'api_key est égale à cette valeur ne sera PAS contacté via l'API.
+define('SMM_PLACEHOLDER_KEY', 'CLE_SECRETE_SMM_FOLLOWS');
+
 // --- Chemins absolus ---
 define('ROOT_PATH', dirname(__DIR__));
 define('APP_PATH',  ROOT_PATH . '/app');

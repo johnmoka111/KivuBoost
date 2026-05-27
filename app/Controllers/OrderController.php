@@ -116,7 +116,7 @@ class OrderController extends Controller
         $apiUrl = $service['api_url'] ?? '';
         $apiKey = $service['api_key'] ?? '';
 
-        if (!empty($apiUrl) && !empty($apiKey) && $apiKey !== 'CLE_SECRETE_SMM_FOLLOWS') {
+        if (!empty($apiUrl) && !empty($apiKey) && $apiKey !== SMM_PLACEHOLDER_KEY) {
             try {
                 // Instanciation de SmmApi avec les coordonnées récupérées dynamiquement depuis la jointure
                 $api = new SmmApi($apiKey, $apiUrl);
@@ -264,7 +264,7 @@ class OrderController extends Controller
                 // Routage API grossiste
                 $apiUrl = $service['api_url'] ?? '';
                 $apiKey = $service['api_key'] ?? '';
-                if (!empty($apiUrl) && !empty($apiKey) && $apiKey !== 'CLE_SECRETE_SMM_FOLLOWS') {
+                if (!empty($apiUrl) && !empty($apiKey) && $apiKey !== SMM_PLACEHOLDER_KEY) {
                     try {
                         $api = new SmmApi($apiKey, $apiUrl);
                         $response = $api->addOrder(

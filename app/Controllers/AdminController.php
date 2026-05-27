@@ -97,7 +97,7 @@ class AdminController extends Controller
             }
         } else {
             foreach ($providers as $prov) {
-                if ($prov['status'] == 1 && $prov['api_key'] !== 'CLE_SECRETE_SMM_FOLLOWS') {
+                if ($prov['status'] == 1 && $prov['api_key'] !== SMM_PLACEHOLDER_KEY) {
                     $activeProvider = $prov;
                     break;
                 }
@@ -482,7 +482,7 @@ class AdminController extends Controller
         $providerModel = new Provider();
         $provider = $providerModel->findById($providerId);
 
-        if (!$provider || $provider['api_key'] === 'CLE_SECRETE_SMM_FOLLOWS') {
+        if (!$provider || $provider['api_key'] === SMM_PLACEHOLDER_KEY) {
             $this->flash('error', 'Fournisseur SMM introuvable ou clé API non configurée.');
             $this->redirect('/admin');
         }
@@ -905,7 +905,7 @@ class AdminController extends Controller
               AND o.external_order_id IS NOT NULL
               AND o.external_order_id != ''
               AND p.status = 1
-              AND p.api_key != 'CLE_SECRETE_SMM_FOLLOWS'
+              AND p.api_key != '" . SMM_PLACEHOLDER_KEY . "'
             LIMIT 200
         ");
         $processingOrders = $stmt->fetchAll();
