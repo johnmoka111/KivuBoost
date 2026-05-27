@@ -188,9 +188,11 @@ class SmmApi
         curl_setopt($ch, CURLOPT_POST, 1);
         curl_setopt($ch, CURLOPT_HEADER, 0);
         
-        // Désactivation de la vérification SSL stricte pour garantir des performances optimales et éviter les blocages de requêtes HTTPS sous Windows XAMPP en local
-        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, 0);
-        curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 0);
+        // Détecter l'environnement : sécurité stricte en production, souplesse en local (XAMPP)
+        $isLocalhost = in_array(explode(':', $_SERVER['HTTP_HOST'] ?? 'localhost')[0], ['localhost', '127.0.0.1', '[::1]']);
+        
+        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, $isLocalhost ? 0 : 1);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, $isLocalhost ? 0 : 2);
         curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
 
         if (is_array($post)) {
