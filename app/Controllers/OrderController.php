@@ -360,27 +360,83 @@ class OrderController extends Controller
             $this->redirect('/dashboard');
         }
 
-        // Enregistrer en base
+        // Calcul du coût maximum possible pour cet abonnement
+        $maxCost = round((($service['calculated_rate'] * $maxQuantity) / 1000) * $posts, 4);
+
+        $userModel = new User();
+        $user = $userModel->findById((int)Auth::user()['id']);
+
+        if (!$user || (float)$user['balance'] < $maxCost) {
+            $this->flash('error', sprintf('Solde insuffisant. Coût estimé : $%.4f', $maxCost));
+            $this->redirect('/dashboard');
+        }
+
         $db = Database::getInstance();
-        $stmt = $db->prepare("
-            INSERT INTO subscriptions (user_id, service_id, username, min_quantity, max_quantity, posts, delay, status)
-            VALUES (?, ?, ?, ?, ?, ?, ?, 'Active')
-        ");
+        try {
+            $db->beginTransaction();
 
-        $stmt->execute([
-            Auth::user()['id'],
-            $serviceId,
-            $username,
-            $minQuantity,
-            $maxQuantity,
-            $posts,
-            $delay
-        ]);
+            // 1. Débiter l'utilisateur
+            $debited = $userModel->debitBalance((int)$user['id'], $maxCost);
+            if (!$debited) {
+                throw new \RuntimeException('Échec du débit.');
+            }
 
-        $subId = $db->lastInsertId();
-        Audit::log('create_subscription', "Abonnement #{$subId} créé pour @{$username} (Service : {$service['name']}, Posts : {$posts})");
+            // 2. Enregistrer en base localement
+            $stmt = $db->prepare("
+                INSERT INTO subscriptions (user_id, service_id, username, min_quantity, max_quantity, posts, delay, status, cost)
+                VALUES (?, ?, ?, ?, ?, ?, ?, 'Active', ?)
+            ");
+            $stmt->execute([
+                $user['id'],
+                $serviceId,
+                $username,
+                $minQuantity,
+                $maxQuantity,
+                $posts,
+                $delay,
+                $maxCost
+            ]);
+            $subId = $db->lastInsertId();
 
-        $this->flash('success', "Abonnement créé avec succès pour @{$username} ! Notre système suivra automatiquement vos prochaines publications.");
+            // 3. Routage API grossiste
+            $apiUrl = $service['api_url'] ?? '';
+            $apiKey = $service['api_key'] ?? '';
+            
+            if (!empty($apiUrl) && !empty($apiKey) && $apiKey !== SMM_PLACEHOLDER_KEY) {
+                $api = new SmmApi($apiKey, $apiUrl);
+                
+                // Pour les abonnements, on passe des paramètres spécifiques
+                $response = $api->order([
+                    'service'  => (int)$service['external_service_id'],
+                    'username' => $username,
+                    'min'      => $minQuantity,
+                    'max'      => $maxQuantity,
+                    'posts'    => $posts,
+                    'delay'    => $delay
+                ]);
+
+                if (isset($response['order']) || isset($response['subscription'])) {
+                    $extId = $response['subscription'] ?? $response['order'];
+                    $upStmt = $db->prepare('UPDATE subscriptions SET external_subscription_id = ? WHERE id = ?');
+                    $upStmt->execute([(string)$extId, $subId]);
+                } else {
+                    throw new \RuntimeException('Erreur API Grossiste: ' . ($response['error'] ?? 'Inconnue'));
+                }
+            }
+
+            $db->commit();
+            Audit::log('create_subscription', "Abonnement #{$subId} créé pour @{$username} (Coût : {$maxCost} USD, Posts : {$posts})");
+
+            Auth::refreshUser();
+            $this->flash('success', "Abonnement créé avec succès pour @{$username} ! Le système suivra automatiquement vos $posts prochaines publications.");
+
+        } catch (\Throwable $e) {
+            if ($db->inTransaction()) {
+                $db->rollBack();
+            }
+            $this->flash('error', 'Erreur lors de la création de l\'abonnement : ' . $e->getMessage());
+        }
+
         $this->redirect('/dashboard');
     }
 }
