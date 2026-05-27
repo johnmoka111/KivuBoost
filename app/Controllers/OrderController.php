@@ -142,6 +142,26 @@ class OrderController extends Controller
         // Rafraîchir le cache utilisateur
         Auth::refreshUser();
 
+        // Envoi de l'email de confirmation
+        $userData = Auth::user();
+        if (!empty($userData['email'])) {
+            $emailData = [
+                'username'    => $userData['username'],
+                'orderId'     => str_pad((string)$orderId, 5, '0', STR_PAD_LEFT),
+                'serviceName' => $service['name'],
+                'quantity'    => number_format($quantity, 0, ',', ' '),
+                'cost'        => number_format($cost, 4),
+                'link'        => $link,
+                'dashboardUrl'=> APP_URL . '/history'
+            ];
+            sendKivuBoostMail(
+                $userData['email'], 
+                "Confirmation de commande #" . $emailData['orderId'], 
+                'order_confirmation', 
+                $emailData
+            );
+        }
+
         $this->flash('success', sprintf(
             'Commande #%d passée avec succès ! Coût débité : $%.4f',
             $orderId,
