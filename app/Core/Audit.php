@@ -33,17 +33,18 @@ class Audit
         }
     }
 
-    public static function getAll(): array
+    public static function getAll(int $limit = 2500): array
     {
         $db = Database::getInstance();
-        $stmt = $db->query("
+        $stmt = $db->prepare("
             SELECT a.id, a.user_id, a.action, a.details, a.ip_address, a.user_agent, a.created_at, 
                    COALESCE(u.username, a.username) AS username
             FROM audit_logs a
             LEFT JOIN users u ON a.user_id = u.id
             ORDER BY a.created_at DESC 
-            LIMIT 500
+            LIMIT ?
         ");
+        $stmt->execute([$limit]);
         return $stmt->fetchAll();
     }
 }
