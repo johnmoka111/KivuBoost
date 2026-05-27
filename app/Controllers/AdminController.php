@@ -43,7 +43,7 @@ class AdminController extends Controller
         $providers = $providerModel->all();
 
         $pendingRecharges = $rechargeModel->getPending();
-        $recentOrders     = $orderModel->getAll(1000);
+        $recentOrders     = $orderModel->getAll(200);
         $allUsers         = $userModel->all();
         $allSettings      = $settingModel->toArray();
         $allServices      = $serviceModel->allForAdmin();
