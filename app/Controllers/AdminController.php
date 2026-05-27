@@ -876,6 +876,156 @@ class AdminController extends Controller
     }
 
     // -------------------------------------------------------
+    // POST /admin/orders/sync-statuses  (AJAX)
+    // Interroge les API fournisseurs pour toutes les commandes
+    // en statut "Processing" et met à jour les statuts + remboursements.
+    // -------------------------------------------------------
+    public function syncOrderStatuses(): void
+    {
+        Auth::requireAdmin();
+
+        $token = $_POST['_token'] ?? ($_SERVER['HTTP_X_CSRF_TOKEN'] ?? '');
+        if (!Auth::verifyCsrfToken($token)) {
+            http_response_code(403);
+            header('Content-Type: application/json');
+            echo json_encode(['success' => false, 'error' => 'Token CSRF invalide.']);
+            exit;
+        }
+
+        $db = Database::getInstance();
+
+        // 1. Récupérer toutes les commandes "Processing" avec un external_order_id et les infos du fournisseur
+        $stmt = $db->query("
+            SELECT o.id, o.external_order_id, o.cost, o.quantity, o.user_id, o.status,
+                   p.api_url, p.api_key, p.name AS provider_name
+            FROM orders o
+            JOIN services s ON s.id = o.service_id
+            JOIN providers p ON p.id = s.provider_id
+            WHERE o.status = 'Processing'
+              AND o.external_order_id IS NOT NULL
+              AND o.external_order_id != ''
+              AND p.status = 1
+              AND p.api_key != 'CLE_SECRETE_SMM_FOLLOWS'
+            LIMIT 200
+        ");
+        $processingOrders = $stmt->fetchAll();
+
+        if (empty($processingOrders)) {
+            header('Content-Type: application/json');
+            echo json_encode([
+                'success' => true,
+                'message' => 'Aucune commande en cours à vérifier.',
+                'stats'   => ['checked' => 0, 'completed' => 0, 'canceled' => 0, 'partial' => 0, 'refunded_total' => 0]
+            ]);
+            exit;
+        }
+
+        // 2. Regrouper les commandes par (api_url + api_key) pour minimiser les appels API
+        $grouped = [];
+        foreach ($processingOrders as $order) {
+            $key = $order['api_url'] . '|' . $order['api_key'];
+            $grouped[$key][] = $order;
+        }
+
+        $stats = ['checked' => 0, 'completed' => 0, 'canceled' => 0, 'partial' => 0, 'refunded_total' => 0.0, 'errors' => []];
+
+        $userModel = new User();
+
+        foreach ($grouped as $providerKey => $orders) {
+            [$apiUrl, $apiKey] = explode('|', $providerKey, 2);
+
+            try {
+                $api = new SmmApi($apiKey, $apiUrl);
+
+                // Appel multi-statuts (1 seul appel API pour toutes les commandes du fournisseur)
+                $externalIds = array_column($orders, 'external_order_id');
+                $statusResponse = $api->multiStatus($externalIds);
+
+                if (!is_array($statusResponse)) {
+                    $stats['errors'][] = "Réponse invalide pour le fournisseur : " . ($orders[0]['provider_name'] ?? $apiUrl);
+                    continue;
+                }
+
+                foreach ($orders as $order) {
+                    $stats['checked']++;
+                    $extId = $order['external_order_id'];
+
+                    // La réponse peut être indexée par l'ID externe
+                    $orderData = $statusResponse[$extId] ?? null;
+
+                    if (!$orderData || !isset($orderData['status'])) {
+                        continue; // Pas de réponse pour cette commande, on skip
+                    }
+
+                    $apiStatus = strtolower(trim($orderData['status']));
+
+                    // Mapper les statuts de l'API vers nos statuts internes
+                    $newStatus = null;
+                    $refundAmount = 0.0;
+
+                    if (in_array($apiStatus, ['completed', 'complete'])) {
+                        $newStatus = 'Completed';
+                        $stats['completed']++;
+
+                    } elseif (in_array($apiStatus, ['canceled', 'cancelled'])) {
+                        $newStatus = 'Canceled';
+                        $refundAmount = (float)$order['cost']; // Remboursement intégral
+                        $stats['canceled']++;
+
+                    } elseif ($apiStatus === 'partial') {
+                        $newStatus = 'Partial';
+                        // Remboursement proportionnel : (quantité non livrée / quantité totale) * coût
+                        $remains   = (int)($orderData['remains'] ?? 0);
+                        $totalQty  = (int)$order['quantity'];
+                        if ($totalQty > 0 && $remains > 0) {
+                            $refundAmount = round(((float)$order['cost'] * $remains) / $totalQty, 4);
+                        }
+                        $stats['partial']++;
+                    }
+                    // 'processing', 'in progress', 'pending' → on ne fait rien
+
+                    if ($newStatus !== null) {
+                        // Mettre à jour le statut en DB
+                        $upStmt = $db->prepare('UPDATE orders SET status = ? WHERE id = ?');
+                        $upStmt->execute([$newStatus, $order['id']]);
+
+                        // Remboursement si nécessaire
+                        if ($refundAmount > 0) {
+                            $userModel->adjustBalance((int)$order['user_id'], $refundAmount);
+                            $stats['refunded_total'] += $refundAmount;
+
+                            Audit::log('auto_refund', sprintf(
+                                'Remboursement automatique de $%.4f pour commande #%d (Statut: %s)',
+                                $refundAmount,
+                                $order['id'],
+                                $newStatus
+                            ));
+                        }
+                    }
+                }
+            } catch (\Throwable $e) {
+                $stats['errors'][] = "Erreur fournisseur (" . ($orders[0]['provider_name'] ?? $apiUrl) . ") : " . $e->getMessage();
+            }
+        }
+
+        Audit::log('sync_order_statuses', sprintf(
+            'Sync statuts : %d vérifiées, %d complétées, %d annulées, %d partielles, $%.4f remboursés.',
+            $stats['checked'], $stats['completed'], $stats['canceled'], $stats['partial'], $stats['refunded_total']
+        ));
+
+        header('Content-Type: application/json');
+        echo json_encode([
+            'success' => true,
+            'message' => sprintf(
+                '%d commandes vérifiées → %d complétées, %d annulées, %d partielles. $%.4f remboursés.',
+                $stats['checked'], $stats['completed'], $stats['canceled'], $stats['partial'], $stats['refunded_total']
+            ),
+            'stats' => $stats
+        ]);
+        exit;
+    }
+
+    // -------------------------------------------------------
     // Privé : récupérer le solde fournisseur
     // -------------------------------------------------------
     private function fetchProviderBalance(string $apiKey, string $apiUrl): ?array

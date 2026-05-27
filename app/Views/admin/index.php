@@ -1317,6 +1317,13 @@ function showToast(msg, type = 'success') {
           <option value="Canceled">Annulé</option>
           <option value="Partial">Partiel</option>
         </select>
+        <!-- Bouton Sync Statuts -->
+        <button type="button" id="btn-sync-statuses" onclick="fetchSyncStatuses()"
+                class="flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-bold transition-all hover:brightness-110 shrink-0"
+                style="background:rgba(0,212,255,0.12);color:#00d4ff;border:1px solid rgba(0,212,255,0.3)">
+          <svg id="sync-icon" class="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 4v5h.582m15.356 2A8.001 8.001 0 0021.21 8H18M4 4v5h.582m0 0a8.001 8.001 0 0015.356 2M4 9.582A8.001 8.001 0 0119.418 14H16m4 0v5h-.582m0 0a8.001 8.001 0 01-15.356-2M20 19v-5h-.582"/></svg>
+          <span id="sync-label">Sync Statuts</span>
+        </button>
       </div>
     </div>
 
@@ -1522,4 +1529,49 @@ document.addEventListener('DOMContentLoaded', () => {
   const selectEl = document.getElementById('provider-balance-select');
   fetchProviderBalance(selectEl ? selectEl.value : null);
 });
+
+// =====================================================
+// SYNC STATUTS COMMANDES (AJAX)
+// =====================================================
+window.fetchSyncStatuses = async function() {
+  const btn   = document.getElementById('btn-sync-statuses');
+  const icon  = document.getElementById('sync-icon');
+  const label = document.getElementById('sync-label');
+
+  if (!btn || btn.disabled) return;
+
+  btn.disabled = true;
+  if (icon) icon.classList.add('animate-spin');
+  if (label) label.textContent = 'Synchronisation...';
+
+  try {
+    const csrfMeta = document.querySelector('meta[name="csrf-token"]');
+    const token = csrfMeta ? csrfMeta.content : '';
+
+    const res = await fetch('<?= APP_BASE ?>/admin/orders/sync-statuses', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'X-CSRF-TOKEN': token },
+      body: '_token=' + encodeURIComponent(token)
+    });
+
+    const data = await res.json();
+
+    if (data.success) {
+      showToast('success', '✓ ' + data.message);
+
+      // Mise à jour visuelle des badges de statut si des commandes ont changé
+      if (data.stats && (data.stats.completed + data.stats.canceled + data.stats.partial) > 0) {
+        setTimeout(() => window.location.reload(), 2500);
+      }
+    } else {
+      showToast('error', '⚠ ' + (data.error || 'Erreur lors de la synchronisation.'));
+    }
+  } catch (err) {
+    showToast('error', '⚠ Impossible de contacter le serveur.');
+  } finally {
+    if (btn) btn.disabled = false;
+    if (icon) icon.classList.remove('animate-spin');
+    if (label) label.textContent = 'Sync Statuts';
+  }
+};
 </script>

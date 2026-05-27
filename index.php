@@ -74,6 +74,7 @@ $router->post('/admin/services/sync',       'AdminController@syncServices');
 $router->post('/admin/providers/save',      'AdminController@saveProvider');
 $router->post('/admin/providers/delete',     'AdminController@deleteProvider');
 $router->post('/admin/users/balance',       'AdminController@adjustBalance');
+$router->post('/admin/orders/sync-statuses','AdminController@syncOrderStatuses');
 $router->get('/admin/audit',                'AdminController@audit');
 $router->get('/admin/campaign',             'AdminController@campaignForm');
 $router->post('/admin/campaign/send',       'AdminController@sendCampaign');
