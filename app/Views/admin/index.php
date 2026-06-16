@@ -16,18 +16,21 @@ $pageTitle = 'Administration sécurisée';
   <div class="flex items-center gap-3">
     <!-- Solde API Fournisseur Actif -->
     <div class="px-4 py-2 rounded-xl border flex items-center gap-3 animate-pulse" id="provider-balance-card" style="background:#0d1117;border-color:#1a2332">
-      <div class="w-8 h-8 rounded-lg flex items-center justify-center shrink-0" style="background:rgba(0,255,136,0.1)">
-        <svg class="w-4 h-4 text-[#00ff88] shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+      <div class="w-8 h-8 rounded-lg flex items-center justify-center shrink-0 transition-colors duration-300" id="provider-balance-icon-container" style="background:rgba(0,255,136,0.1)">
+        <svg id="provider-balance-icon" class="w-4 h-4 text-[#00ff88] shrink-0 transition-colors duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
       </div>
       <div>
-        <select id="provider-balance-select" class="bg-transparent border-none text-[10px] text-gray-500 uppercase tracking-wider font-semibold focus:ring-0 p-0 cursor-pointer w-auto outline-none appearance-none" onchange="fetchProviderBalance(this.value)">
-          <?php foreach ($allProviders as $p): ?>
-            <?php if ($p['status'] == 1): ?>
-              <option value="<?= $p['id'] ?>">ACTIF : <?= htmlspecialchars($p['name']) ?></option>
-            <?php endif; ?>
-          <?php endforeach; ?>
-        </select>
-        <div class="text-sm font-bold font-mono flex items-center gap-1.5" style="color:#00ff88" id="provider-balance-value">
+        <div class="flex items-center gap-2">
+          <select id="provider-balance-select" class="bg-transparent border-none text-[10px] text-gray-500 uppercase tracking-wider font-semibold focus:ring-0 p-0 cursor-pointer w-auto outline-none appearance-none" onchange="fetchProviderBalance(this.value)">
+            <?php foreach ($allProviders as $p): ?>
+              <?php if ($p['status'] == 1): ?>
+                <option value="<?= $p['id'] ?>">ACTIF : <?= htmlspecialchars($p['name']) ?></option>
+              <?php endif; ?>
+            <?php endforeach; ?>
+          </select>
+          <span id="provider-balance-warning" class="hidden text-[9px] font-black px-1.5 py-0.5 rounded border uppercase tracking-wider animate-pulse"></span>
+        </div>
+        <div class="text-sm font-bold font-mono flex items-center gap-1.5 transition-colors duration-300" style="color:#00ff88" id="provider-balance-value">
           <span class="w-3.5 h-3.5 rounded-full border-2 border-[#00ff88]/30 border-t-[#00ff88] animate-spin"></span>
           <span class="text-xs text-gray-500 font-normal">Connexion...</span>
         </div>
@@ -97,7 +100,7 @@ $pageTitle = 'Administration sécurisée';
   </button>
   <button onclick="switchTab('users')" class="tab-btn px-4 py-2.5 text-sm font-semibold rounded-xl border border-transparent bg-transparent text-gray-400 hover:bg-white/5 transition-all flex items-center gap-1.5" id="tab-users">
     <svg class="w-4 h-4 text-orange-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
-    Clients & Soldes
+    Clients & Soldes (<?= count($allUsers) ?>)
   </button>
   <button onclick="switchTab('orders')" class="tab-btn px-4 py-2.5 text-sm font-semibold rounded-xl border border-transparent bg-transparent text-gray-400 hover:bg-white/5 transition-all flex items-center gap-1.5" id="tab-orders">
     <svg class="w-4 h-4 text-cyan-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
@@ -122,7 +125,9 @@ $pageTitle = 'Administration sécurisée';
         <p class="text-xs mt-0.5 text-gray-600">Tous les clients sont servis !</p>
       </div>
     <?php else: ?>
-      <div class="overflow-x-auto w-full">
+
+      <!-- ====== TABLE DESKTOP (md+) ====== -->
+      <div class="hidden md:block overflow-x-auto w-full">
         <table class="w-full text-sm text-left">
           <thead>
             <tr class="text-gray-500 border-b border-[#1a2332] bg-[#0a0f1a]/50 text-xs uppercase tracking-wider">
@@ -157,17 +162,13 @@ $pageTitle = 'Administration sécurisée';
                   <form method="POST" action="<?= APP_BASE ?>/admin/recharge/approve">
                     <?= Auth::csrfField() ?>
                     <input type="hidden" name="recharge_id" value="<?= $r['id'] ?>">
-                    <button type="submit" class="px-3 py-1.5 rounded-lg text-xs font-bold text-black hover:opacity-90 transition-all shrink-0" style="background:#00ff88">
-                      Approuver
-                    </button>
+                    <button type="submit" class="px-3 py-1.5 rounded-lg text-xs font-bold text-black hover:opacity-90 transition-all shrink-0" style="background:#00ff88">Approuver</button>
                   </form>
                   <form method="POST" action="<?= APP_BASE ?>/admin/recharge/reject" onsubmit="return promptRejectReason(this)">
                     <?= Auth::csrfField() ?>
                     <input type="hidden" name="recharge_id" value="<?= $r['id'] ?>">
                     <input type="hidden" name="reason" id="reason-<?= $r['id'] ?>" value="">
-                    <button type="submit" class="px-3 py-1.5 rounded-lg text-xs font-bold text-red-400 bg-red-500/10 border border-red-500/30 hover:bg-red-500/20 transition-all shrink-0">
-                      Rejeter
-                    </button>
+                    <button type="submit" class="px-3 py-1.5 rounded-lg text-xs font-bold text-red-400 bg-red-500/10 border border-red-500/30 hover:bg-red-500/20 transition-all shrink-0">Rejeter</button>
                   </form>
                 </div>
               </td>
@@ -176,6 +177,62 @@ $pageTitle = 'Administration sécurisée';
           </tbody>
         </table>
       </div>
+
+      <!-- ====== CARTES MOBILE (< md) ====== -->
+      <div class="md:hidden divide-y divide-[#1a2332]">
+        <?php foreach ($pendingRecharges as $r): ?>
+        <div class="p-4 space-y-3">
+
+          <!-- Client + Montant -->
+          <div class="flex items-start justify-between gap-3">
+            <div class="min-w-0 flex-1">
+              <div class="font-bold text-white text-sm truncate"><?= htmlspecialchars($r['username']) ?></div>
+              <div class="text-[10px] text-gray-500 truncate"><?= htmlspecialchars($r['email']) ?></div>
+            </div>
+            <div class="text-emerald-400 font-black font-mono text-lg shrink-0">$<?= number_format((float)$r['amount'], 2) ?></div>
+          </div>
+
+          <!-- Réseau + Date -->
+          <div class="grid grid-cols-2 gap-2">
+            <div class="rounded-lg px-3 py-2 border" style="background:#0a0f1a;border-color:#1a2332">
+              <div class="text-[9px] text-gray-500 uppercase tracking-widest mb-0.5">Réseau</div>
+              <div class="text-xs text-gray-200 font-semibold"><?= htmlspecialchars($r['network']) ?></div>
+            </div>
+            <div class="rounded-lg px-3 py-2 border" style="background:#0a0f1a;border-color:#1a2332">
+              <div class="text-[9px] text-gray-500 uppercase tracking-widest mb-0.5">Date</div>
+              <div class="text-[10px] text-gray-400"><?= date('d/m/Y H:i', strtotime($r['created_at'])) ?></div>
+            </div>
+          </div>
+
+          <!-- Référence transaction -->
+          <div class="rounded-lg px-3 py-2.5 border" style="background:#0a0f1a;border-color:#1a2332">
+            <div class="text-[9px] text-gray-500 uppercase tracking-widest mb-1">Réf. transaction</div>
+            <div class="text-xs text-cyan-400 font-mono break-all select-all"><?= htmlspecialchars($r['transaction_id']) ?></div>
+          </div>
+
+          <!-- Boutons pleine largeur -->
+          <div class="grid grid-cols-2 gap-2">
+            <form method="POST" action="<?= APP_BASE ?>/admin/recharge/approve">
+              <?= Auth::csrfField() ?>
+              <input type="hidden" name="recharge_id" value="<?= $r['id'] ?>">
+              <button type="submit" class="w-full py-2.5 rounded-xl text-xs font-black text-black hover:opacity-90 transition-all uppercase tracking-wider" style="background:#00ff88">
+                ✓ Approuver
+              </button>
+            </form>
+            <form method="POST" action="<?= APP_BASE ?>/admin/recharge/reject" onsubmit="return promptRejectReason(this)">
+              <?= Auth::csrfField() ?>
+              <input type="hidden" name="recharge_id" value="<?= $r['id'] ?>">
+              <input type="hidden" name="reason" id="reason-m-<?= $r['id'] ?>" value="">
+              <button type="submit" class="w-full py-2.5 rounded-xl text-xs font-black text-red-400 bg-red-500/10 border border-red-500/30 hover:bg-red-500/20 transition-all uppercase tracking-wider">
+                ✗ Rejeter
+              </button>
+            </form>
+          </div>
+
+        </div>
+        <?php endforeach; ?>
+      </div>
+
     <?php endif; ?>
   </div>
 </div>
@@ -234,16 +291,16 @@ $pageTitle = 'Administration sécurisée';
         </button>
         <?php endforeach; ?>
 
-        <div class="relative ml-auto flex items-center gap-2">
-          <select id="svc-sort" class="bg-[#0d1117] border border-[#1a2332] text-gray-400 text-[10px] font-bold rounded-lg px-2 py-1.5 focus:outline-none focus:border-[#00ff88]/40 uppercase tracking-wider">
+        <div class="w-full md:w-auto flex items-center gap-2 justify-between md:justify-end mt-2 md:mt-0 md:ml-auto">
+          <select id="svc-sort" class="w-1/2 md:w-auto bg-[#0d1117] border border-[#1a2332] text-gray-400 text-[10px] font-bold rounded-lg px-2 py-2 focus:outline-none focus:border-[#00ff88]/40 uppercase tracking-wider">
             <option value="default">Trier par</option>
-            <option value="price_asc">Achat : Moins cher d'abord</option>
-            <option value="price_desc">Achat : Plus cher d'abord</option>
+            <option value="price_asc">Achat : Moins cher</option>
+            <option value="price_desc">Achat : Plus cher</option>
           </select>
-          <div class="relative">
+          <div class="relative w-1/2 md:w-auto">
             <svg class="w-3.5 h-3.5 absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
-            <input type="search" id="svc-search" placeholder="Rechercher un service..." autocomplete="off"
-                   class="bg-[#0d1117] border border-[#1a2332] text-gray-200 text-xs rounded-lg pl-8 pr-3 py-1.5 w-48 focus:outline-none focus:border-[#00ff88]/40 placeholder-gray-600">
+            <input type="search" id="svc-search" placeholder="Rechercher..." autocomplete="off"
+                   class="w-full md:w-48 bg-[#0d1117] border border-[#1a2332] text-gray-200 text-xs rounded-lg pl-8 pr-3 py-2 focus:outline-none focus:border-[#00ff88]/40 placeholder-gray-600">
           </div>
         </div>
       </div>
@@ -309,7 +366,7 @@ $pageTitle = 'Administration sécurisée';
     <div class="overflow-x-auto w-full max-h-[600px] overflow-y-auto">
       <table class="w-full text-sm text-left">
         <thead>
-          <tr class="text-gray-500 border-b border-[#1a2332] text-xs uppercase bg-[#0a0f1a]/50">
+          <tr class="hidden md:table-row text-gray-500 border-b border-[#1a2332] text-xs uppercase bg-[#0a0f1a]/50">
             <th class="px-2 py-2 w-8"><input type="checkbox" id="chk-all" class="rounded bg-[#0a0f1a] border-[#1a2332] text-emerald-500" title="Tout sélectionner"></th>
             <th class="px-2 py-2">Catégorie &amp; Nom</th>
             <th class="px-2 py-2">Grossiste</th>
@@ -440,7 +497,8 @@ $pageTitle = 'Administration sécurisée';
       <div class="px-5 py-4 border-b border-[#1a2332]">
         <h3 class="font-bold text-white text-sm">Fournisseurs SMM Partenaires</h3>
       </div>
-      <div class="overflow-x-auto w-full">
+      <!-- Table Desktop -->
+      <div class="hidden md:block overflow-x-auto w-full">
         <table class="w-full text-sm text-left">
           <thead>
             <tr class="text-gray-500 border-b border-[#1a2332] text-xs uppercase bg-[#0a0f1a]/50">
@@ -483,6 +541,42 @@ $pageTitle = 'Administration sécurisée';
             <?php endforeach; ?>
           </tbody>
         </table>
+      </div>
+
+      <!-- Cards Mobile -->
+      <div class="md:hidden p-4 space-y-4">
+        <?php foreach ($allProviders as $p): ?>
+        <div class="p-4 rounded-xl border flex flex-col gap-3" style="background:#0d1117;border-color:#1a2332">
+          <!-- Nom & Statut -->
+          <div class="flex items-center justify-between gap-2">
+            <div class="font-bold text-white text-sm"><?= htmlspecialchars($p['name']) ?></div>
+            <span class="inline-block text-[10px] px-2 py-0.5 rounded-full font-bold border uppercase tracking-wider shrink-0
+              <?= $p['status'] ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' : 'bg-red-500/10 text-red-400 border-red-500/20' ?>">
+              <?= $p['status'] ? 'Opérationnel' : 'Hors-ligne' ?>
+            </span>
+          </div>
+
+          <!-- URL API -->
+          <div class="text-xs font-mono text-gray-500 break-all select-all bg-[#0a0f1a] p-2.5 rounded-lg border border-[#1a2332]">
+            <span class="text-[9px] text-gray-600 block uppercase font-semibold mb-0.5">URL API :</span>
+            <?= htmlspecialchars($p['api_url']) ?>
+          </div>
+
+          <!-- Actions -->
+          <div class="flex items-center justify-end gap-3 pt-2 border-t" style="border-color:#1a2332">
+            <button type="button" onclick="editProvider(<?= htmlspecialchars(json_encode($p)) ?>)" class="px-3 py-1.5 rounded-lg text-xs font-bold text-blue-400 bg-blue-500/10 border border-blue-500/30 hover:bg-blue-500/20 transition-all shrink-0">
+              Modifier
+            </button>
+            <form method="POST" action="<?= APP_BASE ?>/admin/providers/delete" onsubmit="return confirm('Supprimer ce fournisseur ? Tous les services associés seront effacés.')">
+              <?= Auth::csrfField() ?>
+              <input type="hidden" name="id" value="<?= $p['id'] ?>">
+              <button type="submit" class="px-3 py-1.5 rounded-lg text-xs font-bold text-red-500 bg-red-500/10 border border-red-500/30 hover:bg-red-500/20 transition-all shrink-0">
+                Supprimer
+              </button>
+            </form>
+          </div>
+        </div>
+        <?php endforeach; ?>
       </div>
     </div>
 
@@ -529,8 +623,11 @@ $pageTitle = 'Administration sécurisée';
   <div class="rounded-2xl border" style="background:#0d1117;border-color:#1a2332">
     <div class="px-5 py-4 border-b border-[#1a2332] flex items-center justify-between">
       <h3 class="font-bold text-white text-sm">Gestion des Utilisateurs</h3>
+      <span class="text-xs text-orange-400 font-semibold"><?= count($allUsers) ?> clients enregistrés</span>
     </div>
-    <div class="overflow-x-auto w-full">
+    
+    <!-- Table Desktop -->
+    <div class="hidden md:block overflow-x-auto w-full">
       <table class="w-full text-sm text-left">
         <thead>
           <tr class="text-gray-500 border-b border-[#1a2332] text-xs uppercase bg-[#0a0f1a]/50">
@@ -581,6 +678,66 @@ $pageTitle = 'Administration sécurisée';
           <?php endforeach; ?>
         </tbody>
       </table>
+    </div>
+
+    <!-- Cards Mobile -->
+    <div class="md:hidden p-4 space-y-4">
+      <?php foreach ($allUsers as $u):
+        $roleBadge = match($u['role'] ?? '') {
+          'superadmin' => 'bg-purple-500/10 text-purple-400 border-purple-500/20',
+          'admin'      => 'bg-blue-500/10 text-blue-400 border-blue-500/20',
+          default      => 'bg-gray-500/10 text-gray-400 border-gray-500/20',
+        };
+      ?>
+      <div class="p-4 rounded-xl border flex flex-col gap-3" style="background:#0d1117;border-color:#1a2332">
+        <!-- Nom & Rôle -->
+        <div class="flex items-start justify-between gap-2">
+          <div>
+            <div class="font-bold text-white text-sm"><?= htmlspecialchars($u['username']) ?></div>
+            <div class="text-xs text-gray-500 break-all"><?= htmlspecialchars($u['email']) ?></div>
+          </div>
+          <span class="inline-block text-[10px] px-2 py-0.5 rounded-full font-bold border uppercase tracking-wider shrink-0 <?= $roleBadge ?>">
+            <?= htmlspecialchars($u['role'] ?? 'client') ?>
+          </span>
+        </div>
+
+        <!-- Solde & Date d'inscription -->
+        <div class="flex items-center justify-between border-t border-b py-2 my-1" style="border-color:#1a2332">
+          <div>
+            <div class="text-[10px] text-gray-500 uppercase tracking-wider">Solde Actuel</div>
+            <div class="font-bold font-mono text-sm" style="color:#00ff88">$<?= number_format((float)$u['balance'], 2) ?></div>
+          </div>
+          <div class="text-right">
+            <div class="text-[10px] text-gray-500 uppercase tracking-wider">Inscrit le</div>
+            <div class="text-gray-400 text-xs font-semibold"><?= date('d/m/Y', strtotime($u['created_at'])) ?></div>
+          </div>
+        </div>
+
+        <!-- Formulaire Ajustement Solde (Super Admin uniquement) -->
+        <?php if (Auth::isSuperAdmin()): ?>
+        <div class="pt-2 border-t" style="border-color:#1a2332">
+          <div class="text-[10px] text-gray-500 uppercase tracking-wider mb-2">Ajuster le solde</div>
+          <form method="POST" action="<?= APP_BASE ?>/admin/users/balance" class="flex items-center gap-2">
+            <?= Auth::csrfField() ?>
+            <input type="hidden" name="user_id" value="<?= $u['id'] ?>">
+            
+            <div class="relative flex-1">
+              <input type="number" name="amount" required step="0.01" placeholder="ex: 10 ou -5" class="input-field w-full px-2.5 py-2 rounded-xl text-xs text-center font-mono">
+            </div>
+            
+            <select name="wallet_currency" class="bg-[#0a0f1a] border border-[#1a2332] rounded-xl px-2.5 py-2 text-xs text-gray-300 outline-none">
+              <option value="USD">USD</option>
+              <option value="CDF">CDF</option>
+            </select>
+            
+            <button type="submit" class="px-4 py-2 rounded-xl bg-[#00ff88] text-black text-xs font-black hover:opacity-90 transition-all shrink-0">
+              Ajuster
+            </button>
+          </form>
+        </div>
+        <?php endif; ?>
+      </div>
+      <?php endforeach; ?>
     </div>
 <!-- Configuration is now on a separate page -->
 
@@ -772,48 +929,59 @@ const BASE_URL   = '<?= APP_BASE ?>';
       const serviceJson = JSON.stringify(s).replace(/"/g, '&quot;');
 
       htmlChunks.push(`
-        <tr class="svc-row hover:bg-white/[0.02] transition-all ${rowOpacityClass}" data-id="${s.id}" data-provider-id="${s.provider_id}">
-          <td class="px-2 py-2">
-            <input type="checkbox" class="svc-chk rounded bg-[#0a0f1a] border-[#1a2332] text-emerald-500" value="${s.id}" ${isChecked}>
+        <tr class="svc-row flex flex-col md:table-row hover:bg-white/[0.02] transition-all p-4 md:p-2 border-b border-[#1a2332] md:border-b-0 ${rowOpacityClass}" data-id="${s.id}" data-provider-id="${s.provider_id}">
+          <td class="block md:table-cell py-1 md:py-2">
+            <div class="flex items-center gap-2 md:block">
+              <input type="checkbox" class="svc-chk rounded bg-[#0a0f1a] border-[#1a2332] text-emerald-500" value="${s.id}" ${isChecked}>
+              <span class="text-[10px] text-gray-500 md:hidden uppercase font-semibold">Sélectionner</span>
+            </div>
           </td>
-          <td class="px-2 py-2">
+          <td class="block md:table-cell py-1 md:py-2">
             <div class="text-[10px] text-gray-500 font-semibold uppercase tracking-wider">${escapeHtml(s.category)}</div>
-            <div class="text-white font-medium text-xs truncate max-w-[180px]" title="${escapeHtml(s.name)}">${escapeHtml(s.name)}</div>
+            <div class="text-white font-medium text-xs truncate max-w-[280px] md:max-w-[180px]" title="${escapeHtml(s.name)}">${escapeHtml(s.name)}</div>
             ${invisibleBadge}
           </td>
-          <td class="px-2 py-2 text-xs text-gray-400 font-mono">
+          <td class="block md:table-cell py-1 md:py-2 text-xs text-gray-400 font-mono">
+            <span class="text-gray-600 md:hidden font-sans uppercase font-bold text-[9px] mr-1">Grossiste:</span>
             ${escapeHtml(s.provider_name || 'Manuel')}
           </td>
-          <td class="px-2 py-2 font-mono text-gray-500 text-xs">$${formattedOriginalRate}</td>
-          <td class="px-2 py-2">
-            <form method="POST" action="${appBase}/admin/services/update-price" class="flex items-center gap-1">
+          <td class="block md:table-cell py-1 md:py-2 font-mono text-gray-500 text-xs">
+            <span class="text-gray-600 md:hidden font-sans uppercase font-bold text-[9px] mr-1">Prix Achat:</span>
+            $${formattedOriginalRate}
+          </td>
+          <td class="block md:table-cell py-1 md:py-2">
+            <form method="POST" action="${appBase}/admin/services/update-price" class="flex items-center gap-1.5 w-full md:w-auto">
               ${csrfField}
               <input type="hidden" name="id" value="${s.id}">
-              <div class="relative">
+              <div class="relative flex-1 md:flex-initial">
                 <span class="absolute left-2 top-1/2 -translate-y-1/2 text-gray-600 text-xs">$</span>
-                <input type="number" name="calculated_rate" step="0.0001" value="${formattedCalculatedRate}" class="bg-[#0a0f1a] border border-[#1a2332] text-white text-xs font-mono rounded w-20 pl-4 pr-1 py-1 focus:border-[#00ff88]/50">
+                <input type="number" name="calculated_rate" step="0.0001" value="${formattedCalculatedRate}" class="bg-[#0a0f1a] border border-[#1a2332] text-white text-xs font-mono rounded w-full md:w-20 pl-4 pr-1 py-1 focus:border-[#00ff88]/50">
               </div>
-              <button type="submit" class="bg-white/5 border border-white/10 hover:border-emerald-500 hover:text-emerald-400 text-gray-400 p-1.5 rounded shrink-0">
-                <svg class="w-3 h-3 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
+              <button type="submit" class="bg-white/5 border border-white/10 hover:border-emerald-500 hover:text-emerald-400 text-gray-400 p-1.5 rounded shrink-0" title="Sauvegarder">
+                <svg class="w-3.5 h-3.5 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
               </button>
             </form>
           </td>
-          <td class="px-2 py-2 font-bold font-mono text-xs ${marginClass}">
+          <td class="block md:table-cell py-1 md:py-2 font-bold font-mono text-xs ${marginClass}">
+            <span class="text-gray-600 md:hidden font-sans uppercase font-bold text-[9px] mr-1">Marge:</span>
             ${marginSign}$${formattedMargin}
           </td>
-          <td class="px-2 py-2 text-center">
-            <button type="button"
-                    class="svc-toggle relative inline-flex h-5 w-9 items-center rounded-full transition-colors focus:outline-none ${toggleBg}"
-                    data-id="${s.id}"
-                    data-active="${s.is_active ? '1' : '0'}"
-                    title="${toggleTitle}">
-              <span class="inline-block h-3.5 w-3.5 transform rounded-full bg-white shadow transition-transform ${toggleTransform}"></span>
-            </button>
+          <td class="block md:table-cell py-2 text-left md:text-center">
+            <div class="flex items-center justify-between md:block">
+              <span class="text-gray-600 md:hidden uppercase font-bold text-[9px]">Visible :</span>
+              <button type="button"
+                      class="svc-toggle relative inline-flex h-5 w-9 items-center rounded-full transition-colors focus:outline-none ${toggleBg}"
+                      data-id="${s.id}"
+                      data-active="${s.is_active ? '1' : '0'}"
+                      title="${toggleTitle}">
+                <span class="inline-block h-3.5 w-3.5 transform rounded-full bg-white shadow transition-transform ${toggleTransform}"></span>
+              </button>
+            </div>
           </td>
-          <td class="px-2 py-2 text-right">
-            <div class="flex flex-col xl:flex-row items-end xl:items-center justify-end gap-1.5">
-              <button type="button" onclick="editService(${serviceJson})" class="text-xs text-blue-400 hover:underline">Éditer</button>
-              <button type="button" onclick="confirmDeleteService(${s.id})" class="text-xs text-red-500 hover:underline">Supprimer</button>
+          <td class="block md:table-cell py-1.5 md:py-2 text-right">
+            <div class="flex items-center justify-end gap-3 md:gap-1.5">
+              <button type="button" onclick="editService(${serviceJson})" class="px-3 py-1.5 md:p-0 rounded-lg bg-blue-500/10 md:bg-transparent border border-blue-500/20 md:border-none text-xs text-blue-400 hover:underline">Éditer</button>
+              <button type="button" onclick="confirmDeleteService(${s.id})" class="px-3 py-1.5 md:p-0 rounded-lg bg-red-500/10 md:bg-transparent border border-red-500/20 md:border-none text-xs text-red-500 hover:underline">Supprimer</button>
             </div>
           </td>
         </tr>
@@ -1346,6 +1514,7 @@ function showToast(msg, type = 'success') {
               <th class="px-5 py-3">Réf. Externe</th>
               <th class="px-5 py-3">Statut</th>
               <th class="px-5 py-3">Date</th>
+              <th class="px-5 py-3 text-right">Actions</th>
             </tr>
           </thead>
           <tbody class="divide-y divide-[#1a2332]" id="admin-orders-tbody">
@@ -1380,10 +1549,29 @@ function showToast(msg, type = 'success') {
                   <?php if ($st === 'processing'): ?><span class="w-1.5 h-1.5 rounded-full bg-blue-400 animate-pulse inline-block"></span><?php endif; ?>
                   <?= htmlspecialchars($o['status'] ?? '') ?>
                 </span>
+                <?php if (!empty($o['api_error_log'])): 
+                  $errObj = json_decode($o['api_error_log'], true);
+                  $errText = is_array($errObj) && isset($errObj['error']) ? $errObj['error'] : 'Erreur API';
+                ?>
+                  <div class="mt-1 flex items-center gap-1 text-[10px] text-red-400 max-w-[150px] truncate" title="<?= htmlspecialchars($errText) ?>">
+                    <svg class="w-3 h-3 shrink-0 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+                    <span><?= htmlspecialchars($errText) ?></span>
+                  </div>
+                <?php endif; ?>
               </td>
               <td class="px-5 py-3.5">
                 <div class="text-xs text-gray-400"><?= date('d/m/Y', strtotime($o['created_at'])) ?></div>
                 <div class="text-[10px] text-gray-600"><?= date('H:i', strtotime($o['created_at'])) ?></div>
+              </td>
+              <td class="px-5 py-3.5 text-right">
+                <?php if ($st === 'canceled' || $st === 'pending'): ?>
+                  <button type="button" onclick="openRelaunchModal(<?= htmlspecialchars(json_encode($o)) ?>)" class="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-[10px] font-bold text-[#00ff88] bg-[#00ff88]/10 border border-[#00ff88]/30 hover:bg-[#00ff88]/20 transition-all shrink-0">
+                    <svg class="w-3 h-3 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 4v5h.582m15.356 2A8.001 8.001 0 1121.21 8H18"/></svg>
+                    Relancer
+                  </button>
+                <?php else: ?>
+                  <span class="text-gray-600">—</span>
+                <?php endif; ?>
               </td>
             </tr>
             <?php endforeach; ?>
@@ -1443,6 +1631,23 @@ function showToast(msg, type = 'success') {
           <?php if (!empty($o['external_order_id'])): ?>
           <div class="mt-2 text-[10px] text-gray-600 font-mono">Réf: <?= htmlspecialchars($o['external_order_id']) ?></div>
           <?php endif; ?>
+          <?php if (!empty($o['api_error_log'])): 
+            $errObj = json_decode($o['api_error_log'], true);
+            $errText = is_array($errObj) && isset($errObj['error']) ? $errObj['error'] : 'Erreur API';
+          ?>
+            <div class="mt-1.5 flex items-center gap-1 text-[10px] text-red-400" title="<?= htmlspecialchars($errText) ?>">
+              <svg class="w-3.5 h-3.5 shrink-0 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+              <span class="font-semibold">Erreur API: <?= htmlspecialchars($errText) ?></span>
+            </div>
+          <?php endif; ?>
+          <?php if ($st === 'canceled' || $st === 'pending'): ?>
+          <div class="mt-3 pt-2 border-t flex justify-end" style="border-color:#1a2332">
+            <button type="button" onclick="openRelaunchModal(<?= htmlspecialchars(json_encode($o)) ?>)" class="px-3 py-1.5 rounded-lg text-[10px] font-bold text-[#00ff88] bg-[#00ff88]/10 border border-[#00ff88]/30 hover:bg-[#00ff88]/20 transition-all shrink-0 flex items-center gap-1">
+              <svg class="w-3 h-3 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 4v5h.582m15.356 2A8.001 8.001 0 1121.21 8H18"/></svg>
+              Relancer la commande
+            </button>
+          </div>
+          <?php endif; ?>
         </div>
         <?php endforeach; ?>
         <div id="admin-orders-cards-empty" class="hidden text-center py-10 text-gray-600 text-sm">Aucun résultat.</div>
@@ -1492,6 +1697,9 @@ function filterAdminOrders() {
 window.fetchProviderBalance = function(providerId = null) {
   const cardEl  = document.getElementById('provider-balance-card');
   const valEl   = document.getElementById('provider-balance-value');
+  const warnEl  = document.getElementById('provider-balance-warning');
+  const iconContainer = document.getElementById('provider-balance-icon-container');
+  const iconEl  = document.getElementById('provider-balance-icon');
   
   if (cardEl) cardEl.classList.add('animate-pulse');
   if (valEl) {
@@ -1513,15 +1721,61 @@ window.fetchProviderBalance = function(providerId = null) {
         if (selectEl && data.provider_id) {
           selectEl.value = data.provider_id;
         }
-        const formatted = parseFloat(data.balance).toLocaleString('en-US', { style: 'currency', currency: 'USD' });
+        const val = parseFloat(data.balance);
+        const formatted = val.toLocaleString('en-US', { style: 'currency', currency: 'USD' });
         if (valEl) valEl.textContent = formatted;
+
+        // Configuration dynamique de l'état d'alerte du solde
+        if (val < 10.0) {
+          const isCritical = val < 5.0;
+          if (warnEl) {
+            warnEl.textContent = isCritical ? 'Critique' : 'Solde Bas';
+            warnEl.className = `inline-block text-[9px] font-black px-1.5 py-0.5 rounded border uppercase tracking-wider animate-pulse ${
+              isCritical 
+                ? 'bg-red-500/20 text-red-400 border-red-500/30' 
+                : 'bg-amber-500/20 text-amber-400 border-amber-500/30'
+            }`;
+          }
+          if (valEl) {
+            valEl.style.color = isCritical ? '#f87171' : '#fbbf24';
+          }
+          if (cardEl) {
+            cardEl.style.borderColor = isCritical ? 'rgba(239,68,68,0.4)' : 'rgba(251,191,36,0.4)';
+            cardEl.classList.add('animate-pulse');
+          }
+          if (iconContainer) {
+            iconContainer.style.backgroundColor = isCritical ? 'rgba(239,68,68,0.1)' : 'rgba(251,191,36,0.1)';
+          }
+          if (iconEl) {
+            iconEl.className = `w-4 h-4 shrink-0 transition-colors duration-300 ${isCritical ? 'text-red-400' : 'text-amber-400'}`;
+          }
+        } else {
+          if (warnEl) {
+            warnEl.className = 'hidden';
+          }
+          if (valEl) {
+            valEl.style.color = '#00ff88';
+          }
+          if (cardEl) {
+            cardEl.style.borderColor = '#1a2332';
+            cardEl.classList.remove('animate-pulse');
+          }
+          if (iconContainer) {
+            iconContainer.style.backgroundColor = 'rgba(0,255,136,0.1)';
+          }
+          if (iconEl) {
+            iconEl.className = 'w-4 h-4 text-[#00ff88] shrink-0 transition-colors duration-300';
+          }
+        }
       } else {
         if (valEl) valEl.innerHTML = '<span class="text-xs text-red-500 font-bold">API Inaccessible</span>';
+        if (warnEl) warnEl.className = 'hidden';
       }
     })
     .catch(err => {
       if (cardEl) cardEl.classList.remove('animate-pulse');
       if (valEl) valEl.innerHTML = '<span class="text-xs text-red-500 font-bold">Hors-ligne</span>';
+      if (warnEl) warnEl.className = 'hidden';
     });
 };
 
@@ -1574,4 +1828,194 @@ window.fetchSyncStatuses = async function() {
     if (label) label.textContent = 'Sync Statuts';
   }
 };
+
+// =====================================================
+// MODAL RELANCE DE COMMANDE (RELAUNCH / RETRY)
+// =====================================================
+window.openRelaunchModal = function(order) {
+  const modal = document.getElementById('relaunch-order-modal');
+  if (!modal) return;
+
+  // Set order details
+  document.getElementById('relaunch-order-id').value = order.id;
+  document.getElementById('relaunch-display-id').textContent = String(order.id).padStart(5, '0');
+  document.getElementById('relaunch-display-user').textContent = order.username || '—';
+  document.getElementById('relaunch-display-quantity').textContent = Number(order.quantity).toLocaleString();
+  document.getElementById('relaunch-display-cost').textContent = '$' + parseFloat(order.cost).toFixed(3);
+  document.getElementById('relaunch-display-link').value = order.link;
+
+  // Style status badge
+  const st = String(order.status).toLowerCase();
+  const badge = document.getElementById('relaunch-display-status');
+  if (badge) {
+    badge.textContent = order.status;
+    badge.className = `text-[10px] font-bold px-2 py-0.5 rounded border uppercase tracking-wider ${
+      st === 'canceled' ? 'bg-red-500/20 text-red-400 border-red-500/30' : 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30'
+    }`;
+  }
+
+  // Populate services dropdown
+  const select = document.getElementById('relaunch-service-select');
+  if (select) {
+    select.innerHTML = '';
+
+    const services = window.ALL_SERVICES || [];
+    const activeServices = services.filter(s => parseInt(s.is_active) === 1);
+
+    // Group by category
+    const categories = {};
+    activeServices.forEach(s => {
+      if (!categories[s.category]) {
+        categories[s.category] = [];
+      }
+      categories[s.category].push(s);
+    });
+
+    // Build options with optgroups
+    Object.keys(categories).sort().forEach(cat => {
+      const optgroup = document.createElement('optgroup');
+      optgroup.label = cat;
+
+      categories[cat].sort((a, b) => a.name.localeCompare(b.name)).forEach(s => {
+        const option = document.createElement('option');
+        option.value = s.id;
+        
+        // Calculate rate for the order quantity
+        const orderCost = ((parseFloat(s.calculated_rate) * order.quantity) / 1000).toFixed(4);
+        option.textContent = `${s.name} [Grossiste: ${s.provider_name || 'Manuel'}] - $${parseFloat(s.calculated_rate).toFixed(4)}/1k (Coût: $${orderCost})`;
+        
+        // Select original service by default
+        if (s.id == order.service_id) {
+          option.selected = true;
+        }
+        optgroup.appendChild(option);
+      });
+
+      select.appendChild(optgroup);
+    });
+
+    // Calculate and show the cost preview when select value changes
+    select.onchange = function() {
+      const selectedSvcId = this.value;
+      const selectedSvc = services.find(s => s.id == selectedSvcId);
+      const previewEl = document.getElementById('relaunch-cost-preview');
+      if (selectedSvc && previewEl) {
+        const cost = ((parseFloat(selectedSvc.calculated_rate) * order.quantity) / 1000).toFixed(4);
+        previewEl.textContent = `$${cost} USD`;
+
+        // Show price difference warning if Pending/Canceled
+        const diffEl = document.getElementById('relaunch-diff-warning');
+        if (diffEl) {
+          if (order.status === 'Pending') {
+            const diff = parseFloat(cost) - parseFloat(order.cost);
+            if (diff > 0) {
+              diffEl.textContent = `Remarque : le client sera débité de la différence de +$${diff.toFixed(4)} USD.`;
+              diffEl.className = 'text-amber-400 text-[10px] mt-1.5 font-semibold';
+            } else if (diff < 0) {
+              diffEl.textContent = `Remarque : le client sera remboursé de la différence de -$${Math.abs(diff).toFixed(4)} USD.`;
+              diffEl.className = 'text-emerald-400 text-[10px] mt-1.5 font-semibold';
+            } else {
+              diffEl.textContent = 'Remarque : aucun changement de tarif pour ce service.';
+              diffEl.className = 'text-gray-500 text-[10px] mt-1.5';
+            }
+          } else if (order.status === 'Canceled') {
+            diffEl.textContent = `Remarque : la commande ayant été annulée, le client sera débité de la somme de $${cost} USD.`;
+            diffEl.className = 'text-blue-400 text-[10px] mt-1.5 font-semibold';
+          }
+        }
+      }
+    };
+
+    // Trigger preview once
+    select.onchange();
+  }
+
+  // Show modal
+  modal.classList.remove('hidden');
+};
+
+window.closeRelaunchModal = function() {
+  const modal = document.getElementById('relaunch-order-modal');
+  if (modal) modal.classList.add('hidden');
+};
 </script>
+
+<!-- Modal: Relancer la commande -->
+<div id="relaunch-order-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 backdrop-blur-md" style="background: rgba(3,7,18,0.75)">
+  <div class="relative w-full max-w-lg rounded-2xl border p-6 shadow-2xl transition-all duration-300" style="background:#0d1117;border-color:#1a2332">
+    <!-- Header -->
+    <div class="flex items-center justify-between mb-4 pb-3 border-b border-[#1a2332]">
+      <div class="flex items-center gap-2">
+        <div class="w-8 h-8 rounded-lg flex items-center justify-center bg-emerald-500/10">
+          <svg class="w-4 h-4 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 4v5h.582m15.356 2A8.001 8.001 0 1121.21 8H18"/></svg>
+        </div>
+        <div>
+          <h3 class="font-bold text-white text-sm font-mono">Relancer la commande #<span id="relaunch-display-id">00000</span></h3>
+          <p class="text-[10px] text-gray-500">Rediriger ou réexécuter cette commande chez un grossiste</p>
+        </div>
+      </div>
+      <button type="button" onclick="closeRelaunchModal()" class="text-gray-500 hover:text-white transition-colors p-1 rounded-lg hover:bg-white/5">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+      </button>
+    </div>
+
+    <!-- Form -->
+    <form method="POST" action="<?= APP_BASE ?>/admin/orders/retry" class="space-y-4">
+      <?= Auth::csrfField() ?>
+      <input type="hidden" name="order_id" id="relaunch-order-id" value="0">
+
+      <!-- Order Details Summary -->
+      <div class="p-3.5 rounded-xl border grid grid-cols-2 gap-3.5 text-xs" style="background:#0a0f1a;border-color:#1a2332">
+        <div>
+          <div class="text-gray-500 text-[10px] uppercase font-semibold">Client</div>
+          <div class="text-white font-bold" id="relaunch-display-user">—</div>
+        </div>
+        <div>
+          <div class="text-gray-500 text-[10px] uppercase font-semibold">Statut Actuel</div>
+          <div>
+            <span id="relaunch-display-status" class="inline-block">—</span>
+          </div>
+        </div>
+        <div>
+          <div class="text-gray-500 text-[10px] uppercase font-semibold">Quantité</div>
+          <div class="text-white font-mono font-bold" id="relaunch-display-quantity">0</div>
+        </div>
+        <div>
+          <div class="text-gray-500 text-[10px] uppercase font-semibold">Coût Client Payé</div>
+          <div class="text-[#00ff88] font-mono font-bold" id="relaunch-display-cost">$0.00</div>
+        </div>
+        <div class="col-span-2">
+          <label class="text-gray-500 text-[10px] uppercase font-semibold" for="relaunch-display-link">Lien de la commande</label>
+          <input type="text" id="relaunch-display-link" readonly class="w-full bg-[#0d1117]/50 border border-[#1a2332]/50 text-gray-400 font-mono text-xs rounded px-2.5 py-1.5 focus:outline-none select-all mt-1" />
+        </div>
+      </div>
+
+      <!-- Select Service -->
+      <div>
+        <label class="block text-xs font-semibold text-gray-400 mb-2 uppercase tracking-wider" for="relaunch-service-select">Choisir le service cible (Fournisseur)</label>
+        <select name="service_id" id="relaunch-service-select" required class="input-field w-full px-3 py-2.5 rounded-xl text-sm font-medium">
+          <!-- Dynamically populated -->
+        </select>
+      </div>
+
+      <!-- Cost Preview & Warning -->
+      <div class="p-3.5 rounded-xl border flex flex-col justify-center" style="background:rgba(0,212,255,0.03);border-color:rgba(0,212,255,0.15)">
+        <div class="flex items-center justify-between text-xs">
+          <span class="text-gray-400 font-medium">Nouveau coût estimé pour cette quantité :</span>
+          <span class="text-[#00d4ff] font-bold font-mono" id="relaunch-cost-preview">$0.0000 USD</span>
+        </div>
+        <div id="relaunch-diff-warning"></div>
+      </div>
+
+      <!-- Actions -->
+      <div class="flex gap-3 pt-2">
+        <button type="button" onclick="closeRelaunchModal()" class="flex-1 border border-[#1a2332] text-gray-400 py-3 rounded-xl text-xs font-bold hover:bg-white/5 transition-colors">
+          Annuler
+        </button>
+        <button type="submit" class="flex-1 btn-primary py-3 rounded-xl text-xs font-bold">
+          Confirmer la relance
+        </button>
+      </div>
+    </form>
+  </div>
+</div>

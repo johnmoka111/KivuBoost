@@ -12,87 +12,123 @@ $pageTitle = 'Configuration Globale';
     </div>
     <div>
       <h1 class="text-xl font-bold text-white">Paramètres Généraux</h1>
-      <p class="text-xs text-gray-500 mt-0.5">Configuration de la plateforme et intégrations Mobile Money.</p>
+      <p class="text-xs text-gray-500 mt-0.5">Configuration de la plateforme et intégrations de paiements.</p>
     </div>
   </div>
 
-  <form method="POST" action="<?= APP_BASE ?>/admin/settings/update" class="space-y-6">
-    <?= Auth::csrfField() ?>
+  <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
 
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+    <!-- Formulaire 1 : Configuration Générale & Mobile Money Manuel -->
+    <div class="md:col-span-1 rounded-2xl border p-5 shadow-lg flex flex-col justify-between" style="background:#0d1117;border-color:#1a2332">
+      <form method="POST" action="<?= APP_BASE ?>/admin/settings/update" class="space-y-4 h-full flex flex-col justify-between">
+        <?= Auth::csrfField() ?>
+        
+        <div class="space-y-4">
+          <h3 class="font-bold text-white text-sm border-b pb-2 border-[#1a2332] flex items-center gap-1.5">
+            <svg class="w-4 h-4 text-[#00ff88] shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"/></svg>
+            Paramètres Généraux
+          </h3>
 
-      <!-- Configuration Générale & Mobile Money -->
-      <div class="rounded-2xl border p-5 space-y-4 shadow-lg" style="background:#0d1117;border-color:#1a2332">
-        <h3 class="font-bold text-white text-sm border-b pb-2 mb-4 border-[#1a2332] flex items-center gap-1.5">
-          <svg class="w-4 h-4 text-[#00ff88] shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"/></svg>
-          Paramètres Généraux & Mobile Money
-        </h3>
+          <div>
+            <label class="block text-xs font-medium text-gray-400 mb-1.5">Nom de la Plateforme</label>
+            <input type="text" name="site_name" value="<?= htmlspecialchars($allSettings['site_name'] ?? 'KivuBoost') ?>" class="input-field w-full px-3 py-2 rounded-xl text-sm">
+          </div>
 
-        <div>
-          <label class="block text-xs font-medium text-gray-400 mb-1.5">Nom de la Plateforme</label>
-          <input type="text" name="site_name" value="<?= htmlspecialchars($allSettings['site_name'] ?? 'KivuBoost') ?>" class="input-field w-full px-3 py-2.5 rounded-xl text-sm">
-        </div>
+          <input type="hidden" name="markup_percentage" value="0">
 
-        <input type="hidden" name="markup_percentage" value="0">
+          <div>
+            <label class="block text-xs font-medium text-gray-400 mb-1.5">Taux de change (1 USD = X CDF)</label>
+            <input type="number" name="usd_rate_cdf" required value="<?= htmlspecialchars($allSettings['usd_rate_cdf'] ?? '2800') ?>" class="input-field w-full px-3 py-2 rounded-xl text-sm font-mono">
+          </div>
 
-        <div>
-          <label class="block text-xs font-medium text-gray-400 mb-1.5">Taux de change (1 USD = X CDF)</label>
-          <input type="number" name="usd_rate_cdf" required value="<?= htmlspecialchars($allSettings['usd_rate_cdf'] ?? '2800') ?>" class="input-field w-full px-3 py-2.5 rounded-xl text-sm font-mono">
-        </div>
-
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <div>
             <label class="block text-xs font-medium text-gray-400 mb-1.5">Numéro M-Pesa (Vodacom)</label>
-            <input type="text" name="mpesa_number" value="<?= htmlspecialchars($allSettings['mpesa_number'] ?? '+243999999999') ?>" class="input-field w-full px-3 py-2.5 rounded-xl text-sm font-mono">
+            <input type="text" name="mpesa_number" value="<?= htmlspecialchars($allSettings['mpesa_number'] ?? '+243999999999') ?>" class="input-field w-full px-3 py-2 rounded-xl text-sm font-mono">
           </div>
+
           <div>
             <label class="block text-xs font-medium text-gray-400 mb-1.5">Numéro Airtel Money</label>
-            <input type="text" name="airtel_number" value="<?= htmlspecialchars($allSettings['airtel_number'] ?? '+243888888888') ?>" class="input-field w-full px-3 py-2.5 rounded-xl text-sm font-mono">
+            <input type="text" name="airtel_number" value="<?= htmlspecialchars($allSettings['airtel_number'] ?? '+243888888888') ?>" class="input-field w-full px-3 py-2 rounded-xl text-sm font-mono">
+          </div>
+
+          <div>
+            <label class="block text-xs font-medium text-gray-400 mb-1.5">Numéro Orange Money</label>
+            <input type="text" name="orange_number" value="<?= htmlspecialchars($allSettings['orange_number'] ?? '') ?>" class="input-field w-full px-3 py-2 rounded-xl text-sm font-mono">
           </div>
         </div>
 
-        <div>
-          <label class="block text-xs font-medium text-gray-400 mb-1.5">Numéro Orange Money</label>
-          <input type="text" name="orange_number" value="<?= htmlspecialchars($allSettings['orange_number'] ?? '') ?>" class="input-field w-full px-3 py-2.5 rounded-xl text-sm font-mono">
-        </div>
-      </div>
-
-      <!-- Intégrations PawaPay / VisaPay -->
-      <div class="rounded-2xl border p-5 space-y-4 shadow-lg" style="background:#0d1117;border-color:#1a2332">
-        <h3 class="font-bold text-white text-sm border-b pb-2 mb-4 border-[#1a2332] flex items-center gap-1.5">
-          <svg class="w-4 h-4 text-cyan-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 9l3 3-3 3m5 0h3M5 20h14a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
-          Intégrations futures (PawaPay / VisaPay)
-        </h3>
-
-        <div class="pt-2">
-          <div class="flex items-center justify-between">
-            <label class="text-xs font-medium text-gray-300">Activer l'API PawaPay (Mobile Money RDC automatique)</label>
-            <input type="checkbox" name="pawapay_enabled" value="1" <?= ($allSettings['pawapay_enabled'] ?? '0') === '1' ? 'checked' : '' ?> class="rounded border-[#1a2332] bg-[#0a0f1a] text-emerald-500 focus:ring-emerald-500/20">
-          </div>
-          <div class="mt-2 grid grid-cols-1 sm:grid-cols-2 gap-2">
-            <input type="text" name="pawapay_api_key" value="<?= htmlspecialchars($allSettings['pawapay_api_key'] ?? '') ?>" placeholder="Clé API PawaPay" class="input-field w-full px-2.5 py-2 rounded-lg text-xs font-mono">
-            <input type="password" name="pawapay_secret" value="<?= htmlspecialchars($allSettings['pawapay_secret'] ?? '') ?>" placeholder="Secret PawaPay" class="input-field w-full px-2.5 py-2 rounded-lg text-xs font-mono">
-          </div>
-        </div>
-
-        <div class="border-t border-[#1a2332] pt-4">
-          <div class="flex items-center justify-between">
-            <label class="text-xs font-medium text-gray-300">Activer l'API VisaPay (Cartes bancaires)</label>
-            <input type="checkbox" name="visapay_enabled" value="1" <?= ($allSettings['visapay_enabled'] ?? '0') === '1' ? 'checked' : '' ?> class="rounded border-[#1a2332] bg-[#0a0f1a] text-emerald-500 focus:ring-emerald-500/20">
-          </div>
-          <div class="mt-2 grid grid-cols-1 sm:grid-cols-2 gap-2">
-            <input type="text" name="visapay_api_key" value="<?= htmlspecialchars($allSettings['visapay_api_key'] ?? '') ?>" placeholder="Clé API VisaPay" class="input-field w-full px-2.5 py-2 rounded-lg text-xs font-mono">
-            <input type="password" name="visapay_secret" value="<?= htmlspecialchars($allSettings['visapay_secret'] ?? '') ?>" placeholder="Secret VisaPay" class="input-field w-full px-2.5 py-2 rounded-lg text-xs font-mono">
-          </div>
-        </div>
-      </div>
-
+        <button type="submit"
+                class="w-full py-2.5 rounded-xl text-xs font-bold shadow-md mt-4"
+                style="background:linear-gradient(135deg,#00ff88,#00c466);color:#050811;box-shadow:0 4px 15px rgba(0,255,136,0.2)">
+          Sauvegarder Général
+        </button>
+      </form>
     </div>
 
-    <button type="submit"
-            class="w-full py-3 rounded-xl text-sm font-bold shadow-lg mt-2"
-            style="background:linear-gradient(135deg,#00ff88,#00c466);color:#050811;box-shadow:0 4px 15px rgba(0,255,136,0.2)">
-      Mettre à jour la configuration globale
-    </button>
-  </form>
+    <!-- Formulaire 2 : Configuration des Passerelles de Paiement en Ligne (Automatique) -->
+    <div class="md:col-span-2 rounded-2xl border p-5 shadow-lg" style="background:#0d1117;border-color:#1a2332">
+      <form method="POST" action="<?= APP_BASE ?>/admin/gateways/update" class="space-y-6">
+        <?= Auth::csrfField() ?>
+
+        <h3 class="font-bold text-white text-sm border-b pb-2 border-[#1a2332] flex items-center gap-1.5">
+          <svg class="w-4 h-4 text-cyan-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+          Configuration des Passerelles Automatiques
+        </h3>
+
+        <div class="grid grid-cols-1 gap-4">
+          <?php foreach ($gateways as $gw): ?>
+          <div class="p-4 rounded-xl border border-[#1a2332] bg-[#0a0f1a] space-y-3">
+            <div class="flex items-center justify-between border-b border-[#1a2332] pb-2">
+              <div class="flex items-center gap-2">
+                <span class="font-bold text-white text-sm"><?= htmlspecialchars($gw['name']) ?></span>
+                <span class="text-[9.5px] px-2 py-0.5 rounded-full font-mono font-bold <?= $gw['is_active'] ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' : 'bg-gray-800 text-gray-400' ?>">
+                  <?= $gw['is_active'] ? 'ACTIF' : 'INACTIF' ?>
+                </span>
+              </div>
+              <label class="relative inline-flex items-center cursor-pointer">
+                <input type="checkbox" name="gateways[<?= $gw['identifier'] ?>][is_active]" value="1" <?= $gw['is_active'] ? 'checked' : '' ?> class="sr-only peer">
+                <div class="w-8 h-4.5 bg-gray-800 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-3.5 after:w-3.5 after:transition-all peer-checked:bg-cyan-500"></div>
+              </label>
+            </div>
+
+            <input type="hidden" name="gateways[<?= $gw['identifier'] ?>][name]" value="<?= htmlspecialchars($gw['name']) ?>">
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div>
+                <label class="block text-[10px] font-medium text-gray-400 mb-1">Clé Publique</label>
+                <input type="text" name="gateways[<?= $gw['identifier'] ?>][public_key]" value="<?= htmlspecialchars($gw['public_key'] ?? '') ?>" placeholder="pk_live_..." class="input-field w-full px-2.5 py-1.5 rounded-lg text-xs font-mono">
+              </div>
+
+              <div>
+                <label class="block text-[10px] font-medium text-gray-400 mb-1">Clé Privée / API Key</label>
+                <input type="password" name="gateways[<?= $gw['identifier'] ?>][private_key]" value="<?= htmlspecialchars($gw['private_key'] ?? '') ?>" placeholder="sk_payin_live_..." class="input-field w-full px-2.5 py-1.5 rounded-lg text-xs font-mono">
+              </div>
+
+              <div>
+                <label class="block text-[10px] font-medium text-gray-400 mb-1">Secret Webhook (HMAC Signature)</label>
+                <input type="password" name="gateways[<?= $gw['identifier'] ?>][signature_secret]" value="<?= htmlspecialchars($gw['signature_secret'] ?? '') ?>" placeholder="Signature secret..." class="input-field w-full px-2.5 py-1.5 rounded-lg text-xs font-mono">
+              </div>
+
+              <div>
+                <label class="block text-[10px] font-medium text-gray-400 mb-1">URL API Base / Session Endpoint</label>
+                <input type="text" name="gateways[<?= $gw['identifier'] ?>][api_url]" value="<?= htmlspecialchars($gw['api_url'] ?? '') ?>" placeholder="https://..." class="input-field w-full px-2.5 py-1.5 rounded-lg text-xs font-mono">
+              </div>
+            </div>
+
+            <div class="pt-1 text-[9px] text-gray-500 font-mono flex flex-wrap justify-between items-center gap-1">
+              <span>Webhook : <span class="text-cyan-400 select-all"><?= APP_URL ?>/api/v1/payments/webhook/<?= $gw['identifier'] ?></span></span>
+            </div>
+          </div>
+          <?php endforeach; ?>
+        </div>
+
+        <button type="submit"
+                class="w-full py-2.5 rounded-xl text-xs font-bold shadow-md"
+                style="background:linear-gradient(135deg,#00d4ff,#0088ff);color:#050811;box-shadow:0 4px 15px rgba(0,212,255,0.2)">
+          Sauvegarder les Passerelles Automatiques
+        </button>
+      </form>
+    </div>
+
+  </div>
 </div>

@@ -1,16 +1,16 @@
-Options -Indexes
-Options -MultiViews
+# Optionnel : désactiver l'affichage des dossiers (commentés pour éviter les erreurs 500 sur InfinityFree)
+# Options -Indexes
+# Options -MultiViews
 
 RewriteEngine On
-RewriteBase /KivuBoost/
 
 # --- Sécurité : bloquer l'accès direct aux dossiers sensibles ---
 RewriteRule ^app/           - [F,L]
 RewriteRule ^config/        - [F,L]
 
 # --- Canonique : /index.php → / (évite le 404 du routeur) ---
-RewriteCond %{THE_REQUEST} \s/+KivuBoost/index\.php[\s?] [NC]
-RewriteRule ^index\.php$ / [R=301,L]
+RewriteCond %{THE_REQUEST} \s/+(?:KivuBoost/)?index\.php[\s?] [NC]
+RewriteRule ^index\.php$ ./ [R=301,L]
 
 # --- Ne pas réécrire les vraies ressources statiques ---
 RewriteCond %{REQUEST_FILENAME} -f [OR]
@@ -20,8 +20,8 @@ RewriteRule ^ - [L]
 # --- Tout passer au front controller ---
 RewriteRule ^(.*)$ index.php [QSA,L]
 
-# --- Headers de sécurité ---
-Header always set X-Frame-Options "SAMEORIGIN"
-Header always set X-Content-Type-Options "nosniff"
-Header always set X-XSS-Protection "1; mode=block"
-Header always set Referrer-Policy "strict-origin-when-cross-origin"
+# --- Headers de sécurité (Désactivés ici et gérés dans index.php pour éviter les erreurs 500 sur InfinityFree) ---
+# Header always set X-Frame-Options "SAMEORIGIN"
+# Header always set X-Content-Type-Options "nosniff"
+# Header always set X-XSS-Protection "1; mode=block"
+# Header always set Referrer-Policy "strict-origin-when-cross-origin"

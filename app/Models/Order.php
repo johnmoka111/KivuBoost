@@ -93,4 +93,42 @@ class Order
         $stmt->execute([$status]);
         return (int)$stmt->fetchColumn();
     }
+
+    /**
+     * Enregistre la reponse brute d'erreur API du grossiste sur la commande.
+     */
+    public function logApiError(int $orderId, string $errorPayload): void
+    {
+        $stmt = $this->db->prepare('UPDATE orders SET api_error_log = ? WHERE id = ?');
+        $stmt->execute([mb_substr($errorPayload, 0, 65535), $orderId]);
+    }
+
+    /**
+     * Rapport financier mensuel — chiffre d'affaires vs cout d'achat grossiste.
+     * Retourne les 12 derniers mois.
+     */
+    public function getMonthlyFinancialReport(int $months = 12): array
+    {
+        $stmt = $this->db->prepare("
+            SELECT
+                DATE_FORMAT(o.created_at, '%Y-%m') AS month_key,
+                DATE_FORMAT(o.created_at, '%b %Y')  AS month_label,
+                COUNT(o.id)                          AS total_orders,
+                ROUND(SUM(o.cost), 4)                AS total_revenue,
+                ROUND(SUM(
+                    (o.quantity / 1000.0) * COALESCE(s.original_rate, 0)
+                ), 4)                                AS total_cost,
+                ROUND(SUM(o.cost) - SUM(
+                    (o.quantity / 1000.0) * COALESCE(s.original_rate, 0)
+                ), 4)                                AS net_profit
+            FROM orders o
+            LEFT JOIN services s ON s.id = o.service_id
+            WHERE o.status IN ('Completed', 'Partial', 'Processing')
+              AND o.created_at >= DATE_SUB(NOW(), INTERVAL ? MONTH)
+            GROUP BY month_key, month_label
+            ORDER BY month_key ASC
+        ");
+        $stmt->execute([$months]);
+        return $stmt->fetchAll();
+    }
 }

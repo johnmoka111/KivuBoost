@@ -14,8 +14,8 @@ use PHPMailer\PHPMailer\Exception;
 
 // --- PARAMÈTRES DU SERVEUR SMTP (GMAIL SÉCURISÉ) ---
 define('SMTP_HOST',       'smtp.gmail.com');
-define('SMTP_PORT',       465);
-define('SMTP_SECURE',     'ssl'); // SSL implicite
+define('SMTP_PORT',       587);
+define('SMTP_SECURE',     'tls'); // TLS / STARTTLS
 define('SMTP_AUTH',       true);
 define('SMTP_USERNAME',   'johnmoka2024@gmail.com');
 define('SMTP_PASSWORD',   'jmovybhisrziopny'); // Mot de passe d'application Google sécurisé

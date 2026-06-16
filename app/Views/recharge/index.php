@@ -102,25 +102,20 @@ $pageTitle = 'Recharger mon compte';
     </div>
 
     <!-- Paiement en ligne (masqué si non configuré) -->
-    <?php if ($settings['pawapay_enabled'] === '1' || $settings['visapay_enabled'] === '1'): ?>
+    <?php if (!empty($activeGateways)): ?>
     <div class="mt-4 pt-4 border-t" style="border-color:#1a2332">
-      <div class="text-xs text-gray-500 uppercase tracking-wider mb-3">Paiement en ligne</div>
-      <div class="flex flex-wrap gap-2">
-        <?php if ($settings['pawapay_enabled'] === '1'): ?>
-        <button class="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium border transition-all hover:border-emerald-500/40"
-                style="background:#0a0f1a;border-color:#1a2332;color:#e2e8f0">
-          <svg class="w-4 h-4 text-emerald-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9"/></svg>
-          Payer via PawaPay
+      <div class="text-xs text-gray-500 uppercase tracking-wider mb-3 font-semibold">Paiement en ligne instantané</div>
+      <div class="flex flex-wrap gap-2.5">
+        <?php foreach ($activeGateways as $gw): ?>
+        <button type="button" onclick="payOnline('<?= $gw['identifier'] ?>')"
+                class="flex items-center gap-2.5 px-4 py-2.5 rounded-xl text-sm font-semibold border transition-all hover:scale-[1.02] active:scale-[0.98] border-cyan-500/20 hover:border-cyan-500/40 text-cyan-400"
+                style="background:rgba(0,212,255,0.04)">
+          <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+          Payer via <?= htmlspecialchars($gw['name']) ?>
         </button>
-        <?php endif; ?>
-        <?php if ($settings['visapay_enabled'] === '1'): ?>
-        <button class="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium border transition-all hover:border-blue-500/40"
-                style="background:#0a0f1a;border-color:#1a2332;color:#e2e8f0">
-          <svg class="w-4 h-4 text-blue-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/></svg>
-          Payer par Carte Visa
-        </button>
-        <?php endif; ?>
+        <?php endforeach; ?>
       </div>
+      <p class="text-[10px] text-gray-500 mt-2">Saisissez le montant et choisissez la devise ci-dessous, puis cliquez sur le bouton de la passerelle pour être redirigé vers l'interface de paiement sécurisée.</p>
     </div>
     <?php endif; ?>
   </div>
@@ -301,4 +296,38 @@ function copyToClipboard(text, button) {
 }
 // legacy compatibility
 function updateCdfEquivalent() { updateConversionInfo(); }
+
+function payOnline(gatewayIdentifier) {
+  const form = document.querySelector('form[action$="/recharge/submit"]');
+  if (!form) return;
+
+  const amountInput = document.getElementById('amount');
+  if (!amountInput || !amountInput.value || parseFloat(amountInput.value) <= 0) {
+    alert("Veuillez saisir un montant valide avant de procéder au paiement en ligne.");
+    amountInput.focus();
+    return;
+  }
+
+  // Changer l'action pour l'initiation en ligne
+  form.action = "<?= APP_BASE ?>/recharge/online/initiate";
+
+  // Ajouter l'identifiant du gateway
+  let gwInput = document.getElementById('online-gateway-id');
+  if (!gwInput) {
+    gwInput = document.createElement('input');
+    gwInput.type = 'hidden';
+    gwInput.name = 'gateway';
+    gwInput.id = 'online-gateway-id';
+    form.appendChild(gwInput);
+  }
+  gwInput.value = gatewayIdentifier;
+
+  // Supprimer les attributs requis pour les informations de transaction manuelle
+  const txInput = document.getElementById('transaction_id');
+  const netSelect = document.getElementById('network');
+  if (txInput) txInput.removeAttribute('required');
+  if (netSelect) netSelect.removeAttribute('required');
+
+  form.submit();
+}
 </script>

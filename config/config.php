@@ -3,16 +3,28 @@
 // KivuBoost — Configuration Centrale
 // ============================================================
 
-// --- Base de données ---
-define('DB_HOST', 'localhost');
-define('DB_NAME', 'bukavuboost');
-define('DB_USER', 'root');
-define('DB_PASS', '');
+// --- Base de données & Environnement ---
+if (PHP_SAPI === 'cli' || (isset($_SERVER['HTTP_HOST']) && ($_SERVER['HTTP_HOST'] === 'localhost' || $_SERVER['HTTP_HOST'] === '127.0.0.1'))) {
+    // --- Configuration Locale (Dev) ---
+    define('DB_HOST', 'localhost');
+    define('DB_NAME', 'bukavuboost');
+    define('DB_USER', 'root');
+    define('DB_PASS', '');
 
-// --- Application ---
+    define('APP_BASE',    '/KivuBoost');        // Chemin de base local
+    define('APP_URL',     'http://localhost/KivuBoost');
+} else {
+    // --- Configuration Production (InfinityFree) ---
+    define('DB_HOST', 'sql101.infinityfree.com');
+    define('DB_NAME', 'if0_42103229_kivubooster');
+    define('DB_USER', 'if0_42103229');
+    define('DB_PASS', 'kivubooster');
+
+    define('APP_BASE',    '');        // Racine du domaine sur InfinityFree (chaîne vide pour éviter les doubles slashes // dans les chemins)
+    define('APP_URL',     'https://kivubooster.kesug.com');
+}
+
 define('APP_NAME',    'KivuBoost');
-define('APP_BASE',    '/KivuBoost');        // Chemin de base dans l'URL
-define('APP_URL',     'http://' . ($_SERVER['HTTP_HOST'] ?? 'localhost') . '/KivuBoost');
 
 // --- fuseau horaire local (Bukavu/Lubumbashi - UTC+2) ---
 date_default_timezone_set('Africa/Lubumbashi');

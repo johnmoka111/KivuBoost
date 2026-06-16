@@ -106,6 +106,13 @@ class OrderController extends Controller
             $db->commit();
             Audit::log('place_order', "Commande #{$orderId} créée (Coût : {$cost} USD, Service : {$service['name']}, Quantité : {$quantity})");
 
+            // Ajouter les points de cashback/fidélité
+            try {
+                (new \App\Models\Loyalty())->addPointsForOrder((int)$user['id'], $orderId, $cost);
+            } catch (\Throwable $e) {
+                // Silencieusement ignorer en cas de table non migrée
+            }
+
         } catch (\Throwable $e) {
             $db->rollBack();
             $this->flash('error', 'Erreur lors de la création de la commande. Veuillez réessayer.');
@@ -281,6 +288,13 @@ class OrderController extends Controller
                 $db->commit();
                 Audit::log('place_mass_order', "Commande en masse #{$orderId} créée (Coût : {$cost} USD, Service : {$service['name']}, Quantité : {$quantity})");
 
+                // Ajouter les points de cashback/fidélité
+                try {
+                    (new \App\Models\Loyalty())->addPointsForOrder((int)$user['id'], $orderId, $cost);
+                } catch (\Throwable $e) {
+                    // Silencieusement ignorer en cas de table non migrée
+                }
+
                 // Routage API grossiste
                 $apiUrl = $service['api_url'] ?? '';
                 $apiKey = $service['api_key'] ?? '';
@@ -426,6 +440,13 @@ class OrderController extends Controller
 
             $db->commit();
             Audit::log('create_subscription', "Abonnement #{$subId} créé pour @{$username} (Coût : {$maxCost} USD, Posts : {$posts})");
+
+            // Ajouter les points de cashback/fidélité pour l'abonnement
+            try {
+                (new \App\Models\Loyalty())->addPointsForOrder((int)$user['id'], (int)$subId, $maxCost);
+            } catch (\Throwable $e) {
+                // Silencieusement ignorer en cas de table non migrée
+            }
 
             Auth::refreshUser();
             $this->flash('success', "Abonnement créé avec succès pour @{$username} ! Le système suivra automatiquement vos $posts prochaines publications.");

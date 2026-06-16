@@ -11,6 +11,7 @@ use App\Models\Recharge;
 use App\Models\Service;
 use App\Models\Provider;
 use App\Models\Setting;
+use App\Models\PricingRule;
 use App\Services\SmmApi;
 use App\Core\Audit;
 
@@ -70,9 +71,13 @@ class AdminController extends Controller
         $settingModel  = new Setting();
         $allSettings   = $settingModel->toArray();
 
+        $gatewayModel  = new \App\Models\PaymentGateway();
+        $gateways      = $gatewayModel->all();
+
         $this->render('admin/configuration', [
             'user'        => Auth::user(),
             'allSettings' => $allSettings,
+            'gateways'    => $gateways,
         ]);
     }
 
@@ -279,6 +284,40 @@ class AdminController extends Controller
         Audit::log('update_settings', "Paramètres globaux mis à jour : " . json_encode($data));
 
         $this->flash('success', 'Paramètres mis à jour avec succès.');
+        $this->redirect('/admin/configuration');
+    }
+
+    // -------------------------------------------------------
+    // POST /admin/gateways/update — Mettre à jour les passerelles de paiement
+    // -------------------------------------------------------
+    public function updateGateways(): void
+    {
+        Auth::requireAdmin();
+
+        if (!Auth::verifyCsrf()) {
+            $this->flash('error', 'Token invalide.');
+            $this->redirect('/admin/configuration');
+        }
+
+        $gatewayModel = new \App\Models\PaymentGateway();
+        $gatewaysData = $_POST['gateways'] ?? [];
+
+        foreach ($gatewaysData as $identifier => $data) {
+            $existing = $gatewayModel->findByIdentifier($identifier);
+            if ($existing) {
+                $gatewayModel->update($identifier, [
+                    'name'             => trim($data['name'] ?? $existing['name']),
+                    'public_key'       => trim($data['public_key'] ?? ''),
+                    'private_key'      => trim($data['private_key'] ?? ''),
+                    'signature_secret' => trim($data['signature_secret'] ?? ''),
+                    'api_url'          => trim($data['api_url'] ?? $existing['api_url']),
+                    'is_active'        => isset($data['is_active']) ? 1 : 0
+                ]);
+            }
+        }
+
+        Audit::log('update_gateways', "Configuration des passerelles de paiement mise à jour");
+        $this->flash('success', 'Passerelles de paiement mises à jour avec succès.');
         $this->redirect('/admin/configuration');
     }
 
@@ -502,6 +541,9 @@ class AdminController extends Controller
             $serviceModel = new Service();
             $markup = (float)$provider['markup_percentage'];
 
+            // Charger les regles de tarification automatiques actives
+            $pricingRuleModel = new PricingRule();
+
             // Récupérer les services existants pour ce fournisseur pour mise à jour/évitement doublons
             $db = Database::getInstance();
             $stmt = $db->prepare('SELECT id, external_service_id, is_active FROM services WHERE provider_id = ?');
@@ -529,8 +571,11 @@ class AdminController extends Controller
 
                 if ($extId <= 0 || empty($name)) continue;
 
-                // Tarification dynamique : prix de vente = prix d'achat * (1 + markup %)
-                $calculatedRate = round($rate * (1 + ($markup / 100)), 4);
+                // Tarification dynamique : prix de base = prix achat * (1 + markup %)
+                // + extra eventuel provenant des regles de tarification automatiques
+                $extraMarkup = $pricingRuleModel->getExtraMarkupForService($category, $providerId);
+                $totalMarkup = $markup + $extraMarkup;
+                $calculatedRate = round($rate * (1 + ($totalMarkup / 100)), 4);
 
                 // --- AJUSTEMENT INTELLIGENT DU TITRE ---
                 // Si le fournisseur inclut le prix d'achat dans le titre (ex: $0.30), cela crée la confusion.
@@ -580,7 +625,7 @@ class AdminController extends Controller
             $db->commit();
 
             $this->flash('success', sprintf(
-                'Synchronisation réussie ! %d services mis à jour ou créés depuis le catalogue de %s (Marge de +%g%% appliquée).',
+                'Synchronisation reussie ! %d services mis a jour ou crees depuis %s (Marge de base +%g%%, regles auto incluses).',
                 $countSynced,
                 htmlspecialchars($provider['name']),
                 $markup
@@ -985,11 +1030,11 @@ class AdminController extends Controller
                     // 'processing', 'in progress', 'pending' → on ne fait rien
 
                     if ($newStatus !== null) {
-                        // Mettre à jour le statut en DB
+                        // Mettre a jour le statut en DB
                         $upStmt = $db->prepare('UPDATE orders SET status = ? WHERE id = ?');
                         $upStmt->execute([$newStatus, $order['id']]);
 
-                        // Remboursement si nécessaire
+                        // Remboursement si necessaire
                         if ($refundAmount > 0) {
                             $userModel->adjustBalance((int)$order['user_id'], $refundAmount);
                             $stats['refunded_total'] += $refundAmount;
@@ -1001,6 +1046,15 @@ class AdminController extends Controller
                                 $newStatus
                             ));
                         }
+                    } elseif (isset($orderData['error']) && !empty($orderData['error'])) {
+                        // Journaliser l'erreur API retournee par le grossiste
+                        $errorPayload = json_encode([
+                            'timestamp' => date('Y-m-d H:i:s'),
+                            'provider'  => $orders[0]['provider_name'] ?? 'inconnu',
+                            'error'     => $orderData['error'],
+                            'raw'       => $orderData,
+                        ], JSON_UNESCAPED_UNICODE);
+                        (new Order())->logApiError((int)$order['id'], $errorPayload);
                     }
                 }
             } catch (\Throwable $e) {
@@ -1026,6 +1080,137 @@ class AdminController extends Controller
     }
 
     // -------------------------------------------------------
+    // POST /admin/orders/retry (Relancer une commande)
+    // -------------------------------------------------------
+    public function retryOrder(): void
+    {
+        Auth::requireAdmin();
+
+        if (!Auth::verifyCsrf()) {
+            $this->flash('error', 'Token de sécurité invalide.');
+            $this->redirect('/admin?tab=orders');
+        }
+
+        $orderId   = (int)($_POST['order_id'] ?? 0);
+        $serviceId = (int)($_POST['service_id'] ?? 0);
+
+        if ($orderId <= 0 || $serviceId <= 0) {
+            $this->flash('error', 'Commande ou service invalide.');
+            $this->redirect('/admin?tab=orders');
+        }
+
+        $orderModel = new Order();
+        $order = $orderModel->findById($orderId);
+
+        if (!$order) {
+            $this->flash('error', 'Commande introuvable.');
+            $this->redirect('/admin?tab=orders');
+        }
+
+        $serviceModel = new Service();
+        $service = $serviceModel->findById($serviceId);
+
+        if (!$service || !$service['is_active']) {
+            $this->flash('error', 'Service sélectionné introuvable ou inactif.');
+            $this->redirect('/admin?tab=orders');
+        }
+
+        $userModel = new User();
+        $user = $userModel->findById((int)$order['user_id']);
+
+        if (!$user) {
+            $this->flash('error', 'Utilisateur introuvable.');
+            $this->redirect('/admin?tab=orders');
+        }
+
+        $newCost = round(($service['calculated_rate'] * $order['quantity']) / 1000, 4);
+
+        $db = Database::getInstance();
+
+        try {
+            $db->beginTransaction();
+
+            if ($order['status'] === 'Canceled') {
+                if ((float)$user['balance'] < $newCost) {
+                    throw new \RuntimeException(sprintf(
+                        "Solde de l'utilisateur insuffisant ($%.2f USD nécessaires, solde actuel : $%.2f USD).",
+                        $newCost,
+                        $user['balance']
+                    ));
+                }
+                $userModel->debitBalance((int)$user['id'], $newCost);
+            } elseif ($order['status'] === 'Pending') {
+                $difference = $newCost - (float)$order['cost'];
+                if ($difference > 0) {
+                    if ((float)$user['balance'] < $difference) {
+                        throw new \RuntimeException(sprintf(
+                            "Solde de l'utilisateur insuffisant pour couvrir la différence tarifaire ($%.2f USD nécessaires, solde actuel : $%.2f USD).",
+                            $difference,
+                            $user['balance']
+                        ));
+                    }
+                    $userModel->debitBalance((int)$user['id'], $difference);
+                } elseif ($difference < 0) {
+                    $userModel->creditBalance((int)$user['id'], abs($difference));
+                }
+            }
+
+            $stmt = $db->prepare('UPDATE orders SET service_id = ?, cost = ?, status = "Pending", external_order_id = NULL WHERE id = ?');
+            $stmt->execute([$serviceId, $newCost, $orderId]);
+
+            $db->commit();
+        } catch (\Throwable $e) {
+            if ($db->inTransaction()) {
+                $db->rollBack();
+            }
+            $this->flash('error', 'Échec de la relance : ' . $e->getMessage());
+            $this->redirect('/admin?tab=orders');
+        }
+
+        $apiUrl = $service['api_url'] ?? '';
+        $apiKey = $service['api_key'] ?? '';
+
+        if (!empty($apiUrl) && !empty($apiKey) && $apiKey !== SMM_PLACEHOLDER_KEY) {
+            try {
+                $api = new SmmApi($apiKey, $apiUrl);
+                $response = $api->addOrder(
+                    (int)$service['external_service_id'],
+                    $order['link'],
+                    (int)$order['quantity']
+                );
+
+                if (isset($response['order'])) {
+                    $orderModel->updateExternalId($orderId, (string)$response['order'], 'Processing');
+                    // Effacer tout ancien log d'erreur
+                    $orderModel->logApiError($orderId, '');
+                    Audit::log('retry_order_success', "Commande #{$orderId} relancee chez {$service['name']} (Grossiste : {$service['provider_name']}). Ref externe : {$response['order']}");
+                    $this->flash('success', "Commande #{$orderId} relancee avec succes ! Statut passe a 'En cours'.");
+                } else {
+                    $errorMsg = $response['error'] ?? "Erreur inconnue de l'API du grossiste.";
+                    // Journaliser la reponse brute d'erreur
+                    $errorPayload = json_encode([
+                        'timestamp' => date('Y-m-d H:i:s'),
+                        'provider'  => $service['provider_name'] ?? 'inconnu',
+                        'error'     => $errorMsg,
+                        'raw'       => $response,
+                    ], JSON_UNESCAPED_UNICODE);
+                    $orderModel->logApiError($orderId, $errorPayload);
+                    Audit::log('retry_order_api_fail', "Commande #{$orderId} relancee localement mais rejetee par l'API de {$service['provider_name']} : {$errorMsg}");
+                    $this->flash('warning', "Commande #{$orderId} mise a jour localement, mais le fournisseur a renvoye une erreur : " . $errorMsg);
+                }
+            } catch (\Throwable $e) {
+                Audit::log('retry_order_conn_fail', "Erreur de connexion lors de la relance de la commande #{$orderId} : " . $e->getMessage());
+                $this->flash('warning', "Commande #{$orderId} mise à jour localement, mais impossible de joindre le fournisseur : " . $e->getMessage());
+            }
+        } else {
+            Audit::log('retry_order_manual', "Commande #{$orderId} configurée en traitement manuel.");
+            $this->flash('success', "Commande #{$orderId} mise à jour localement. Fournisseur manuel.");
+        }
+
+        $this->redirect('/admin?tab=orders');
+    }
+
+    // -------------------------------------------------------
     // Privé : récupérer le solde fournisseur
     // -------------------------------------------------------
     private function fetchProviderBalance(string $apiKey, string $apiUrl): ?array
@@ -1036,5 +1221,134 @@ class AdminController extends Controller
         } catch (\Throwable $e) {
             return ['balance' => '0.00', 'currency' => 'USD', 'error' => $e->getMessage()];
         }
+    }
+
+    // -------------------------------------------------------
+    // GET /admin/pricing-rules — Gestion des regles de tarification
+    // -------------------------------------------------------
+    public function pricingRules(): void
+    {
+        Auth::requireAdmin();
+
+        try {
+            $ruleModel    = new PricingRule();
+            $rules        = $ruleModel->all();
+        } catch (\Throwable $e) {
+            die("Erreur de base de donnees dans l'affichage des regles de prix : " . $e->getMessage() . "<br>Avez-vous execute update_schema.php sur le serveur ?");
+        }
+
+        $providerModel = new Provider();
+
+        $this->render('admin/pricing_rules', [
+            'rules'     => $rules,
+            'providers' => $providerModel->all(),
+            'pageTitle' => 'Regles de Tarification Automatiques',
+        ]);
+    }
+
+    // POST /admin/pricing-rules/save
+    public function savePricingRule(): void
+    {
+        Auth::requireAdmin();
+        if (!Auth::verifyCsrf()) {
+            $this->flash('error', 'Token invalide.');
+            $this->redirect('/admin/pricing-rules');
+        }
+
+        $id          = (int)($_POST['id'] ?? 0);
+        $name        = trim($_POST['name'] ?? '');
+        $ruleType    = $_POST['rule_type'] === 'provider' ? 'provider' : 'category';
+        $targetValue = trim($_POST['target_value'] ?? '');
+        $markupExtra = (float)($_POST['markup_extra'] ?? 0);
+        $isActive    = isset($_POST['is_active']) ? 1 : 0;
+
+        if (empty($name) || empty($targetValue)) {
+            $this->flash('error', 'Nom et valeur cible obligatoires.');
+            $this->redirect('/admin/pricing-rules');
+        }
+
+        $ruleModel = new PricingRule();
+        if ($id > 0) {
+            $ruleModel->update($id, $name, $ruleType, $targetValue, $markupExtra, $isActive);
+            $this->flash('success', "Regle '{$name}' mise a jour.");
+        } else {
+            $ruleModel->create($name, $ruleType, $targetValue, $markupExtra);
+            $this->flash('success', "Regle '{$name}' creee.");
+        }
+        Audit::log('pricing_rule_save', "Regle de tarification '{$name}' ({$ruleType}: {$targetValue} +{$markupExtra}%) sauvegardee.");
+        $this->redirect('/admin/pricing-rules');
+    }
+
+    // POST /admin/pricing-rules/delete
+    public function deletePricingRule(): void
+    {
+        Auth::requireAdmin();
+        if (!Auth::verifyCsrf()) {
+            $this->flash('error', 'Token invalide.');
+            $this->redirect('/admin/pricing-rules');
+        }
+        $id = (int)($_POST['id'] ?? 0);
+        if ($id > 0) {
+            (new PricingRule())->delete($id);
+            $this->flash('success', 'Regle supprimee.');
+            Audit::log('pricing_rule_delete', "Regle de tarification #{$id} supprimee.");
+        }
+        $this->redirect('/admin/pricing-rules');
+    }
+
+    // POST /admin/pricing-rules/apply — Recalcule tous les prix selon les regles actives
+    public function applyPricingRules(): void
+    {
+        Auth::requireAdmin();
+        if (!Auth::verifyCsrf()) {
+            $this->flash('error', 'Token invalide.');
+            $this->redirect('/admin/pricing-rules');
+        }
+
+        $db = Database::getInstance();
+        $ruleModel = new PricingRule();
+
+        // Recupérer tous les services avec leur catégorie et provider markup
+        $services = $db->query("
+            SELECT s.id, s.category, s.original_rate, s.provider_id, p.markup_percentage
+            FROM services s
+            JOIN providers p ON p.id = s.provider_id
+            WHERE s.is_active = 1
+        ")->fetchAll();
+
+        $updated = 0;
+        $stmt = $db->prepare('UPDATE services SET calculated_rate = ? WHERE id = ?');
+
+        foreach ($services as $svc) {
+            $extra = $ruleModel->getExtraMarkupForService($svc['category'], (int)$svc['provider_id']);
+            $total = (float)$svc['markup_percentage'] + $extra;
+            $newRate = round((float)$svc['original_rate'] * (1 + $total / 100), 4);
+            $stmt->execute([$newRate, $svc['id']]);
+            $updated++;
+        }
+
+        Audit::log('apply_pricing_rules', "Recalcul automatique des prix : {$updated} services mis a jour.");
+        $this->flash('success', "{$updated} services recalcules avec les regles de tarification actives.");
+        $this->redirect('/admin/pricing-rules');
+    }
+
+    // -------------------------------------------------------
+    // GET /admin/financial-report — Rapport financier mensuel
+    // -------------------------------------------------------
+    public function financialReport(): void
+    {
+        Auth::requireAdmin();
+
+        $orderModel = new Order();
+        $months = (int)($_GET['months'] ?? 12);
+        $months = max(3, min(24, $months));
+
+        $report = $orderModel->getMonthlyFinancialReport($months);
+
+        $this->render('admin/financial_report', [
+            'report'    => $report,
+            'months'    => $months,
+            'pageTitle' => 'Rapport Financier Mensuel',
+        ]);
     }
 }

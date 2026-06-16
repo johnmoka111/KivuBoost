@@ -119,6 +119,16 @@ class AuthController extends Controller
         // Hacher le mot de passe avant insertion
         $passwordHash = password_hash($password, PASSWORD_BCRYPT);
         $userId = $userModel->create($username, $email, $passwordHash);
+
+        // Ajouter le bonus de bienvenue en points de fidélité
+        try {
+            $db = \App\Core\Database::getInstance();
+            $db->prepare("UPDATE users SET loyalty_points = 200, lifetime_points = 200 WHERE id = ?")->execute([$userId]);
+            $db->prepare("INSERT INTO loyalty_logs (user_id, points, description) VALUES (?, 200, 'Bonus de bienvenue')")->execute([$userId]);
+        } catch (\Throwable $e) {
+            // Silencieusement ignorer si la base n'est pas encore migrée
+        }
+
         $user   = $userModel->findById($userId);
 
         // Déclencheur SMTP : Confirmation d'Inscription
