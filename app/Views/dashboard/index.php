@@ -1587,7 +1587,7 @@ window.addEventListener('DOMContentLoaded', () => {
       <div class="rounded-xl p-3 bg-cyan-500/5 border border-cyan-500/20 text-[10px] sm:text-xs text-cyan-400 mb-5 flex gap-2">
         <svg class="w-4 h-4 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
         <div>
-          Sélectionnez votre pays, indiquez le montant puis validez. Vous serez redirigé vers notre agrégateur sécurisé (BkaPay) pour saisir votre numéro et opérateur, puis un popup USSD s'affichera sur votre téléphone.
+          Indiquez le montant à recharger puis validez. Vous serez redirigé vers notre agrégateur sécurisé (BkaPay) où vous pourrez choisir votre pays et saisir votre numéro Mobile Money.
         </div>
       </div>
 
@@ -1595,60 +1595,10 @@ window.addEventListener('DOMContentLoaded', () => {
         <?= Auth::csrfField() ?>
         <input type="hidden" name="gateway" value="bkapay">
         <input type="hidden" name="currency" value="USD">
-        <input type="hidden" name="bkapay_country" id="recharge-country-input" value="CD" required>
-
-        <!-- PAYS -->
-        <div>
-          <label class="block text-xs font-bold text-gray-400 mb-2">1. Sélectionnez votre pays</label>
-          <div class="grid grid-cols-2 gap-2 max-h-[140px] overflow-y-auto pr-1 custom-scrollbar">
-            <button type="button" onclick="selectRechargeCountry('CD')" id="recharge-country-CD" class="recharge-country-btn flex items-center gap-2 p-2 rounded-xl border border-emerald-500/50 bg-emerald-500/5 text-left transition-all">
-              <span class="text-xl">🇨🇩</span>
-              <div class="min-w-0">
-                <div class="text-[10px] font-bold text-white truncate">RDC</div>
-                <div class="text-[8px] text-gray-500 truncate">M-Pesa, Airtel, Orange</div>
-              </div>
-            </button>
-            <button type="button" onclick="selectRechargeCountry('CI')" id="recharge-country-CI" class="recharge-country-btn flex items-center gap-2 p-2 rounded-xl border border-[#1a2332] bg-[#0a0f1a] text-left transition-all">
-              <span class="text-xl">🇨🇮</span>
-              <div class="min-w-0">
-                <div class="text-[10px] font-bold text-white truncate">Côte d'Ivoire</div>
-                <div class="text-[8px] text-gray-500 truncate">Orange, MTN, Wave</div>
-              </div>
-            </button>
-            <button type="button" onclick="selectRechargeCountry('CM')" id="recharge-country-CM" class="recharge-country-btn flex items-center gap-2 p-2 rounded-xl border border-[#1a2332] bg-[#0a0f1a] text-left transition-all">
-              <span class="text-xl">🇨🇲</span>
-              <div class="min-w-0">
-                <div class="text-[10px] font-bold text-white truncate">Cameroun</div>
-                <div class="text-[8px] text-gray-500 truncate">Orange, MTN</div>
-              </div>
-            </button>
-            <button type="button" onclick="selectRechargeCountry('SN')" id="recharge-country-SN" class="recharge-country-btn flex items-center gap-2 p-2 rounded-xl border border-[#1a2332] bg-[#0a0f1a] text-left transition-all">
-              <span class="text-xl">🇸🇳</span>
-              <div class="min-w-0">
-                <div class="text-[10px] font-bold text-white truncate">Sénégal</div>
-                <div class="text-[8px] text-gray-500 truncate">Wave, Orange, Free</div>
-              </div>
-            </button>
-            <button type="button" onclick="selectRechargeCountry('BJ')" id="recharge-country-BJ" class="recharge-country-btn flex items-center gap-2 p-2 rounded-xl border border-[#1a2332] bg-[#0a0f1a] text-left transition-all">
-              <span class="text-xl">🇧🇯</span>
-              <div class="min-w-0">
-                <div class="text-[10px] font-bold text-white truncate">Bénin</div>
-                <div class="text-[8px] text-gray-500 truncate">MTN, Moov</div>
-              </div>
-            </button>
-            <button type="button" onclick="selectRechargeCountry('TG')" id="recharge-country-TG" class="recharge-country-btn flex items-center gap-2 p-2 rounded-xl border border-[#1a2332] bg-[#0a0f1a] text-left transition-all">
-              <span class="text-xl">🇹🇬</span>
-              <div class="min-w-0">
-                <div class="text-[10px] font-bold text-white truncate">Togo</div>
-                <div class="text-[8px] text-gray-500 truncate">T-Money, Moov</div>
-              </div>
-            </button>
-          </div>
-        </div>
 
         <!-- MONTANT -->
         <div>
-          <label class="block text-xs font-bold text-gray-400 mb-2">2. Montant à déposer (en USD $)</label>
+          <label class="block text-xs font-bold text-gray-400 mb-2">Montant à déposer (en USD $)</label>
           <div class="relative">
             <span class="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 text-sm font-black">$</span>
             <input type="number" name="amount" id="recharge-amount-input" required min="1" step="0.01"
@@ -1657,7 +1607,7 @@ window.addEventListener('DOMContentLoaded', () => {
                    style="background:#0a0f1a;border:1px solid #1a2332;color:#00ff88;">
           </div>
           <p class="text-[10px] text-gray-500 mt-1.5 font-semibold text-right">
-            Équivalent indicatif : <span id="recharge-cdf-eq" style="color:#00d4ff">0 Fc</span>
+            Équivalent indicatif CDF : <span id="recharge-cdf-eq" style="color:#00d4ff">0 Fc</span>
           </p>
         </div>
 

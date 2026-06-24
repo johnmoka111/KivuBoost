@@ -34,7 +34,7 @@ $pageTitle = 'Recharger mon compte';
     <div class="rounded-xl p-4 bg-cyan-500/5 border border-cyan-500/20 text-xs text-cyan-400 mb-6 flex gap-3">
       <svg class="w-5 h-5 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
       <div class="leading-relaxed">
-        Sélectionnez votre pays, indiquez le montant puis validez. Vous serez redirigé vers notre agrégateur sécurisé (BkaPay) pour saisir votre numéro et opérateur, puis un popup USSD s'affichera sur votre téléphone.
+        Indiquez le montant à recharger puis validez. Vous serez redirigé vers notre agrégateur sécurisé (BkaPay) où vous pourrez choisir votre pays et saisir votre numéro Mobile Money.
       </div>
     </div>
 
@@ -42,60 +42,10 @@ $pageTitle = 'Recharger mon compte';
       <?= Auth::csrfField() ?>
       <input type="hidden" name="gateway" value="bkapay">
       <input type="hidden" name="currency" value="USD">
-      <input type="hidden" name="bkapay_country" id="recharge-page-country-input" value="CD" required>
-
-      <!-- PAYS -->
-      <div>
-        <label class="block text-sm font-bold text-gray-400 mb-3">1. Sélectionnez votre pays</label>
-        <div class="grid grid-cols-2 md:grid-cols-3 gap-3">
-          <button type="button" onclick="selectPageCountry('CD')" id="btn-page-country-CD" class="page-country-btn flex items-center gap-3 p-3 rounded-2xl border border-emerald-500/50 bg-emerald-500/5 text-left transition-all">
-            <span class="text-2xl">🇨🇩</span>
-            <div class="min-w-0">
-              <div class="text-xs font-bold text-white truncate">RDC</div>
-              <div class="text-[9px] text-gray-500 truncate">M-Pesa, Airtel, Orange</div>
-            </div>
-          </button>
-          <button type="button" onclick="selectPageCountry('CI')" id="btn-page-country-CI" class="page-country-btn flex items-center gap-3 p-3 rounded-2xl border border-[#1a2332] bg-[#0a0f1a] text-left transition-all">
-            <span class="text-2xl">🇨🇮</span>
-            <div class="min-w-0">
-              <div class="text-xs font-bold text-white truncate">Côte d'Ivoire</div>
-              <div class="text-[9px] text-gray-500 truncate">Orange, MTN, Wave</div>
-            </div>
-          </button>
-          <button type="button" onclick="selectPageCountry('CM')" id="btn-page-country-CM" class="page-country-btn flex items-center gap-3 p-3 rounded-2xl border border-[#1a2332] bg-[#0a0f1a] text-left transition-all">
-            <span class="text-2xl">🇨🇲</span>
-            <div class="min-w-0">
-              <div class="text-xs font-bold text-white truncate">Cameroun</div>
-              <div class="text-[9px] text-gray-500 truncate">Orange, MTN</div>
-            </div>
-          </button>
-          <button type="button" onclick="selectPageCountry('SN')" id="btn-page-country-SN" class="page-country-btn flex items-center gap-3 p-3 rounded-2xl border border-[#1a2332] bg-[#0a0f1a] text-left transition-all">
-            <span class="text-2xl">🇸🇳</span>
-            <div class="min-w-0">
-              <div class="text-xs font-bold text-white truncate">Sénégal</div>
-              <div class="text-[9px] text-gray-500 truncate">Wave, Orange, Free</div>
-            </div>
-          </button>
-          <button type="button" onclick="selectPageCountry('BJ')" id="btn-page-country-BJ" class="page-country-btn flex items-center gap-3 p-3 rounded-2xl border border-[#1a2332] bg-[#0a0f1a] text-left transition-all">
-            <span class="text-2xl">🇧🇯</span>
-            <div class="min-w-0">
-              <div class="text-xs font-bold text-white truncate">Bénin</div>
-              <div class="text-[9px] text-gray-500 truncate">MTN, Moov</div>
-            </div>
-          </button>
-          <button type="button" onclick="selectPageCountry('TG')" id="btn-page-country-TG" class="page-country-btn flex items-center gap-3 p-3 rounded-2xl border border-[#1a2332] bg-[#0a0f1a] text-left transition-all">
-            <span class="text-2xl">🇹🇬</span>
-            <div class="min-w-0">
-              <div class="text-xs font-bold text-white truncate">Togo</div>
-              <div class="text-[9px] text-gray-500 truncate">T-Money, Moov</div>
-            </div>
-          </button>
-        </div>
-      </div>
 
       <!-- MONTANT -->
       <div>
-        <label class="block text-sm font-bold text-gray-400 mb-3">2. Montant à déposer (en USD $)</label>
+        <label class="block text-sm font-bold text-gray-400 mb-3">Montant à déposer (en USD $)</label>
         <div class="relative max-w-sm">
           <span class="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 text-lg font-black">$</span>
           <input type="number" name="amount" id="recharge-page-amount" required min="1" step="0.01"
@@ -104,7 +54,7 @@ $pageTitle = 'Recharger mon compte';
                  style="background:#0a0f1a;border:1px solid #1a2332;color:#00ff88;">
         </div>
         <p class="text-xs text-gray-500 mt-2 font-semibold">
-          Équivalent indicatif local : <span id="recharge-page-eq" style="color:#00d4ff">0 Fc</span>
+          Équivalent indicatif CDF : <span id="recharge-page-eq" style="color:#00d4ff">0 Fc</span>
         </p>
       </div>
 

@@ -197,56 +197,20 @@ class RechargeController extends Controller
         // Initialisation de la requête HTTP selon la passerelle
         $payload = [];
         if ($gateway['identifier'] === 'bkapay') {
-            $bkapayCountry  = strtoupper(trim($_POST['bkapay_country'] ?? ''));
-            // L'opérateur et le téléphone seront saisis sur la page de l'agrégateur
-
-            if (empty($bkapayCountry)) {
-                $this->flash('error', 'Veuillez sélectionner un pays pour le paiement mobile BkaPay.');
-                $this->redirect('/recharge');
-            }
-
-            // Calcul du montant et de la devise locale pour BkaPay
-            $rateCdf = (float)Setting::get('usd_rate_cdf', '2850');
-            $amountUsd = $amount;
-            if ($currency === 'CDF') {
-                $amountUsd = $amount / $rateCdf;
-            }
-
-            // Déterminer la devise locale et le taux de change
-            $targetCurrency = 'XOF';
-            $rateTarget = 600.0;
-            if ($bkapayCountry === 'CD') {
-                $targetCurrency = 'CDF';
-                $rateTarget = $rateCdf;
-            } elseif ($bkapayCountry === 'CM') {
-                $targetCurrency = 'XAF';
-                $rateTarget = (float)Setting::get('usd_rate_xaf', '600');
-            } elseif ($bkapayCountry === 'GN') {
-                $targetCurrency = 'GNF';
-                $rateTarget = (float)Setting::get('usd_rate_gnf', '8600');
-            } else {
-                $targetCurrency = 'XOF';
-                $rateTarget = (float)Setting::get('usd_rate_xof', '600');
-            }
-
-            $targetAmount = (int)round($amountUsd * $rateTarget);
-
-            // Payload complet pour l'API payment-sessions de BkaPay
+            // Le pays, l'opérateur et le téléphone seront gérés sur la page de l'agrégateur (BkaPay)
+            // On envoie directement le montant en USD. BkaPay se chargera de la conversion locale sur sa page.
+            
             $payload = [
-                'amount'      => $targetAmount,
-                'currency'    => $targetCurrency,
+                'amount'      => $amount,
+                'currency'    => 'USD',
                 'description' => "Recharge KivuBoost #" . $rechargeId . " (" . $user['username'] . ")",
                 'orderId'     => (string)$rechargeId,
-                'country'     => $bkapayCountry,
                 'paymentMethod' => 'mobile_money',
                 'returnUrl'   => $successUrl,
                 'cancelUrl'   => $cancelUrl,
-                'webhookUrl'  => $callbackUrl,
-                'customer'    => [
-                    'email' => $user['email'] ?? 'contact@kivubooster.com',
-                    'name'  => $user['username'] ?? 'Client'
-                ]
+                'webhookUrl'  => $callbackUrl
             ];
+
 
             // Forcer l'utilisation de payment-sessions car la clé API fournie est de type sk_payin_live
             $apiUrl = str_replace('business/payin', 'payment-sessions', $apiUrl);
