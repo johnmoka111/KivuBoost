@@ -5,6 +5,11 @@
 
 declare(strict_types=1);
 
+// Activer temporairement l'affichage des erreurs pour déboguer le site
+ini_set('display_errors', '1');
+ini_set('display_startup_errors', '1');
+error_reporting(E_ALL);
+
 // Chargement de la configuration (inclut l'autoloader)
 require_once __DIR__ . '/config/config.php';
 
@@ -40,6 +45,10 @@ $router->get('/register', 'AuthController@showRegister');
 $router->post('/register','AuthController@register');
 $router->get('/logout',   'AuthController@logout');
 
+// Google OAuth2
+$router->get('/auth/google',          'GoogleAuthController@initiate');
+$router->get('/auth/google/callback', 'GoogleAuthController@callback');
+
 // Page d'accueil publique
 $router->get('/',              'NewsController@index');
 
@@ -65,6 +74,7 @@ $router->post('/recharge/online/initiate',  'RechargeController@initiateOnline')
 $router->get('/recharge/online/success',   'RechargeController@onlineSuccess');
 $router->get('/recharge/online/cancel',    'RechargeController@onlineCancel');
 $router->post('/api/v1/payments/webhook/:gateway', 'RechargeController@webhook');
+$router->post('/api/webhook/bkapay', 'RechargeController@webhook');
 
 // Administration
 $router->get('/admin',                      'AdminController@index');

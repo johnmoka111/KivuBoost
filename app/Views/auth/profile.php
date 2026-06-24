@@ -63,15 +63,17 @@ $pageTitle = 'Mon Profil';
                  onblur="this.style.borderColor='#1a2332'">
         </div>
 
-        <!-- Email -->
+        <!-- Email (Masqué et Lecture Seule) -->
         <div>
-          <label class="block text-xs font-medium text-gray-400 mb-1.5" for="email">Adresse Email</label>
-          <input type="email" name="email" id="email" required
-                 value="<?= htmlspecialchars($user['email']) ?>"
-                 class="w-full px-4 py-3 rounded-xl text-sm"
-                 style="background:#0a0f1a;border:1px solid #1a2332;color:#e2e8f0;transition:border-color .2s"
-                 onfocus="this.style.borderColor='rgba(0,255,136,0.5)'"
-                 onblur="this.style.borderColor='#1a2332'">
+          <label class="block text-xs font-medium text-gray-400 mb-1.5" for="email">Adresse Email <span class="text-xs text-gray-600">(Non modifiable)</span></label>
+          <?php
+          $emailParts = explode('@', $user['email']);
+          $maskedEmail = (strlen($emailParts[0]) > 2 ? substr($emailParts[0], 0, 2) : substr($emailParts[0], 0, 1)) . '***@' . $emailParts[1];
+          ?>
+          <input type="email" name="email" id="email" readonly
+                 value="<?= htmlspecialchars($maskedEmail) ?>"
+                 class="w-full px-4 py-3 rounded-xl text-sm cursor-not-allowed"
+                 style="background:#0a0f1a;border:1px solid #1a2332;color:#64748b;">
         </div>
 
         <!-- Nouveau Mot de Passe -->
@@ -84,6 +86,73 @@ $pageTitle = 'Mon Profil';
                  onfocus="this.style.borderColor='rgba(0,255,136,0.5)'"
                  onblur="this.style.borderColor='#1a2332'">
         </div>
+      </div>
+
+      <!-- Séparateur -->
+      <div class="h-px w-full my-6" style="background:#1a2332"></div>
+
+      <!-- Préférences -->
+      <div class="space-y-4">
+        <h2 class="text-sm font-bold text-white mb-3">Préférences de l'application</h2>
+        
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <!-- Monnaie -->
+          <div>
+            <label class="block text-xs font-medium text-gray-400 mb-1.5" for="currency_pref">Monnaie d'affichage</label>
+            <select name="currency_pref" id="currency_pref"
+                    class="w-full px-4 py-3 rounded-xl text-sm appearance-none"
+                    style="background:#0a0f1a url('data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' fill=\'none\' viewBox=\'0 0 24 24\' stroke=\'%236b7280\'><path stroke-linecap=\'round\' stroke-linejoin=\'round\' stroke-width=\'2\' d=\'M19 9l-7 7-7-7\'/></svg>') no-repeat right 1rem center / 1.25rem; border:1px solid #1a2332;color:#e2e8f0;">
+              <option value="USD" <?= ($user['currency_pref'] ?? '') === 'USD' ? 'selected' : '' ?>>USD ($) - Défaut</option>
+              <option value="CDF" <?= ($user['currency_pref'] ?? '') === 'CDF' ? 'selected' : '' ?>>CDF (Francs Congolais)</option>
+              <option value="XOF" <?= ($user['currency_pref'] ?? '') === 'XOF' ? 'selected' : '' ?>>XOF (Franc CFA)</option>
+              <option value="XAF" <?= ($user['currency_pref'] ?? '') === 'XAF' ? 'selected' : '' ?>>XAF (Franc CFA)</option>
+              <option value="GNF" <?= ($user['currency_pref'] ?? '') === 'GNF' ? 'selected' : '' ?>>GNF (Franc Guinéen)</option>
+              <option value="RWF" <?= ($user['currency_pref'] ?? '') === 'RWF' ? 'selected' : '' ?>>RWF (Franc Rwandais)</option>
+            </select>
+          </div>
+
+          <!-- Langue -->
+          <div>
+            <label class="block text-xs font-medium text-gray-400 mb-1.5" for="language_pref">Langue</label>
+            <select name="language_pref" id="language_pref"
+                    class="w-full px-4 py-3 rounded-xl text-sm appearance-none"
+                    style="background:#0a0f1a url('data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' fill=\'none\' viewBox=\'0 0 24 24\' stroke=\'%236b7280\'><path stroke-linecap=\'round\' stroke-linejoin=\'round\' stroke-width=\'2\' d=\'M19 9l-7 7-7-7\'/></svg>') no-repeat right 1rem center / 1.25rem; border:1px solid #1a2332;color:#e2e8f0;">
+              <option value="fr" <?= ($user['language_pref'] ?? '') === 'fr' ? 'selected' : '' ?>>Français</option>
+              <option value="en" <?= ($user['language_pref'] ?? '') === 'en' ? 'selected' : '' ?>>English</option>
+            </select>
+          </div>
+
+          <!-- Fuseau horaire -->
+          <div>
+            <label class="block text-xs font-medium text-gray-400 mb-1.5" for="timezone_pref">Fuseau horaire</label>
+            <select name="timezone_pref" id="timezone_pref"
+                    class="w-full px-4 py-3 rounded-xl text-sm appearance-none"
+                    style="background:#0a0f1a url('data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' fill=\'none\' viewBox=\'0 0 24 24\' stroke=\'%236b7280\'><path stroke-linecap=\'round\' stroke-linejoin=\'round\' stroke-width=\'2\' d=\'M19 9l-7 7-7-7\'/></svg>') no-repeat right 1rem center / 1.25rem; border:1px solid #1a2332;color:#e2e8f0;">
+              <option value="Africa/Lubumbashi" <?= ($user['timezone_pref'] ?? '') === 'Africa/Lubumbashi' ? 'selected' : '' ?>>UTC +2:00 (RDC Est, Rwanda, Burundi)</option>
+              <option value="Africa/Kinshasa" <?= ($user['timezone_pref'] ?? '') === 'Africa/Kinshasa' ? 'selected' : '' ?>>UTC +1:00 (RDC Ouest, Congo)</option>
+              <option value="Africa/Abidjan" <?= ($user['timezone_pref'] ?? '') === 'Africa/Abidjan' ? 'selected' : '' ?>>UTC +0:00 (Sénégal, Côte d'Ivoire)</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <!-- Séparateur -->
+      <div class="h-px w-full my-6" style="background:#1a2332"></div>
+
+      <!-- Clé API -->
+      <div>
+        <h2 class="text-sm font-bold text-white mb-3">Développeur</h2>
+        <label class="block text-xs font-medium text-gray-400 mb-1.5" for="api_key">Votre Clé API (Lecture seule sur ce profil)</label>
+        <div class="flex gap-2">
+            <input type="text" id="api_key" readonly
+                   value="<?= htmlspecialchars($user['api_key'] ?? 'Aucune clé générée') ?>"
+                   class="w-full px-4 py-3 rounded-xl text-sm"
+                   style="background:#0a0f1a;border:1px solid #1a2332;color:#94a3b8;cursor:not-allowed;">
+            <a href="<?= APP_BASE ?>/api-docs" class="shrink-0 flex items-center justify-center px-4 rounded-xl text-sm font-bold" style="background:#1a2332;color:#e2e8f0;transition:background .2s" onmouseover="this.style.background='#2d3748'" onmouseout="this.style.background='#1a2332'">
+               Gérer
+            </a>
+        </div>
+        <p class="text-xs text-gray-500 mt-1">Vous pouvez générer ou régénérer votre clé depuis la page API.</p>
       </div>
 
       <!-- Bouton d'enregistrement -->

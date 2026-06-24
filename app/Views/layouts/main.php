@@ -1,3 +1,13 @@
+<?php
+use App\Core\Auth;
+use App\Core\Controller;
+use App\Core\Currency;
+
+$flash       = Controller::getFlash();
+$currentUser = Auth::user();
+$currentPath = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
+$base        = APP_BASE;
+?>
 <!DOCTYPE html>
 <html lang="fr" class="dark">
 <head>
@@ -41,6 +51,7 @@
       }
     }
   </script>
+
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
   <style>
@@ -67,15 +78,6 @@
 <body class="font-sans text-gray-100 min-h-screen" style="background:#050811">
 
 <?php
-use App\Core\Auth;
-use App\Core\Controller;
-use App\Core\Currency;
-
-$flash       = Controller::getFlash();
-$currentUser = Auth::user();
-$currentPath = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
-$base        = APP_BASE;
-
 function isActive(string $path): string {
     global $currentPath, $base;
     return str_contains($currentPath, $path) ? 'active' : '';
@@ -119,23 +121,100 @@ function isActive(string $path): string {
         </div>
       </div>
       
-      <!-- Solde avec bouton de bascule monétaire -->
-      <div class="mt-3 pt-3 border-t border-[#1a2332] flex items-center justify-between">
-        <div>
-          <div class="text-xs text-gray-500 mb-0.5">Solde disponible</div>
-          <div class="text-lg font-bold" style="color:#00ff88"><?= Currency::format((float)($currentUser['balance'] ?? 0)) ?></div>
+      <!-- Solde avec sélecteur de devise -->
+      <div class="mt-3 pt-3 border-t border-[#1a2332]">
+        <div class="text-xs text-gray-500 mb-1">Solde disponible</div>
+        <div class="flex items-center justify-between gap-2">
+          <!-- Montant converti -->
+          <div id="balance-display" class="text-lg font-bold" style="color:#00ff88">
+            <?= Currency::format((float)($currentUser['balance'] ?? 0)) ?>
+          </div>
+          <!-- Sélecteur de devise compact -->
+          <div class="relative" id="currency-picker-wrapper">
+            <button id="currency-picker-btn" onclick="toggleCurrencyPicker()"
+                    class="flex items-center gap-1.5 px-2 py-1.5 rounded-lg text-[10px] font-extrabold uppercase border transition-all hover:bg-white/5 active:scale-95"
+                    style="background:#0a0f1a;border-color:#1a2332;color:#00d4ff">
+              <svg class="w-3 h-3 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"/>
+              </svg>
+              <span id="currency-active-label"><?= Currency::getActive() ?></span>
+              <svg class="w-2.5 h-2.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M19 9l-7 7-7-7"/>
+              </svg>
+            </button>
+            <!-- Dropdown -->
+            <div id="currency-dropdown"
+                 class="hidden absolute right-0 bottom-full mb-2 z-50 rounded-xl overflow-hidden shadow-2xl border"
+                 style="background:#0d1117;border-color:#1a2332;width:220px;max-height:260px;overflow-y:auto">
+              <?php
+              $activeCur = Currency::getActive();
+              $balanceUsd = (float)($currentUser['balance'] ?? 0);
+              foreach (Currency::all() as $code => $info):
+                  $rate      = Currency::getRate($code);
+                  $converted = $balanceUsd * $rate;
+                  $noDecimal = ['CDF','XAF','XOF','RWF','BIF','UGX','TZS','GNF','NGN'];
+                  $d         = in_array($code, $noDecimal) ? 0 : 2;
+                  $formatted = number_format($converted, $d, ',', ' ') . ' ' . $info['symbol'];
+                  $isActive  = $code === $activeCur;
+              ?>
+              <button onclick="selectCurrency('<?= $code ?>')"
+                      class="w-full flex items-center justify-between px-3 py-2.5 text-left hover:bg-white/5 transition-colors text-xs gap-2
+                             <?= $isActive ? 'text-[#00ff88]' : 'text-gray-300' ?>"
+                      style="<?= $isActive ? 'background:rgba(0,255,136,0.05)' : '' ?>">
+                <div class="flex items-center gap-2 min-w-0">
+                  <span class="text-base leading-none"><?= $info['flag'] ?></span>
+                  <div class="min-w-0">
+                    <div class="font-bold truncate"><?= $code ?></div>
+                    <div class="text-[10px] text-gray-500 truncate"><?= $info['name'] ?></div>
+                  </div>
+                </div>
+                <div class="text-right shrink-0">
+                  <div class="font-bold <?= $isActive ? 'text-[#00ff88]' : 'text-gray-200' ?>"><?= $formatted ?></div>
+                </div>
+              </button>
+              <?php endforeach; ?>
+            </div>
+          </div>
         </div>
-        <!-- Switcher -->
-        <a href="<?= $base ?>/currency/switch" 
-           title="Changer de devise (USD/CDF)"
-           class="flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[10px] font-extrabold uppercase border transition-all hover:bg-white/5 active:scale-95" 
-           style="background:#0a0f1a;border-color:#1a2332;color:#00d4ff">
-          <svg class="w-3 h-3 text-[#00d4ff] shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"/></svg>
-          <?= Currency::getActive() ?>
-        </a>
       </div>
     </div>
     <?php endif; ?>
+
+    <script>
+    // ---- Gestion du sélecteur de devise ----
+    function toggleCurrencyPicker() {
+      const dd = document.getElementById('currency-dropdown');
+      dd.classList.toggle('hidden');
+    }
+
+    // Fermer si clic en dehors
+    document.addEventListener('click', function(e) {
+      const wrapper = document.getElementById('currency-picker-wrapper');
+      if (wrapper && !wrapper.contains(e.target)) {
+        document.getElementById('currency-dropdown').classList.add('hidden');
+      }
+    });
+
+    function selectCurrency(code) {
+      // Appel AJAX pour sauvegarder en session côté serveur
+      fetch('<?= $base ?>/currency/switch?to=' + code, { method: 'GET' })
+        .then(r => r.json())
+        .then(data => {
+          if (data.success) {
+            // Met à jour le label du bouton
+            document.getElementById('currency-active-label').textContent = code;
+            // Met à jour le montant affiché
+            document.getElementById('balance-display').textContent = data.formatted;
+            // Fermer le dropdown
+            document.getElementById('currency-dropdown').classList.add('hidden');
+          }
+        })
+        .catch(() => {
+          // Fallback : rechargement simple de la page
+          window.location.href = '<?= $base ?>/currency/switch?to=' + code;
+        });
+    }
+    </script>
 
     <!-- Navigation -->
     <nav class="flex-1 px-3 py-4 space-y-1 overflow-y-auto">

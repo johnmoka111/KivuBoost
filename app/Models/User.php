@@ -52,6 +52,22 @@ class User
         return $stmt->execute([$username, $email, $id]);
     }
 
+    public function updatePreferences(int $id, string $currency, string $language, string $timezone, string $theme): bool
+    {
+        $stmt = $this->db->prepare(
+            'UPDATE users SET currency_pref = ?, language_pref = ?, timezone_pref = ?, theme_pref = ? WHERE id = ?'
+        );
+        return $stmt->execute([$currency, $language, $timezone, $theme, $id]);
+    }
+
+    public function updateApiKey(int $id, string $apiKey): bool
+    {
+        $stmt = $this->db->prepare(
+            'UPDATE users SET api_key = ? WHERE id = ?'
+        );
+        return $stmt->execute([$apiKey, $id]);
+    }
+
     public function updatePassword(int $id, string $passwordHash): bool
     {
         $stmt = $this->db->prepare(

@@ -1,5 +1,35 @@
+# ============================================================
+# KivuBoost — .gitignore
+# ============================================================
+
+# --- Secrets & Clés sensibles ---
+google/
+*.json
+config/local.php
+.env
+.env.*
+!.env.example
+
+# --- Fichiers de debug & scripts temporaires ---
+scratch/
+check_*.php
+query
+cron/
+
+# --- Logs & Cache ---
+*.log
+/logs/
+/cache/
+
+# --- Uploads utilisateurs (ne pas versionner les médias) ---
+public/uploads/
+
+# --- Éditeurs & OS ---
 .idea/
 .vscode/
-*.log
-.DS_Store
+*.DS_Store
 Thumbs.db
+
+# --- Dépendances vendor (si Composer utilisé) ---
+/vendor/
+composer.lock

@@ -163,4 +163,30 @@ class Loyalty
         $stmt->execute();
         return $stmt->fetchAll();
     }
+
+    /**
+     * Recalcule et met à jour le palier (grade) de l'utilisateur
+     * en fonction de son total de dépenses sur commandes Completed.
+     * Appelé après chaque sync de statut commande → Completed.
+     *
+     * @param int $userId  L'ID de l'utilisateur à recalculer
+     * @return string      Le nom du nouveau palier
+     */
+    public function recalculateTierIfNeeded(int $userId): string
+    {
+        $spent    = $this->getUserTotalSpent($userId);
+        $newTier  = self::getTierForSpent($spent);
+        $tierName = $newTier['name'];
+
+        // Mise à jour du champ loyalty_tier si la colonne existe
+        try {
+            $stmt = $this->db->prepare("UPDATE users SET loyalty_tier = ? WHERE id = ?");
+            $stmt->execute([$tierName, $userId]);
+        } catch (\Throwable $e) {
+            // La colonne n'existe pas encore → on ignore silencieusement
+            // (pas bloquant, le palier est calculé dynamiquement à la volée)
+        }
+
+        return $tierName;
+    }
 }

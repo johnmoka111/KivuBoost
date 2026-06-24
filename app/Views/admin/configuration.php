@@ -42,6 +42,21 @@ $pageTitle = 'Configuration Globale';
           </div>
 
           <div>
+            <label class="block text-xs font-medium text-gray-400 mb-1.5">Taux de change (1 USD = X XOF - BkaPay)</label>
+            <input type="number" name="usd_rate_xof" required value="<?= htmlspecialchars($allSettings['usd_rate_xof'] ?? '600') ?>" class="input-field w-full px-3 py-2 rounded-xl text-sm font-mono">
+          </div>
+
+          <div>
+            <label class="block text-xs font-medium text-gray-400 mb-1.5">Taux de change (1 USD = X XAF - BkaPay)</label>
+            <input type="number" name="usd_rate_xaf" required value="<?= htmlspecialchars($allSettings['usd_rate_xaf'] ?? '600') ?>" class="input-field w-full px-3 py-2 rounded-xl text-sm font-mono">
+          </div>
+
+          <div>
+            <label class="block text-xs font-medium text-gray-400 mb-1.5">Taux de change (1 USD = X GNF - BkaPay)</label>
+            <input type="number" name="usd_rate_gnf" required value="<?= htmlspecialchars($allSettings['usd_rate_gnf'] ?? '8600') ?>" class="input-field w-full px-3 py-2 rounded-xl text-sm font-mono">
+          </div>
+
+          <div>
             <label class="block text-xs font-medium text-gray-400 mb-1.5">Numéro M-Pesa (Vodacom)</label>
             <input type="text" name="mpesa_number" value="<?= htmlspecialchars($allSettings['mpesa_number'] ?? '+243999999999') ?>" class="input-field w-full px-3 py-2 rounded-xl text-sm font-mono">
           </div>

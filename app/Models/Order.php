@@ -52,21 +52,31 @@ class Order
         return $stmt->fetch() ?: null;
     }
 
-    public function getByUser(int $userId, int $limit = 50): array
+    public function getByUser(int $userId, int $limit = 50, int $offset = 0): array
     {
         $stmt = $this->db->prepare(
             'SELECT o.*, s.name AS service_name, s.category
              FROM orders o
              LEFT JOIN services s ON s.id = o.service_id
-             WHERE o.user_id = ?
+             WHERE o.user_id = :userId
              ORDER BY o.created_at DESC
-             LIMIT ?'
+             LIMIT :offset, :limit'
         );
-        $stmt->execute([$userId, $limit]);
+        $stmt->bindValue(':userId', $userId, PDO::PARAM_INT);
+        $stmt->bindValue(':offset', $offset, PDO::PARAM_INT);
+        $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
+        $stmt->execute();
         return $stmt->fetchAll();
     }
 
-    public function getAll(int $limit = 100): array
+    public function countByUser(int $userId): int
+    {
+        $stmt = $this->db->prepare('SELECT COUNT(*) FROM orders WHERE user_id = ?');
+        $stmt->execute([$userId]);
+        return (int)$stmt->fetchColumn();
+    }
+
+    public function getAll(int $limit = 100, int $offset = 0): array
     {
         $stmt = $this->db->prepare(
             'SELECT o.*, s.name AS service_name, u.username
@@ -74,10 +84,17 @@ class Order
              LEFT JOIN services s ON s.id = o.service_id
              LEFT JOIN users u ON u.id = o.user_id
              ORDER BY o.created_at DESC
-             LIMIT ?'
+             LIMIT :offset, :limit'
         );
-        $stmt->execute([$limit]);
+        $stmt->bindValue(':offset', $offset, PDO::PARAM_INT);
+        $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
+        $stmt->execute();
         return $stmt->fetchAll();
+    }
+
+    public function countAll(): int
+    {
+        return (int)$this->db->query('SELECT COUNT(*) FROM orders')->fetchColumn();
     }
 
     public function totalRevenue(): float
@@ -130,5 +147,44 @@ class Order
         ");
         $stmt->execute([$months]);
         return $stmt->fetchAll();
+    }
+
+    public function getUserStats(int $userId): array
+    {
+        $stmt = $this->db->prepare('
+            SELECT 
+                COUNT(*) AS total_orders,
+                SUM(CASE WHEN status = "Completed" THEN 1 ELSE 0 END) AS completed_orders,
+                SUM(CASE WHEN status IN ("Pending", "Processing") THEN 1 ELSE 0 END) AS pending_orders,
+                SUM(CASE WHEN status != "Canceled" THEN cost ELSE 0 END) AS total_spent
+            FROM orders
+            WHERE user_id = ?
+        ');
+        $stmt->execute([$userId]);
+        $res = $stmt->fetch(PDO::FETCH_ASSOC);
+        return [
+            'total'     => (int)($res['total_orders'] ?? 0),
+            'completed' => (int)($res['completed_orders'] ?? 0),
+            'pending'   => (int)($res['pending_orders'] ?? 0),
+            'spent'     => (float)($res['total_spent'] ?? 0.0),
+        ];
+    }
+
+    public function getAdminStats(): array
+    {
+        $res = $this->db->query('
+            SELECT 
+                COUNT(*) AS total_orders,
+                SUM(CASE WHEN status = "Completed" THEN 1 ELSE 0 END) AS completed_orders,
+                SUM(CASE WHEN status IN ("Pending", "Processing") THEN 1 ELSE 0 END) AS pending_orders,
+                SUM(CASE WHEN status != "Canceled" THEN cost ELSE 0 END) AS total_spent
+            FROM orders
+        ')->fetch(PDO::FETCH_ASSOC);
+        return [
+            'total'     => (int)($res['total_orders'] ?? 0),
+            'completed' => (int)($res['completed_orders'] ?? 0),
+            'pending'   => (int)($res['pending_orders'] ?? 0),
+            'spent'     => (float)($res['total_spent'] ?? 0.0),
+        ];
     }
 }

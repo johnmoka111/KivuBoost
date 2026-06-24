@@ -61,8 +61,16 @@ class DashboardController extends Controller
         $rechargeModel = new \App\Models\Recharge();
         $db = \App\Core\Database::getInstance();
 
+        // Paramètres de pagination
+        $page = isset($_GET['page']) ? max(1, (int)$_GET['page']) : 1;
+        $limit = 25;
+        $offset = ($page - 1) * $limit;
+
         if (Auth::isAdmin()) {
-            $orders = $orderModel->getAll();
+            $totalOrders = $orderModel->countAll();
+            $orders = $orderModel->getAll($limit, $offset);
+            $orderStats = $orderModel->getAdminStats();
+
             $stmtSub = $db->query("
                 SELECT sub.*, s.name AS service_name, s.category, u.username AS client_username
                 FROM subscriptions sub
@@ -73,7 +81,10 @@ class DashboardController extends Controller
             $subscriptions = $stmtSub->fetchAll();
             $recharges = $rechargeModel->getAll(100);
         } else {
-            $orders = $orderModel->getByUser((int)$user['id']);
+            $totalOrders = $orderModel->countByUser((int)$user['id']);
+            $orders = $orderModel->getByUser((int)$user['id'], $limit, $offset);
+            $orderStats = $orderModel->getUserStats((int)$user['id']);
+
             $stmtSub = $db->prepare("
                 SELECT sub.*, s.name AS service_name, s.category
                 FROM subscriptions sub
@@ -86,11 +97,17 @@ class DashboardController extends Controller
             $recharges = $rechargeModel->getByUser((int)$user['id']);
         }
 
+        $totalPages = (int)ceil($totalOrders / $limit);
+
         $this->render('client/history', [
-            'user'         => $user,
-            'orders'       => $orders,
+            'user'          => $user,
+            'orders'        => $orders,
             'subscriptions' => $subscriptions,
-            'recharges'    => $recharges,
+            'recharges'     => $recharges,
+            'page'          => $page,
+            'totalPages'    => $totalPages,
+            'totalOrders'   => $totalOrders,
+            'orderStats'    => $orderStats,
         ]);
     }
 
@@ -116,11 +133,32 @@ class DashboardController extends Controller
      */
     public function switchCurrency(): void
     {
-        $current = Currency::getActive();
-        $next = ($current === 'USD') ? 'CDF' : 'USD';
-        Currency::setActive($next);
+        // Nouveau système : ?to=CDF, ?to=RWF, etc.
+        $requested = strtoupper(trim($_GET['to'] ?? ''));
 
-        // Redirection vers la page précédente ou le dashboard par défaut
+        if ($requested && array_key_exists($requested, Currency::all())) {
+            Currency::setActive($requested);
+        } else {
+            // Ancien comportement fallback : bascule USD ↔ CDF
+            $current = Currency::getActive();
+            Currency::setActive($current === 'USD' ? 'CDF' : 'USD');
+        }
+
+        // Si c'est une requête AJAX, retourner JSON
+        $isAjax = !empty($_SERVER['HTTP_X_REQUESTED_WITH']) || str_contains($_SERVER['HTTP_ACCEPT'] ?? '', 'application/json');
+        if ($isAjax || isset($_GET['to'])) {
+            $user = Auth::user();
+            $balance = (float)($user['balance'] ?? 0);
+            header('Content-Type: application/json; charset=utf-8');
+            echo json_encode([
+                'success'   => true,
+                'currency'  => Currency::getActive(),
+                'formatted' => Currency::format($balance),
+            ]);
+            exit;
+        }
+
+        // Sinon : redirection classique
         $referrer = $_SERVER['HTTP_REFERER'] ?? (APP_BASE . '/dashboard');
         header('Location: ' . $referrer);
         exit;

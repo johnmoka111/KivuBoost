@@ -33,6 +33,17 @@ class Audit
         }
     }
 
+    public static function purgeOld(int $days = 90): void
+    {
+        try {
+            $db = Database::getInstance();
+            $stmt = $db->prepare("DELETE FROM audit_logs WHERE created_at < DATE_SUB(NOW(), INTERVAL ? DAY)");
+            $stmt->execute([$days]);
+        } catch (\Throwable $e) {
+            error_log("Erreur lors de la purge de l'audit : " . $e->getMessage());
+        }
+    }
+
     public static function getAll(int $limit = 2500): array
     {
         $db = Database::getInstance();

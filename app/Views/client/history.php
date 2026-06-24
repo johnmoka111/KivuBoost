@@ -3,17 +3,18 @@ use App\Core\Auth;
 use App\Core\Currency;
 $pageTitle = 'Mes Commandes';
 
-// Calcul du total dépensé
-$totalSpentUsd = array_sum(array_column($orders, 'cost'));
-$totalCompleted = count(array_filter($orders, fn($o) => strtolower($o['status']) === 'completed'));
-$totalPending   = count(array_filter($orders, fn($o) => in_array(strtolower($o['status']), ['pending','processing'])));
+// Utilisation des statistiques globales issues du contrôleur
+$totalSpentUsd  = $orderStats['spent'] ?? 0.0;
+$totalCompleted = $orderStats['completed'] ?? 0;
+$totalPending   = $orderStats['pending'] ?? 0;
+$totalOrdersCount = $orderStats['total'] ?? 0;
 ?>
 
 <!-- ===== HEADER STATS ===== -->
 <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
   <div class="rounded-xl p-4 border" style="background:#0d1117;border-color:#1a2332">
     <div class="text-[10px] text-gray-500 mb-1 uppercase tracking-widest font-semibold">Total Commandes</div>
-    <div class="text-2xl font-bold text-white"><?= count($orders) ?></div>
+    <div class="text-2xl font-bold text-white"><?= $totalOrdersCount ?></div>
   </div>
   <div class="rounded-xl p-4 border" style="background:#0d1117;border-color:#1a2332">
     <div class="text-[10px] text-gray-500 mb-1 uppercase tracking-widest font-semibold">Complétées</div>
@@ -33,7 +34,7 @@ $totalPending   = count(array_filter($orders, fn($o) => in_array(strtolower($o['
 <div class="flex gap-2.5 mb-6 select-none" id="historyTabs">
   <button onclick="switchHistoryTab('orders')" class="hist-tab-btn px-4 py-2.5 text-xs font-bold rounded-xl border bg-[#00d4ff]/10 border-[#00d4ff]/30 text-[#00d4ff] transition-all flex items-center gap-1.5" id="hist-tab-orders">
     <svg class="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
-    Mes Commandes (<?= count($orders) ?>)
+    Mes Commandes (<?= $totalOrdersCount ?>)
   </button>
   <button onclick="switchHistoryTab('recharges')" class="hist-tab-btn px-4 py-2.5 text-xs font-bold rounded-xl border border-transparent bg-transparent text-gray-400 hover:bg-white/5 transition-all flex items-center gap-1.5" id="hist-tab-recharges">
     <svg class="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
@@ -74,7 +75,7 @@ $totalPending   = count(array_filter($orders, fn($o) => in_array(strtolower($o['
           <option value="Canceled">Annulé</option>
           <option value="Partial">Partiel</option>
         </select>
-        <span class="text-xs text-gray-500 whitespace-nowrap hidden sm:inline"><?= count($orders) ?> cmd(s)</span>
+        <span class="text-xs text-gray-500 whitespace-nowrap hidden sm:inline"><?= $totalOrdersCount ?> cmd(s)</span>
       </div>
     </div>
 
@@ -273,6 +274,51 @@ $totalPending   = count(array_filter($orders, fn($o) => in_array(strtolower($o['
         </div>
         <?php endforeach; ?>
       </div>
+
+      <!-- Contrôles de pagination -->
+      <?php if ($totalPages > 1): ?>
+        <div class="flex flex-col sm:flex-row items-center justify-between gap-3 px-5 py-4 border-t" style="border-color:#1a2332; background:#0a0f1a/30">
+          <div class="text-xs text-gray-500">
+            Affichage de la page <span class="text-white font-semibold"><?= $page ?></span> sur <span class="text-white font-semibold"><?= $totalPages ?></span> (<?= $totalOrders ?> commandes)
+          </div>
+          <div class="flex items-center gap-1.5">
+            <?php if ($page > 1): ?>
+              <a href="?page=<?= $page - 1 ?>" class="px-3 py-1.5 rounded-lg border text-xs font-semibold text-gray-300 hover:bg-white/5 transition-all" style="border-color:#1a2332">
+                Précédent
+              </a>
+            <?php else: ?>
+              <span class="px-3 py-1.5 rounded-lg border text-xs font-semibold text-gray-600 cursor-not-allowed" style="border-color:#1a2332">
+                Précédent
+              </span>
+            <?php endif; ?>
+
+            <?php
+            $start = max(1, $page - 2);
+            $end = min($totalPages, $page + 2);
+            for ($i = $start; $i <= $end; $i++):
+              $isActive = ($i === $page);
+              $btnStyle = $isActive 
+                ? 'background:#00d4ff/10; border-color:#00d4ff/30; color:#00d4ff' 
+                : 'border-color:#1a2332; color:#a1a1aa; background:transparent';
+              $activeClass = $isActive ? '' : 'hover:bg-white/5';
+            ?>
+              <a href="?page=<?= $i ?>" class="px-3 py-1.5 rounded-lg border text-xs font-mono font-bold transition-all <?= $activeClass ?>" style="<?= $btnStyle ?>">
+                <?= $i ?>
+              </a>
+            <?php endfor; ?>
+
+            <?php if ($page < $totalPages): ?>
+              <a href="?page=<?= $page + 1 ?>" class="px-3 py-1.5 rounded-lg border text-xs font-semibold text-gray-300 hover:bg-white/5 transition-all" style="border-color:#1a2332">
+                Suivant
+              </a>
+            <?php else: ?>
+              <span class="px-3 py-1.5 rounded-lg border text-xs font-semibold text-gray-600 cursor-not-allowed" style="border-color:#1a2332">
+                Suivant
+              </span>
+            <?php endif; ?>
+          </div>
+        </div>
+      <?php endif; ?>
 
     <?php endif; ?>
   </div>

@@ -12,6 +12,7 @@ use App\Models\Service;
 use App\Models\Provider;
 use App\Models\Setting;
 use App\Models\PricingRule;
+use App\Models\Loyalty;
 use App\Services\SmmApi;
 use App\Core\Audit;
 
@@ -69,6 +70,24 @@ class AdminController extends Controller
         Auth::requireAdmin();
 
         $settingModel  = new Setting();
+        
+        // Auto-insert BkaPay exchange rates if not exists
+        $db = \App\Core\Database::getInstance();
+        $defaults = [
+            'usd_rate_xof' => ['600', 'finance', 'Taux de change BkaPay : 1 USD = X XOF'],
+            'usd_rate_xaf' => ['600', 'finance', 'Taux de change BkaPay : 1 USD = X XAF'],
+            'usd_rate_gnf' => ['8600', 'finance', 'Taux de change BkaPay : 1 USD = X GNF']
+        ];
+        
+        foreach ($defaults as $key => $info) {
+            $stmt = $db->prepare("SELECT COUNT(*) FROM settings WHERE cfg_key = ?");
+            $stmt->execute([$key]);
+            if ((int)$stmt->fetchColumn() === 0) {
+                $stmtInsert = $db->prepare("INSERT INTO settings (cfg_key, cfg_value, cfg_group, description) VALUES (?, ?, ?, ?)");
+                $stmtInsert->execute([$key, $info[0], $info[1], $info[2]]);
+            }
+        }
+
         $allSettings   = $settingModel->toArray();
 
         $gatewayModel  = new \App\Models\PaymentGateway();
@@ -264,6 +283,7 @@ class AdminController extends Controller
 
         $allowed = [
             'site_name', 'markup_percentage', 'usd_rate_cdf',
+            'usd_rate_xof', 'usd_rate_xaf', 'usd_rate_gnf',
             'mpesa_number', 'airtel_number', 'orange_number', 'vodacom_number',
             'pawapay_enabled', 'pawapay_api_key', 'pawapay_secret',
             'visapay_enabled', 'visapay_api_key', 'visapay_secret',
@@ -1033,6 +1053,38 @@ class AdminController extends Controller
                         // Mettre a jour le statut en DB
                         $upStmt = $db->prepare('UPDATE orders SET status = ? WHERE id = ?');
                         $upStmt->execute([$newStatus, $order['id']]);
+
+                        // --- Recalcul du palier fidélité si commande complétée ---
+                        if ($newStatus === 'Completed') {
+                            try {
+                                (new Loyalty())->recalculateTierIfNeeded((int)$order['user_id']);
+                            } catch (\Throwable $loyaltyEx) {
+                                // Non bloquant : on log et on continue
+                                Audit::log('loyalty_tier_error', "Erreur recalcul tier user #{$order['user_id']} : " . $loyaltyEx->getMessage());
+                            }
+
+                            // --- Email de notification au client : commande terminée ---
+                            try {
+                                $clientUser = $userModel->findById((int)$order['user_id']);
+                                if ($clientUser && !empty($clientUser['email'])) {
+                                    @sendKivuBoostMail(
+                                        $clientUser['email'],
+                                        "✅ Commande #{$order['id']} terminée — KivuBoost",
+                                        'order_completed',
+                                        [
+                                            'username'    => $clientUser['username'] ?? 'Client',
+                                            'orderId'     => str_pad((string)$order['id'], 5, '0', STR_PAD_LEFT),
+                                            'serviceName' => $order['service_name'] ?? 'Votre service commandé',
+                                            'quantity'    => number_format((int)$order['quantity'], 0, ',', ' '),
+                                            'cost'        => number_format((float)$order['cost'], 4),
+                                            'dashboardUrl'=> APP_URL . '/history',
+                                        ]
+                                    );
+                                }
+                            } catch (\Throwable $mailEx) {
+                                // Non bloquant
+                            }
+                        }
 
                         // Remboursement si necessaire
                         if ($refundAmount > 0) {

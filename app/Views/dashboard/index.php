@@ -9,11 +9,54 @@ $totalSpentUsd = array_sum(array_column($orders, 'cost'));
 
 <!-- ===== HEADER STATS ===== -->
 <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-  <!-- Solde (USD / CDF) -->
+  <!-- Solde avec sélecteur de devise intégré -->
   <div class="col-span-1 rounded-xl p-4 border transition-all hover:scale-[1.01]"
-       style="background:#0d1117;border-color:#1a2332;box-shadow:0 0 25px rgba(0,255,136,0.03)">
-    <div class="text-xs text-gray-500 mb-1 uppercase tracking-wider font-semibold">Mon Solde</div>
-    <div class="text-2xl font-bold flex items-baseline gap-1" style="color:#00ff88">
+       style="background:#0d1117;border-color:#1a2332;box-shadow:0 0 25px rgba(0,255,136,0.05)">
+    <!-- Titre + sélecteur -->
+    <div class="flex items-center justify-between mb-2">
+      <div class="text-xs text-gray-500 uppercase tracking-wider font-semibold">Mon Solde</div>
+      <!-- Mini sélecteur de devise -->
+      <div class="relative" id="dash-currency-wrapper">
+        <button onclick="toggleDashCurrency()"
+                class="flex items-center gap-1 px-2 py-1 rounded-lg text-[10px] font-extrabold uppercase border transition-all hover:bg-white/5 active:scale-95"
+                style="background:#0a0f1a;border-color:#1a2332;color:#00d4ff">
+          <svg class="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"/></svg>
+          <span id="dash-currency-label"><?= Currency::getActive() ?></span>
+          <svg class="w-2 h-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M19 9l-7 7-7-7"/></svg>
+        </button>
+        <!-- Dropdown devise -->
+        <div id="dash-currency-dropdown"
+             class="hidden absolute right-0 top-full mt-1.5 z-50 rounded-xl border shadow-2xl overflow-hidden"
+             style="background:#0d1117;border-color:#1a2332;width:210px;max-height:250px;overflow-y:auto">
+          <?php
+          $activeCur  = Currency::getActive();
+          $balanceUsd = (float)$user['balance'];
+          foreach (Currency::all() as $code => $info):
+            $rate      = Currency::getRate($code);
+            $converted = $balanceUsd * $rate;
+            $noDecimal = ['CDF','XAF','XOF','RWF','BIF','UGX','TZS','GNF','NGN'];
+            $d         = in_array($code, $noDecimal) ? 0 : 2;
+            $fmtAmt    = number_format($converted, $d, ',', ' ') . ' ' . $info['symbol'];
+            $isActive  = $code === $activeCur;
+          ?>
+          <button onclick="dashSelectCurrency('<?= $code ?>')"
+                  class="w-full flex items-center justify-between px-3 py-2 text-left transition-colors text-xs gap-2 hover:bg-white/5 <?= $isActive ? 'text-[#00ff88]' : 'text-gray-300' ?>"
+                  style="<?= $isActive ? 'background:rgba(0,255,136,0.05)' : '' ?>">
+            <div class="flex items-center gap-2 min-w-0">
+              <span class="text-sm leading-none"><?= $info['flag'] ?></span>
+              <div class="min-w-0">
+                <div class="font-bold truncate"><?= $code ?></div>
+                <div class="text-[10px] text-gray-500 truncate"><?= $info['name'] ?></div>
+              </div>
+            </div>
+            <div class="font-bold text-right shrink-0 <?= $isActive ? 'text-[#00ff88]' : 'text-gray-400' ?>"><?= $fmtAmt ?></div>
+          </button>
+          <?php endforeach; ?>
+        </div>
+      </div>
+    </div>
+    <!-- Montant -->
+    <div id="dash-balance-amount" class="text-2xl font-bold" style="color:#00ff88">
       <?= Currency::format((float)$user['balance']) ?>
     </div>
     <a href="<?= APP_BASE ?>/recharge"
@@ -593,10 +636,48 @@ $totalSpentUsd = array_sum(array_column($orders, 'cost'));
 <!-- ================= JS: MULTI-API FILTERING LOGIC ================= -->
 <script>
 // Récupérer les données PHP structurées
-const rawServices = <?= json_encode($services) ?>;
+const rawServices    = <?= json_encode($services) ?>;
 const userBalanceUsd = <?= (float)$user['balance'] ?>;
 const activeCurrency = '<?= Currency::getActive() ?>';
 const exchangeRate   = <?= (float)\App\Models\Setting::get('usd_rate_cdf', '2800') ?>;
+
+// Toutes les devises disponibles (pour la conversion JS côté client)
+const allCurrencies  = <?= json_encode(array_map(fn($v) => [
+  'symbol'   => $v['symbol'],
+  'name'     => $v['name'],
+  'flag'     => $v['flag'],
+  'fallback' => $v['fallback'],
+], Currency::all())) ?>;
+
+// --- Sélecteur de devise du Dashboard ---
+function toggleDashCurrency() {
+  const dd = document.getElementById('dash-currency-dropdown');
+  dd.classList.toggle('hidden');
+}
+document.addEventListener('click', function(e) {
+  const w = document.getElementById('dash-currency-wrapper');
+  if (w && !w.contains(e.target)) {
+    const dd = document.getElementById('dash-currency-dropdown');
+    if (dd) dd.classList.add('hidden');
+  }
+});
+function dashSelectCurrency(code) {
+  fetch('<?= APP_BASE ?>/currency/switch?to=' + code)
+    .then(r => r.json())
+    .then(data => {
+      if (data.success) {
+        document.getElementById('dash-currency-label').textContent   = code;
+        document.getElementById('dash-balance-amount').textContent    = data.formatted;
+        // Mettre aussi à jour le solde dans le sidebar si présent
+        const sidebarBal = document.getElementById('balance-display');
+        if (sidebarBal) sidebarBal.textContent = data.formatted;
+        const sidebarLabel = document.getElementById('currency-active-label');
+        if (sidebarLabel) sidebarLabel.textContent = code;
+        document.getElementById('dash-currency-dropdown').classList.add('hidden');
+      }
+    })
+    .catch(() => { window.location.href = '<?= APP_BASE ?>/currency/switch?to=' + code; });
+}
 
 // Configuration des plateformes et de leurs métadonnées
 const platformMeta = {

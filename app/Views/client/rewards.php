@@ -89,16 +89,33 @@ $pointsNeeded  = max(0, 500 - (int)($user['loyalty_points'] ?? 0));
 
       <!-- Bouton -->
       <?php if ($canRedeem): ?>
-        <form action="<?= APP_BASE ?>/rewards/redeem" method="POST"
-              onsubmit="return confirm('Convertir vos points en crédit solde ?');">
+        <form id="redeem-form" action="<?= APP_BASE ?>/rewards/redeem" method="POST"
+              onsubmit="return handleRedeem(this);">
           <?= Auth::csrfField() ?>
-          <button type="submit"
+          <button id="redeem-btn" type="submit"
                   class="w-full py-3 rounded-xl text-sm font-black text-black uppercase tracking-wider hover:opacity-90 transition-all"
                   style="background:linear-gradient(135deg,#00ff88,#00c466)">
             Echanger maintenant
           </button>
         </form>
         <p class="text-[10px] text-center text-emerald-400 font-medium mt-2">Votre solde sera crédité instantanément.</p>
+        <script>
+        function handleRedeem(form) {
+            if (form.dataset.submitted === '1') {
+                return false; // Bloquer la double soumission
+            }
+            if (!confirm('Convertir vos points en crédit solde ?')) {
+                return false;
+            }
+            form.dataset.submitted = '1';
+            var btn = document.getElementById('redeem-btn');
+            btn.disabled = true;
+            btn.textContent = '⏳ Traitement en cours...';
+            btn.style.opacity = '0.6';
+            btn.style.cursor = 'not-allowed';
+            return true;
+        }
+        </script>
       <?php else: ?>
         <button disabled
                 class="w-full py-3 rounded-xl text-xs font-bold text-gray-600 uppercase tracking-wider cursor-not-allowed border"

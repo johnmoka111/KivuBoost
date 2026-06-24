@@ -26,6 +26,14 @@ if (PHP_SAPI === 'cli' || (isset($_SERVER['HTTP_HOST']) && ($_SERVER['HTTP_HOST'
 
 define('APP_NAME',    'KivuBoost');
 
+// --- Google OAuth2 ---
+// Chargez ces valeurs depuis les variables d'environnement du serveur (.env ou cPanel)
+// Ne jamais mettre de vraies clés dans ce fichier !
+define('GOOGLE_CLIENT_ID',     getenv('GOOGLE_CLIENT_ID')     ?: '');
+define('GOOGLE_CLIENT_SECRET', getenv('GOOGLE_CLIENT_SECRET') ?: '');
+// URI de callback — DOIT correspondre exactement à ce qui est enregistré dans Google Cloud Console
+define('GOOGLE_REDIRECT_URI',  APP_URL . '/auth/google/callback');
+
 // --- fuseau horaire local (Bukavu/Lubumbashi - UTC+2) ---
 date_default_timezone_set('Africa/Lubumbashi');
 

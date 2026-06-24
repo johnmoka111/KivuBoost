@@ -5,6 +5,17 @@
 // les hébergements mutualisés avec proxy OpenResty/Nginx.
 // ============================================================
 
+// --- PROTECTION PAR TOKEN SECRET ---
+// Accès via : /update_schema.php?secret=KivuBoost_Mig_2024!
+// SUPPRIMER CE FICHIER APRÈS CHAQUE MIGRATION EN PRODUCTION.
+define('MIGRATION_SECRET', 'KivuBoost_Mig_2024!');
+if (PHP_SAPI !== 'cli' && ($_GET['secret'] ?? '') !== MIGRATION_SECRET) {
+    http_response_code(403);
+    header('Content-Type: text/plain; charset=UTF-8');
+    die('403 Accès refusé. Token de migration manquant ou invalide.');
+}
+// --- FIN PROTECTION ---
+
 // Désactiver la mise en mémoire tampon de sortie
 if (ob_get_level()) { ob_end_clean(); }
 @ini_set('output_buffering', 'off');
@@ -181,6 +192,108 @@ try {
       FOREIGN KEY (`user_id`) REFERENCES `users`(`id`) ON DELETE CASCADE
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;");
     out("Table 'loyalty_logs' créée ou déjà existante.");
+
+    // 2i. Colonne google_id dans users (pour Google OAuth)
+    $checkGoogleId = $pdo->query("SHOW COLUMNS FROM users LIKE 'google_id'");
+    if (!$checkGoogleId->fetch()) {
+        $pdo->exec("ALTER TABLE users ADD COLUMN google_id VARCHAR(100) DEFAULT NULL AFTER lifetime_points");
+        out("Colonne 'google_id' ajoutée dans la table 'users'.");
+    } else {
+        out("Colonne 'google_id' existe déjà.");
+    }
+
+    // 2j. Colonne google_avatar dans users (photo de profil Google)
+    $checkGoogleAvatar = $pdo->query("SHOW COLUMNS FROM users LIKE 'google_avatar'");
+    if (!$checkGoogleAvatar->fetch()) {
+        $pdo->exec("ALTER TABLE users ADD COLUMN google_avatar VARCHAR(500) DEFAULT NULL AFTER google_id");
+        out("Colonne 'google_avatar' ajoutée dans la table 'users'.");
+    } else {
+        out("Colonne 'google_avatar' existe déjà.");
+    }
+
+    // 2k. Table login_attempts (Rate Limiting — blocage après 5 tentatives)
+    $pdo->exec("CREATE TABLE IF NOT EXISTS `login_attempts` (
+      `id`           INT AUTO_INCREMENT PRIMARY KEY,
+      `ip_address`   VARCHAR(45)  NOT NULL,
+      `email`        VARCHAR(255) NOT NULL DEFAULT '',
+      `success`      TINYINT(1)   NOT NULL DEFAULT 0,
+      `attempted_at` DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+      INDEX `idx_ip_time` (`ip_address`, `attempted_at`),
+      INDEX `idx_cleanup`  (`attempted_at`)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;");
+    out("Table 'login_attempts' créée ou déjà existante.");
+
+    // 2l. Colonne loyalty_tier dans users (grade mis en cache)
+    $checkTier = $pdo->query("SHOW COLUMNS FROM users LIKE 'loyalty_tier'");
+    if (!$checkTier->fetch()) {
+        $pdo->exec("ALTER TABLE users ADD COLUMN loyalty_tier VARCHAR(30) NOT NULL DEFAULT 'Démarreur' AFTER lifetime_points");
+        out("Colonne 'loyalty_tier' ajoutée dans la table 'users'.");
+    } else {
+        out("Colonne 'loyalty_tier' existe déjà.");
+    }
+
+    // 2m. Nouvelles préférences de profil (Monnaie, Langue, Fuseau, Thème, Clé API)
+    $cols = [
+        'currency_pref' => "VARCHAR(10) DEFAULT 'USD'",
+        'language_pref' => "VARCHAR(10) DEFAULT 'fr'",
+        'timezone_pref' => "VARCHAR(50) DEFAULT 'Africa/Lubumbashi'",
+        'theme_pref'    => "VARCHAR(10) DEFAULT 'system'",
+        'api_key'       => "VARCHAR(64) DEFAULT NULL"
+    ];
+
+    foreach ($cols as $colName => $colDef) {
+        $checkCol = $pdo->query("SHOW COLUMNS FROM users LIKE '{$colName}'");
+        if (!$checkCol->fetch()) {
+            $pdo->exec("ALTER TABLE users ADD COLUMN {$colName} {$colDef}");
+            out("Colonne '{$colName}' ajoutée dans la table 'users'.");
+        } else {
+            out("Colonne '{$colName}' existe déjà.");
+        }
+    }
+
+    // 2n. Table payment_gateways
+    $pdo->exec("CREATE TABLE IF NOT EXISTS `payment_gateways` (
+        `id`               INT AUTO_INCREMENT PRIMARY KEY,
+        `name`             VARCHAR(100) NOT NULL,
+        `identifier`       VARCHAR(50) NOT NULL UNIQUE,
+        `public_key`       TEXT NULL,
+        `private_key`      TEXT NULL,
+        `signature_secret` TEXT NULL,
+        `api_url`          VARCHAR(255) NULL,
+        `is_active`        TINYINT(1) NOT NULL DEFAULT 0,
+        `created_at`       TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;");
+    out("Table 'payment_gateways' créée ou déjà existante.");
+
+    // Configurer BkaPay avec les clés de production fournies
+    $stmtBk = $pdo->prepare("SELECT id FROM payment_gateways WHERE identifier = 'bkapay' LIMIT 1");
+    $stmtBk->execute();
+    if ($stmtBk->fetch()) {
+        $stmtBkUp = $pdo->prepare("UPDATE payment_gateways SET name = 'BkaPay Mobile', public_key = ?, private_key = ?, signature_secret = ?, is_active = 1, api_url = ? WHERE identifier = 'bkapay'");
+        $stmtBkUp->execute([
+            'pk_live_8e0eb675-b330-4b6b-ae00-0aba29ccd5d9',
+            'sk_payin_live_2d6f2a99-0928-4eab-bb47-284bf9546d32',
+            'cs_5abb2dac6c8c43cb920cbcf5d09f5679',
+            'https://bkapay.com/api/v1/business/payin'
+        ]);
+        out("Passerelle BkaPay mise à jour avec les clés de production.");
+    } else {
+        $stmtBkIn = $pdo->prepare("INSERT INTO payment_gateways (name, identifier, public_key, private_key, signature_secret, is_active, api_url) VALUES (?, ?, ?, ?, ?, ?, ?)");
+        $stmtBkIn->execute([
+            'BkaPay Mobile',
+            'bkapay',
+            'pk_live_8e0eb675-b330-4b6b-ae00-0aba29ccd5d9',
+            'sk_payin_live_2d6f2a99-0928-4eab-bb47-284bf9546d32',
+            'cs_5abb2dac6c8c43cb920cbcf5d09f5679',
+            1,
+            'https://bkapay.com/api/v1/business/payin'
+        ]);
+        out("Passerelle BkaPay ajoutée et activée avec les clés de production.");
+    }
+
+    // Assurer que la colonne network dans recharges autorise des chaînes de caractères plus longues
+    $pdo->exec("ALTER TABLE `recharges` MODIFY COLUMN `network` VARCHAR(50) NOT NULL");
+    out("Colonne 'network' de la table 'recharges' validée.");
 
     // 3. Fournisseur SMM Panel
     $stmtProv = $pdo->prepare("SELECT id FROM providers WHERE api_url LIKE '%my.smm-panel.com%' LIMIT 1");

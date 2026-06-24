@@ -259,7 +259,249 @@ if (!empty($rest)) {
             </div>
         </div>
 
-    <?php elseif ($isNews): ?>
+        <!-- SECTION SEO RESEAUX SOCIAUX -->
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 py-12 border-t border-zinc-900/60">
+            <div class="text-center lg:text-left mb-10">
+                <p class="text-zinc-500 text-xs sm:text-sm mb-2 uppercase tracking-wider font-semibold">Services SMM KivuBoost</p>
+                <h2 class="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">Boostez chaque réseau social</h2>
+                <p class="mt-2 text-zinc-400 text-sm max-w-xl">Découvrez nos solutions rapides et fiables pour chaque plateforme sociale majeure en RDC.</p>
+            </div>
+
+            <div class="space-y-8">
+                <!-- Facebook -->
+                <div class="bg-zinc-950/40 border border-zinc-900 rounded-2xl p-6 lg:p-8">
+                    <h3 class="text-xl font-bold text-white mb-4 flex items-center gap-3">
+                        <svg class="w-6 h-6 text-blue-500" fill="currentColor" viewBox="0 0 24 24"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.469h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.469h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
+                        Le meilleur site pour acheter des abonnés Facebook
+                    </h3>
+                    <p class="text-zinc-400 text-sm leading-relaxed mb-4">
+                        Si vous recherchez une plateforme fiable pour acheter des abonnés Facebook, <strong>KivuBoost</strong> propose l'un des meilleurs panels SMM disponibles sur le marché. Nous offrons de vrais abonnés, un traitement ultra-rapide des commandes, des prix abordables, ainsi qu'une assistance clientèle 24h/24 et 7j/7.
+                    </p>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6 border-t border-zinc-800 pt-6">
+                        <div>
+                            <h4 class="text-white font-bold text-sm mb-3">Conseils pour augmenter vos abonnés</h4>
+                            <ul class="text-zinc-400 text-sm space-y-2">
+                                <li class="flex items-start gap-2"><svg class="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg> Publier régulièrement du contenu engageant</li>
+                                <li class="flex items-start gap-2"><svg class="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg> Utilisez des images et des vidéos de qualité</li>
+                                <li class="flex items-start gap-2"><svg class="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg> Faites la promotion de votre page ailleurs</li>
+                                <li class="flex items-start gap-2"><svg class="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg> Associez les abonnés aux mentions « J'aime »</li>
+                            </ul>
+                        </div>
+                        <div>
+                            <h4 class="text-white font-bold text-sm mb-3">Pourquoi choisir des fournisseurs de confiance ?</h4>
+                            <ul class="text-zinc-400 text-sm space-y-2">
+                                <li class="flex items-start gap-2"><svg class="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg> <strong>Abonnés de qualité :</strong> évitez les faux comptes.</li>
+                                <li class="flex items-start gap-2"><svg class="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg> <strong>Détection algorithmique :</strong> évite les pics suspects.</li>
+                                <li class="flex items-start gap-2"><svg class="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg> <strong>Engagement réel :</strong> garantit une interaction normale.</li>
+                            </ul>
+                            <p class="text-emerald-400 font-semibold text-xs mt-3">Le recours à KivuBoost garantit une croissance sécurisée.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Instagram -->
+                <div class="bg-zinc-950/40 border border-zinc-900 rounded-2xl p-6 lg:p-8">
+                    <h3 class="text-xl font-bold text-white mb-4 flex items-center gap-3">
+                        <svg class="w-6 h-6 text-pink-500" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z"/></svg>
+                        Développez votre influence sur Instagram
+                    </h3>
+                    <p class="text-zinc-400 text-sm leading-relaxed">
+                        Instagram est le réseau social de l'image de marque. Avec <strong>KivuBoost</strong>, vous pouvez acheter des followers, des likes et des vues pour vos Reels et Stories. Un profil Instagram avec un nombre élevé d'abonnés inspire confiance et attire naturellement de nouveaux clients. Nos services assurent une livraison progressive pour respecter les algorithmes.
+                    </p>
+                </div>
+
+                <!-- TikTok -->
+                <div class="bg-zinc-950/40 border border-zinc-900 rounded-2xl p-6 lg:p-8">
+                    <h3 class="text-xl font-bold text-white mb-4 flex items-center gap-3">
+                        <svg class="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 24 24"><path d="M19.59 6.69a4.83 4.83 0 01-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 01-5.2 1.74 2.89 2.89 0 012.31-4.64 2.93 2.93 0 01.88.13V9.4a6.84 6.84 0 00-1-.05A6.33 6.33 0 005 15.68l.01.28A6.33 6.33 0 0011.3 22a6.33 6.33 0 006.33-6.33v-5.2a8.21 8.21 0 005.37 2.05V9.06a4.83 4.83 0 01-3.41-2.37z"/></svg>
+                        Devenez viral sur TikTok
+                    </h3>
+                    <p class="text-zinc-400 text-sm leading-relaxed">
+                        TikTok est aujourd'hui incontournable pour atteindre une audience dynamique. Que vous souhaitiez débloquer la monétisation, le TikTok Live (qui nécessite souvent 1 000 abonnés) ou simplement percer dans l'algorithme "Pour Toi", <strong>KivuBoost</strong> vous fournit les abonnés, les likes et les partages nécessaires pour faire décoller vos vidéos de manière sécurisée.
+                    </p>
+                </div>
+
+                <!-- YouTube -->
+                <div class="bg-zinc-950/40 border border-zinc-900 rounded-2xl p-6 lg:p-8">
+                    <h3 class="text-xl font-bold text-white mb-4 flex items-center gap-3">
+                        <svg class="w-6 h-6 text-red-600" fill="currentColor" viewBox="0 0 24 24"><path d="M23.498 6.186a3.016 3.016 0 00-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 00.502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 002.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 002.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg>
+                        Monétisez votre chaîne YouTube
+                    </h3>
+                    <p class="text-zinc-400 text-sm leading-relaxed">
+                        Atteindre les 1 000 abonnés et les 4 000 heures de visionnage requis pour la monétisation YouTube peut prendre des années. Avec les services <strong>KivuBoost</strong>, vous pouvez accélérer ce processus en achetant des abonnés réels, des vues de haute rétention et des heures de visionnage. Commencez à générer des revenus avec votre contenu beaucoup plus rapidement.
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- ============================================================ -->
+        <!-- SECTION PAYS & MODES DE PAIEMENT (SEO)                       -->
+        <!-- ============================================================ -->
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 py-12 border-t border-zinc-900/60">
+            <div class="text-center lg:text-left mb-10">
+                <p class="text-zinc-500 text-xs sm:text-sm mb-2 uppercase tracking-wider font-semibold">Couverture Géographique</p>
+                <h2 class="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">Pays supportés & Modes de Paiement</h2>
+                <p class="mt-2 text-zinc-400 text-sm max-w-2xl">
+                    KivuBoost accepte les paiements Mobile Money depuis <strong class="text-emerald-400">10+ pays africains</strong>. Payez directement depuis votre téléphone, sans carte bancaire.
+                </p>
+            </div>
+
+            <!-- Grille des pays -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 mb-10">
+
+                <!-- R.D. Congo -->
+                <div class="bg-zinc-950/40 border border-zinc-900 rounded-2xl p-5 hover:border-zinc-700 transition-colors">
+                    <div class="flex items-center gap-3 mb-4">
+                        <span class="text-3xl">🇨🇩</span>
+                        <div>
+                            <h3 class="text-white font-bold text-sm">R.D. Congo (RDC)</h3>
+                            <p class="text-[10px] text-zinc-500">Devise : Franc Congolais (CDF)</p>
+                        </div>
+                    </div>
+                    <div class="space-y-2">
+                        <div class="flex items-center gap-2 text-xs text-zinc-400"><span class="w-2 h-2 rounded-full bg-emerald-400 shrink-0"></span><strong class="text-white">M-Pesa</strong> — Vodacom Congo</div>
+                        <div class="flex items-center gap-2 text-xs text-zinc-400"><span class="w-2 h-2 rounded-full bg-red-400 shrink-0"></span><strong class="text-white">Airtel Money</strong> — Airtel RDC</div>
+                        <div class="flex items-center gap-2 text-xs text-zinc-400"><span class="w-2 h-2 rounded-full bg-orange-400 shrink-0"></span><strong class="text-white">Orange Money</strong> — Orange RDC</div>
+                    </div>
+                    <p class="text-[10px] text-emerald-400 font-semibold mt-3 bg-emerald-500/10 rounded-lg px-2 py-1">✓ Paiement USSD push — sans application</p>
+                </div>
+
+                <!-- Côte d'Ivoire -->
+                <div class="bg-zinc-950/40 border border-zinc-900 rounded-2xl p-5 hover:border-zinc-700 transition-colors">
+                    <div class="flex items-center gap-3 mb-4">
+                        <span class="text-3xl">🇨🇮</span>
+                        <div>
+                            <h3 class="text-white font-bold text-sm">Côte d'Ivoire</h3>
+                            <p class="text-[10px] text-zinc-500">Devise : Franc CFA UEMOA (XOF)</p>
+                        </div>
+                    </div>
+                    <div class="space-y-2">
+                        <div class="flex items-center gap-2 text-xs text-zinc-400"><span class="w-2 h-2 rounded-full bg-orange-400 shrink-0"></span><strong class="text-white">Orange Money</strong></div>
+                        <div class="flex items-center gap-2 text-xs text-zinc-400"><span class="w-2 h-2 rounded-full bg-yellow-400 shrink-0"></span><strong class="text-white">MTN Mobile Money</strong></div>
+                        <div class="flex items-center gap-2 text-xs text-zinc-400"><span class="w-2 h-2 rounded-full bg-blue-400 shrink-0"></span><strong class="text-white">Wave</strong></div>
+                        <div class="flex items-center gap-2 text-xs text-zinc-400"><span class="w-2 h-2 rounded-full bg-purple-400 shrink-0"></span><strong class="text-white">Moov Money</strong></div>
+                    </div>
+                    <p class="text-[10px] text-emerald-400 font-semibold mt-3 bg-emerald-500/10 rounded-lg px-2 py-1">✓ Validation instantanée</p>
+                </div>
+
+                <!-- Cameroun -->
+                <div class="bg-zinc-950/40 border border-zinc-900 rounded-2xl p-5 hover:border-zinc-700 transition-colors">
+                    <div class="flex items-center gap-3 mb-4">
+                        <span class="text-3xl">🇨🇲</span>
+                        <div>
+                            <h3 class="text-white font-bold text-sm">Cameroun</h3>
+                            <p class="text-[10px] text-zinc-500">Devise : Franc CFA CEMAC (XAF)</p>
+                        </div>
+                    </div>
+                    <div class="space-y-2">
+                        <div class="flex items-center gap-2 text-xs text-zinc-400"><span class="w-2 h-2 rounded-full bg-orange-400 shrink-0"></span><strong class="text-white">Orange Money</strong></div>
+                        <div class="flex items-center gap-2 text-xs text-zinc-400"><span class="w-2 h-2 rounded-full bg-yellow-400 shrink-0"></span><strong class="text-white">MTN Mobile Money</strong></div>
+                    </div>
+                    <p class="text-[10px] text-emerald-400 font-semibold mt-3 bg-emerald-500/10 rounded-lg px-2 py-1">✓ Débit en quelques secondes</p>
+                </div>
+
+                <!-- Sénégal -->
+                <div class="bg-zinc-950/40 border border-zinc-900 rounded-2xl p-5 hover:border-zinc-700 transition-colors">
+                    <div class="flex items-center gap-3 mb-4">
+                        <span class="text-3xl">🇸🇳</span>
+                        <div>
+                            <h3 class="text-white font-bold text-sm">Sénégal</h3>
+                            <p class="text-[10px] text-zinc-500">Devise : Franc CFA UEMOA (XOF)</p>
+                        </div>
+                    </div>
+                    <div class="space-y-2">
+                        <div class="flex items-center gap-2 text-xs text-zinc-400"><span class="w-2 h-2 rounded-full bg-orange-400 shrink-0"></span><strong class="text-white">Orange Money</strong></div>
+                        <div class="flex items-center gap-2 text-xs text-zinc-400"><span class="w-2 h-2 rounded-full bg-blue-400 shrink-0"></span><strong class="text-white">Wave</strong></div>
+                        <div class="flex items-center gap-2 text-xs text-zinc-400"><span class="w-2 h-2 rounded-full bg-purple-400 shrink-0"></span><strong class="text-white">Free Money</strong></div>
+                    </div>
+                    <p class="text-[10px] text-emerald-400 font-semibold mt-3 bg-emerald-500/10 rounded-lg px-2 py-1">✓ Sans carte bancaire requise</p>
+                </div>
+
+                <!-- Bénin -->
+                <div class="bg-zinc-950/40 border border-zinc-900 rounded-2xl p-5 hover:border-zinc-700 transition-colors">
+                    <div class="flex items-center gap-3 mb-4">
+                        <span class="text-3xl">🇧🇯</span>
+                        <div>
+                            <h3 class="text-white font-bold text-sm">Bénin</h3>
+                            <p class="text-[10px] text-zinc-500">Devise : Franc CFA UEMOA (XOF)</p>
+                        </div>
+                    </div>
+                    <div class="space-y-2">
+                        <div class="flex items-center gap-2 text-xs text-zinc-400"><span class="w-2 h-2 rounded-full bg-yellow-400 shrink-0"></span><strong class="text-white">MTN Mobile Money</strong></div>
+                        <div class="flex items-center gap-2 text-xs text-zinc-400"><span class="w-2 h-2 rounded-full bg-purple-400 shrink-0"></span><strong class="text-white">Moov Money</strong></div>
+                        <div class="flex items-center gap-2 text-xs text-zinc-400"><span class="w-2 h-2 rounded-full bg-zinc-400 shrink-0"></span><strong class="text-white">Celtis</strong></div>
+                    </div>
+                    <p class="text-[10px] text-emerald-400 font-semibold mt-3 bg-emerald-500/10 rounded-lg px-2 py-1">✓ Paiement local sécurisé</p>
+                </div>
+
+                <!-- Togo, Mali, Burkina, Niger, Guinée -->
+                <div class="bg-zinc-950/40 border border-zinc-900 rounded-2xl p-5 hover:border-zinc-700 transition-colors">
+                    <div class="flex items-center gap-3 mb-4">
+                        <div class="flex -space-x-2">
+                            <span class="text-2xl">🇹🇬</span>
+                            <span class="text-2xl">🇲🇱</span>
+                            <span class="text-2xl">🇧🇫</span>
+                            <span class="text-2xl">🇳🇪</span>
+                            <span class="text-2xl">🇬🇳</span>
+                        </div>
+                        <div>
+                            <h3 class="text-white font-bold text-sm">Togo, Mali, Burkina, Niger & Guinée</h3>
+                            <p class="text-[10px] text-zinc-500">Devises locales CFA & GNF</p>
+                        </div>
+                    </div>
+                    <div class="space-y-2">
+                        <div class="flex items-center gap-2 text-xs text-zinc-400"><span class="w-2 h-2 rounded-full bg-orange-400 shrink-0"></span><strong class="text-white">Orange Money</strong> — (Togo, Mali, BF, Niger, Guinée)</div>
+                        <div class="flex items-center gap-2 text-xs text-zinc-400"><span class="w-2 h-2 rounded-full bg-yellow-400 shrink-0"></span><strong class="text-white">MTN Money</strong> — (Guinée)</div>
+                        <div class="flex items-center gap-2 text-xs text-zinc-400"><span class="w-2 h-2 rounded-full bg-purple-400 shrink-0"></span><strong class="text-white">Moov / T-Money</strong> — (Togo, BF)</div>
+                        <div class="flex items-center gap-2 text-xs text-zinc-400"><span class="w-2 h-2 rounded-full bg-red-400 shrink-0"></span><strong class="text-white">Airtel Money</strong> — (Niger)</div>
+                    </div>
+                    <p class="text-[10px] text-emerald-400 font-semibold mt-3 bg-emerald-500/10 rounded-lg px-2 py-1">✓ 5 pays, 1 seule plateforme</p>
+                </div>
+            </div>
+
+            <!-- Section Comment ça marche -->
+            <div class="bg-zinc-950/40 border border-zinc-900 rounded-2xl p-6 lg:p-8">
+                <h3 class="text-xl font-bold text-white mb-6 text-center">Comment fonctionne le paiement Mobile Money ?</h3>
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                    <div class="text-center">
+                        <div class="w-12 h-12 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center mx-auto mb-3">
+                            <span class="text-xl">1️⃣</span>
+                        </div>
+                        <h4 class="text-white font-bold text-sm mb-1">Choisissez le montant</h4>
+                        <p class="text-zinc-400 text-xs leading-relaxed">Entrez la somme à déposer sur KivuBoost en USD ou dans votre devise locale.</p>
+                    </div>
+                    <div class="text-center">
+                        <div class="w-12 h-12 rounded-2xl bg-cyan-500/10 border border-cyan-500/20 flex items-center justify-center mx-auto mb-3">
+                            <span class="text-xl">2️⃣</span>
+                        </div>
+                        <h4 class="text-white font-bold text-sm mb-1">Sélectionnez votre pays</h4>
+                        <p class="text-zinc-400 text-xs leading-relaxed">Choisissez votre pays d'émission Mobile Money parmi les 10+ pays disponibles.</p>
+                    </div>
+                    <div class="text-center">
+                        <div class="w-12 h-12 rounded-2xl bg-purple-500/10 border border-purple-500/20 flex items-center justify-center mx-auto mb-3">
+                            <span class="text-xl">3️⃣</span>
+                        </div>
+                        <h4 class="text-white font-bold text-sm mb-1">Entrez votre numéro</h4>
+                        <p class="text-zinc-400 text-xs leading-relaxed">Saisissez votre numéro Mobile Money (MTN, Orange, M-Pesa, Wave, etc.) sans code pays.</p>
+                    </div>
+                    <div class="text-center">
+                        <div class="w-12 h-12 rounded-2xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center mx-auto mb-3">
+                            <span class="text-xl">4️⃣</span>
+                        </div>
+                        <h4 class="text-white font-bold text-sm mb-1">Validez sur votre mobile</h4>
+                        <p class="text-zinc-400 text-xs leading-relaxed">Une notification USSD arrive sur votre téléphone. Entrez votre code secret pour confirmer.</p>
+                    </div>
+                </div>
+                <div class="mt-6 text-center">
+                    <a href="<?= $basePath ?>/register"
+                       class="inline-flex items-center gap-2 px-6 py-3 bg-emerald-500 text-black text-sm font-bold rounded-xl hover:bg-emerald-400 transition-all shadow-[0_4px_20px_rgba(16,185,129,0.2)]">
+                        Créer un compte gratuit et recharger
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"/></svg>
+                    </a>
+                </div>
+            </div>
+        </div>
+
         <!-- ============================================================ -->
         <!-- SECTION ACTUALITÉS (Uniquement sur la page Dédiée /actualites) -->
         <!-- ============================================================ -->

@@ -10,6 +10,7 @@ use App\Models\SupportAgent;
 use App\Models\Setting;
 use App\Models\SupportTicket;
 use App\Models\SupportMessage;
+use App\Models\User;
 
 class SupportController extends Controller
 {
@@ -77,6 +78,18 @@ class SupportController extends Controller
 
         $ticketId = $ticketModel->create($userId, $subject);
         $messageModel->create($ticketId, $userId, $message);
+
+        // --- Notification email à l'administrateur ---
+        $user = Auth::user();
+        $adminEmail = Setting::get('admin_email', SMTP_USERNAME); // Fallback sur l'email SMTP
+        $ticketAdminUrl = APP_URL . '/admin/tickets/' . $ticketId;
+        @sendKivuBoostMail($adminEmail, "🎫 Nouveau Ticket #{$ticketId} — {$subject}", 'ticket_new_admin', [
+            'username'  => $user['username'] ?? 'Client',
+            'ticketId'  => $ticketId,
+            'subject'   => $subject,
+            'message'   => $message,
+            'ticketUrl' => $ticketAdminUrl,
+        ]);
 
         Audit::log('create_ticket', "Nouveau ticket #{$ticketId} créé : {$subject}");
         $this->flash('success', 'Votre ticket a été créé avec succès.');
@@ -255,6 +268,19 @@ class SupportController extends Controller
         
         // Mettre à jour le statut du ticket à 'answered'
         $ticketModel->updateStatus($ticketId, 'answered');
+
+        // --- Notification email au client ---
+        $clientUser = (new User())->findById((int)$ticket['user_id']);
+        if ($clientUser && !empty($clientUser['email'])) {
+            $ticketClientUrl = APP_URL . '/tickets/' . $ticketId;
+            @sendKivuBoostMail($clientUser['email'], "💬 Réponse à votre ticket #{$ticketId} — KivuBoost", 'ticket_reply_client', [
+                'username'  => $clientUser['username'] ?? 'Client',
+                'ticketId'  => $ticketId,
+                'subject'   => $ticket['subject'],
+                'reply'     => $message,
+                'ticketUrl' => $ticketClientUrl,
+            ]);
+        }
 
         Audit::log('reply_ticket_admin', "Réponse apportée au ticket #{$ticketId} par l'admin.");
 

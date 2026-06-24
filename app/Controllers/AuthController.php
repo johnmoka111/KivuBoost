@@ -4,6 +4,7 @@ namespace App\Controllers;
 
 use App\Core\Controller;
 use App\Core\Auth;
+use App\Core\RateLimiter;
 use App\Models\User;
 use App\Core\Audit;
 
@@ -33,6 +34,19 @@ class AuthController extends Controller
         $email    = trim($_POST['email'] ?? '');
         $password = $_POST['password'] ?? '';
 
+        // --- Protection Rate Limiting ---
+        $rateLimiter = new RateLimiter();
+        $clientIp    = RateLimiter::getClientIp();
+
+        if ($rateLimiter->isBlocked($clientIp)) {
+            $remaining = $rateLimiter->getRemainingLockoutMinutes($clientIp);
+            $this->flash('error', sprintf(
+                'Trop de tentatives de connexion. Votre accès est temporairement bloqué. Réessayez dans %d minute(s).',
+                max(1, $remaining)
+            ));
+            $this->redirect('/login');
+        }
+
         if (empty($email) || empty($password)) {
             $this->flash('error', 'Veuillez remplir tous les champs.');
             $this->redirect('/login');
@@ -42,9 +56,14 @@ class AuthController extends Controller
         $user = $userModel->findByEmail($email);
 
         if (!$user || !password_verify($password, $user['password'])) {
+            // Enregistrer la tentative échouée
+            $rateLimiter->recordFailedAttempt($clientIp, $email);
             $this->flash('error', 'Email ou mot de passe incorrect.');
             $this->redirect('/login');
         }
+
+        // --- Connexion réussie : effacer les tentatives ---
+        $rateLimiter->recordSuccess($clientIp, $email);
 
         Auth::login($user);
         Audit::log('login', 'Connexion de l\'utilisateur : ' . $user['username'] . ' (Rôle : ' . $user['role'] . ')');
@@ -171,16 +190,11 @@ class AuthController extends Controller
         $userId      = (int)$currentUser['id'];
 
         $username = trim($_POST['username'] ?? '');
-        $email    = trim($_POST['email'] ?? '');
+        $email    = $currentUser['email']; // Email protégé (non modifiable)
         $password = $_POST['password'] ?? '';
 
-        if (empty($username) || empty($email)) {
-            $this->flash('error', 'Le pseudo et l\'email sont obligatoires.');
-            $this->redirect('/profile');
-        }
-
-        if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-            $this->flash('error', 'Adresse email invalide.');
+        if (empty($username)) {
+            $this->flash('error', 'Le nom d\'utilisateur est obligatoire.');
             $this->redirect('/profile');
         }
 
@@ -193,15 +207,16 @@ class AuthController extends Controller
             $this->redirect('/profile');
         }
 
-        // Vérifier si l'email est pris par un autre utilisateur
-        $existEmail = $userModel->findByEmail($email);
-        if ($existEmail && (int)$existEmail['id'] !== $userId) {
-            $this->flash('error', 'Cet email est déjà associé à un autre compte.');
-            $this->redirect('/profile');
-        }
-
         // 1. Mettre à jour les infos textuelles
         $userModel->updateProfile($userId, $username, $email);
+
+        // 1b. Mettre à jour les préférences de profil
+        $currencyPref = trim($_POST['currency_pref'] ?? 'USD');
+        $languagePref = trim($_POST['language_pref'] ?? 'fr');
+        $timezonePref = trim($_POST['timezone_pref'] ?? 'Africa/Lubumbashi');
+        $themePref    = trim($_POST['theme_pref'] ?? 'system');
+
+        $userModel->updatePreferences($userId, $currencyPref, $languagePref, $timezonePref, $themePref);
 
         // 2. Traitement du changement de mot de passe facultatif
         if (!empty($password)) {

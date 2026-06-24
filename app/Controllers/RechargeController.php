@@ -197,28 +197,147 @@ class RechargeController extends Controller
         // Initialisation de la requête HTTP selon la passerelle
         $payload = [];
         if ($gateway['identifier'] === 'bkapay') {
+            $bkapayCountry  = strtoupper(trim($_POST['bkapay_country'] ?? ''));
+            $bkapayOperator = strtolower(trim($_POST['bkapay_operator'] ?? ''));
+            $bkapayPhone    = trim($_POST['bkapay_phone'] ?? '');
+
+            if (empty($bkapayCountry) || empty($bkapayOperator) || empty($bkapayPhone)) {
+                $this->flash('error', 'Veuillez remplir tous les champs requis pour le paiement mobile BkaPay (Pays, Opérateur, Téléphone).');
+                $this->redirect('/recharge');
+            }
+
+            // Calcul du montant et de la devise locale pour BkaPay
+            $rateCdf = (float)Setting::get('usd_rate_cdf', '2850');
+            $amountUsd = $amount;
+            if ($currency === 'CDF') {
+                $amountUsd = $amount / $rateCdf;
+            }
+
+            // Déterminer la devise locale et le taux de change
+            $targetCurrency = 'XOF';
+            $rateTarget = 600.0;
+            if ($bkapayCountry === 'CD') {
+                $targetCurrency = 'CDF';
+                $rateTarget = $rateCdf;
+            } elseif ($bkapayCountry === 'CM') {
+                $targetCurrency = 'XAF';
+                $rateTarget = (float)Setting::get('usd_rate_xaf', '600');
+            } elseif ($bkapayCountry === 'GN') {
+                $targetCurrency = 'GNF';
+                $rateTarget = (float)Setting::get('usd_rate_gnf', '8600');
+            } else {
+                $targetCurrency = 'XOF';
+                $rateTarget = (float)Setting::get('usd_rate_xof', '600');
+            }
+
+            $targetAmount = (int)round($amountUsd * $rateTarget);
+
+            // Payload complet pour l'API payment-sessions de BkaPay
             $payload = [
-                'amount'       => (int)round($amount), // Entier requis
-                'currency'     => $currency,
-                'description'  => "Recharge KivuBoost #" . $rechargeId . " (" . $user['username'] . ")",
-                'success_url'  => $successUrl,
-                'cancel_url'   => $cancelUrl,
-                'callback_url' => $callbackUrl,
-                'order_id'     => (string)$rechargeId,
-                'expires_in'   => 30
+                'amount'      => $targetAmount,
+                'currency'    => $targetCurrency,
+                'description' => "Recharge KivuBoost #" . $rechargeId . " (" . $user['username'] . ")",
+                'orderId'     => (string)$rechargeId,
+                'country'     => $bkapayCountry,
+                'paymentMethod' => 'mobile_money',
+                'operator'    => $bkapayOperator,
+                'phone'       => $bkapayPhone,
+                'returnUrl'   => $successUrl,
+                'cancelUrl'   => $cancelUrl,
+                'webhookUrl'  => $callbackUrl,
+                'customer'    => [
+                    'email' => $user['email'] ?? 'contact@kivubooster.com',
+                    'name'  => $user['username'] ?? 'Client'
+                ]
             ];
-        } else {
-            // Stub générique pour d'autres passerelles (ex: PawaPay / VisaPay)
-            $payload = [
-                'amount'      => $amount,
-                'currency'    => $currency,
-                'reference'   => (string)$rechargeId,
-                'redirectUrl' => $successUrl,
-                'callbackUrl' => $callbackUrl
-            ];
+
+            // Forcer l'utilisation de payment-sessions car la clé API fournie est de type sk_payin_live
+            $apiUrl = str_replace('business/payin', 'payment-sessions', $apiUrl);
+
+            // Appel cURL pour BkaPay Direct Payin
+            $ch = curl_init($apiUrl);
+            curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+            curl_setopt($ch, CURLOPT_POST, true);
+            curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($payload));
+            curl_setopt($ch, CURLOPT_TIMEOUT, 20);
+            curl_setopt($ch, CURLOPT_HTTPHEADER, [
+                'Content-Type: application/json',
+                'Authorization: Bearer ' . $privateKey
+            ]);
+
+            $response = curl_exec($ch);
+            $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+            $curlError = curl_error($ch);
+            curl_close($ch);
+
+            $resData = json_decode($response, true);
+
+            if ($curlError || ($httpCode !== 200 && $httpCode !== 201)) {
+                $errMsg = null;
+                if (is_array($resData)) {
+                    $errMsg = $resData['message'] ?? $resData['error'] ?? $resData['errors'] ?? null;
+                }
+                if (empty($errMsg)) {
+                    $errMsg = !empty($curlError) ? $curlError : (!empty($response) ? substr(strip_tags($response), 0, 300) : 'Erreur HTTP ' . $httpCode);
+                }
+                if (is_array($errMsg)) {
+                    $errMsg = json_encode($errMsg, JSON_UNESCAPED_UNICODE);
+                }
+                Audit::log('gateway_error', "Échec de création de payin BkaPay (HTTP : {$httpCode}, Erreur : {$errMsg}, Payload : " . json_encode($payload) . ", Réponse : {$response})");
+                $this->flash('error', "Impossible d'initialiser le paiement mobile avec BkaPay. Détail : " . htmlspecialchars((string)$errMsg));
+                $this->redirect('/recharge');
+            }
+
+            if (empty($resData['success']) || !$resData['success']) {
+                $errMsg = null;
+                if (is_array($resData)) {
+                    $errMsg = $resData['message'] ?? $resData['error'] ?? $resData['errors'] ?? null;
+                }
+                if (empty($errMsg)) {
+                    $errMsg = !empty($response) ? substr(strip_tags($response), 0, 300) : 'Transaction rejetée';
+                }
+                if (is_array($errMsg)) {
+                    $errMsg = json_encode($errMsg, JSON_UNESCAPED_UNICODE);
+                }
+                Audit::log('gateway_error', "Échec de validation payin BkaPay (Réponse : {$response})");
+                $this->flash('error', "Le paiement mobile BkaPay a été rejeté. Détail : " . htmlspecialchars((string)$errMsg));
+                $this->redirect('/recharge');
+            }
+
+            $sessionId = $resData['transactionId'] ?? $tempRef;
+
+            // Mettre à jour la recharge avec le transactionId réel de BkaPay
+            $rechargeModel->updateStatus($rechargeId, 'Pending', "Paiement BkaPay initié. Réf : {$sessionId}");
+            
+            $db = \App\Core\Database::getInstance();
+            $stmt = $db->prepare("UPDATE recharges SET transaction_id = ? WHERE id = ?");
+            $stmt->execute([$sessionId, $rechargeId]);
+
+            Audit::log('gateway_initiated', "Paiement mobile BkaPay initié (Recharge #{$rechargeId}, Réf : {$sessionId})");
+
+            $paymentUrl = $resData['url'] ?? $resData['authorization_url'] ?? $resData['checkout_url'] ?? $resData['payment_url'] ?? null;
+
+            if ($paymentUrl) {
+                // Redirection vers la page BkaPay (avec le minuteur)
+                header('Location: ' . $paymentUrl);
+                exit;
+            }
+
+            $this->flash('success', 'Paiement mobile initié ! Veuillez saisir votre code secret sur votre téléphone pour valider la transaction.');
+            $this->redirect('/recharge');
+            return;
         }
 
-        // Appel cURL
+        // Stub générique pour d'autres passerelles (ex: PawaPay / VisaPay)
+        $payload = [
+            'amount'      => $amount,
+            'currency'    => $currency,
+            'reference'   => (string)$rechargeId,
+            'redirectUrl' => $successUrl,
+            'callbackUrl' => $callbackUrl
+        ];
+
+        // Appel cURL pour les autres passerelles
         $ch = curl_init($apiUrl);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
         curl_setopt($ch, CURLOPT_POST, true);
@@ -243,19 +362,8 @@ class RechargeController extends Controller
         $resData = json_decode($response, true);
 
         // Récupération de l'URL et du session_id
-        $paymentUrl = '';
-        $sessionId = '';
-
-        if ($gateway['identifier'] === 'bkapay') {
-            if (!empty($resData['success']) && !empty($resData['payment_url'])) {
-                $paymentUrl = $resData['payment_url'];
-                $sessionId  = $resData['session_id'] ?? $tempRef;
-            }
-        } else {
-            // Parser générique
-            $paymentUrl = $resData['payment_url'] ?? $resData['paymentUrl'] ?? '';
-            $sessionId  = $resData['session_id'] ?? $resData['id'] ?? $tempRef;
-        }
+        $paymentUrl = $resData['payment_url'] ?? $resData['paymentUrl'] ?? '';
+        $sessionId  = $resData['session_id'] ?? $resData['id'] ?? $tempRef;
 
         if (empty($paymentUrl)) {
             Audit::log('gateway_error', "Réponse invalide de {$gateway['name']} (Réponse : {$response})");
@@ -300,6 +408,9 @@ class RechargeController extends Controller
     public function webhook(array $params = []): void
     {
         $gatewayId = $params['gateway'] ?? '';
+        if (empty($gatewayId) && strpos($_SERVER['REQUEST_URI'] ?? '', 'bkapay') !== false) {
+            $gatewayId = 'bkapay';
+        }
         
         $gatewayModel = new \App\Models\PaymentGateway();
         $gateway = $gatewayModel->findByIdentifier($gatewayId);
@@ -342,8 +453,8 @@ class RechargeController extends Controller
             exit;
         }
 
-        $orderId = (int)($event['data']['order_id'] ?? 0);
-        $transactionId = trim($event['data']['transactionId'] ?? '');
+        $orderId = (int)($event['data']['order_id'] ?? $event['data']['orderId'] ?? $event['orderId'] ?? $event['order_id'] ?? 0);
+        $transactionId = trim($event['data']['transactionId'] ?? $event['data']['transaction_id'] ?? $event['transactionId'] ?? $event['transaction_id'] ?? '');
 
         $rechargeModel = new Recharge();
         $recharge = $rechargeModel->findById($orderId);
