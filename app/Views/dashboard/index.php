@@ -8,26 +8,27 @@ $totalSpentUsd = array_sum(array_column($orders, 'cost'));
 ?>
 
 <!-- ===== HEADER STATS ===== -->
-<div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+<div class="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-5">
   <!-- Solde avec sélecteur de devise intégré -->
-  <div class="col-span-1 rounded-xl p-4 border transition-all hover:scale-[1.01]"
-       style="background:#0d1117;border-color:#1a2332;box-shadow:0 0 25px rgba(0,255,136,0.05)">
-    <!-- Titre + sélecteur -->
-    <div class="flex items-center justify-between mb-2">
-      <div class="text-xs text-gray-500 uppercase tracking-wider font-semibold">Mon Solde</div>
+  <div class="col-span-1 rounded-2xl p-3 sm:p-4 border transition-all hover:scale-[1.01] flex flex-col justify-between relative"
+       style="background:#0d1117;border-color:#1a2332;box-shadow:0 0 25px rgba(0,255,136,0.02)">
+    
+    <div class="flex items-center justify-between mb-3">
+      <div class="text-[10px] text-gray-500 font-black tracking-widest uppercase">Mon Solde</div>
+      
       <!-- Mini sélecteur de devise -->
       <div class="relative" id="dash-currency-wrapper">
         <button onclick="toggleDashCurrency()"
-                class="flex items-center gap-1 px-2 py-1 rounded-lg text-[10px] font-extrabold uppercase border transition-all hover:bg-white/5 active:scale-95"
-                style="background:#0a0f1a;border-color:#1a2332;color:#00d4ff">
+                class="flex items-center gap-1.5 px-2 py-1 rounded-md text-[9px] font-black uppercase transition-all hover:bg-white/5 active:scale-95"
+                style="background:#0a0f1a;color:#00d4ff">
           <svg class="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"/></svg>
           <span id="dash-currency-label"><?= Currency::getActive() ?></span>
-          <svg class="w-2 h-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M19 9l-7 7-7-7"/></svg>
+          <svg class="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M19 9l-7 7-7-7"/></svg>
         </button>
-        <!-- Dropdown devise -->
+        <!-- Dropdown devise COMPACT -->
         <div id="dash-currency-dropdown"
-             class="hidden absolute right-0 top-full mt-1.5 z-50 rounded-xl border shadow-2xl overflow-hidden"
-             style="background:#0d1117;border-color:#1a2332;width:210px;max-height:250px;overflow-y:auto">
+             class="hidden absolute right-0 top-full mt-2 z-50 rounded-xl border shadow-2xl overflow-hidden"
+             style="background:#0a0f1a;border-color:#1a2332;width:180px;max-height:200px;overflow-y:auto">
           <?php
           $activeCur  = Currency::getActive();
           $balanceUsd = (float)$user['balance'];
@@ -40,73 +41,75 @@ $totalSpentUsd = array_sum(array_column($orders, 'cost'));
             $isActive  = $code === $activeCur;
           ?>
           <button onclick="dashSelectCurrency('<?= $code ?>')"
-                  class="w-full flex items-center justify-between px-3 py-2 text-left transition-colors text-xs gap-2 hover:bg-white/5 <?= $isActive ? 'text-[#00ff88]' : 'text-gray-300' ?>"
-                  style="<?= $isActive ? 'background:rgba(0,255,136,0.05)' : '' ?>">
-            <div class="flex items-center gap-2 min-w-0">
-              <span class="text-sm leading-none"><?= $info['flag'] ?></span>
-              <div class="min-w-0">
-                <div class="font-bold truncate"><?= $code ?></div>
-                <div class="text-[10px] text-gray-500 truncate"><?= $info['name'] ?></div>
-              </div>
+                  class="w-full flex items-center justify-between px-3 py-2 text-left transition-colors hover:bg-white/5 <?= $isActive ? 'text-[#00ff88]' : 'text-gray-300' ?>"
+                  style="<?= $isActive ? 'background:rgba(0,255,136,0.03)' : '' ?>">
+            <div>
+              <div class="text-[11px] font-bold <?= $isActive ? 'text-[#00ff88]' : 'text-white' ?>"><?= $code ?></div>
+              <div class="text-[9px] text-gray-500 truncate w-24"><?= $info['name'] ?></div>
             </div>
-            <div class="font-bold text-right shrink-0 <?= $isActive ? 'text-[#00ff88]' : 'text-gray-400' ?>"><?= $fmtAmt ?></div>
+            <div class="text-[11px] font-black shrink-0 <?= $isActive ? 'text-[#00ff88]' : 'text-gray-400' ?>"><?= $fmtAmt ?></div>
           </button>
           <?php endforeach; ?>
         </div>
       </div>
     </div>
-    <!-- Montant -->
-    <div id="dash-balance-amount" class="text-2xl font-bold" style="color:#00ff88">
-      <?= Currency::format((float)$user['balance']) ?>
+    
+    <div>
+      <div id="dash-balance-amount" class="text-xl sm:text-2xl font-black mb-1" style="color:#00ff88">
+        <?= Currency::format((float)$user['balance']) ?>
+      </div>
+      <!-- Modification: Ce bouton ouvrira désormais la modale de recharge -->
+      <button type="button" onclick="openRechargeModal()"
+         class="inline-flex items-center gap-1.5 mt-1 text-[10px] font-bold px-3 py-1.5 rounded-md transition-all hover:opacity-90"
+         style="color:#050811;background:#00ff88;box-shadow:0 0 10px rgba(0,255,136,0.15)">
+        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/>
+        </svg>
+        Alimenter
+      </button>
     </div>
-    <a href="<?= APP_BASE ?>/recharge"
-       class="inline-flex items-center gap-1.5 mt-2 text-xs font-semibold px-3 py-1.5 rounded-lg transition-all hover:opacity-90"
-       style="color:#050811;background:#00ff88;box-shadow:0 0 10px rgba(0,255,136,0.2)">
-      <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/>
-      </svg>
-      Recharger
-    </a>
   </div>
 
   <!-- Total commandes -->
-  <div class="col-span-1 rounded-xl p-4 border transition-all hover:scale-[1.01] flex flex-col justify-between" style="background:#0d1117;border-color:#1a2332">
+  <div class="col-span-1 rounded-2xl p-3 sm:p-4 border transition-all hover:scale-[1.01] flex flex-col justify-between" style="background:#0d1117;border-color:#1a2332">
     <div>
-      <div class="flex items-center justify-between mb-2 lg:mb-4">
-        <div class="text-[10px] text-gray-400 font-bold tracking-wider uppercase">Commandes</div>
-        <div class="w-6 h-6 lg:w-8 lg:h-8 rounded-full flex items-center justify-center bg-purple-500/10 text-purple-400">
-          <svg class="w-3 h-3 lg:w-4 lg:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"/></svg>
+      <div class="flex items-center justify-between mb-3">
+        <div class="text-[10px] text-gray-500 font-black tracking-widest uppercase">Commandes</div>
+        <div class="w-6 h-6 rounded-md flex items-center justify-center bg-purple-500/10 text-purple-400">
+          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"/></svg>
         </div>
       </div>
-      <div class="text-xl lg:text-3xl font-black text-white" id="stat-orders"><?= count($orders) ?></div>
+      <div class="text-xl sm:text-2xl font-black text-white" id="stat-orders"><?= count($orders) ?></div>
     </div>
-    <a href="<?= APP_BASE ?>/history" class="inline-flex items-center gap-1 mt-3 text-[10px] font-semibold text-purple-400 hover:text-purple-300 transition-colors">
+    <a href="<?= APP_BASE ?>/history" class="inline-flex items-center gap-1 mt-3 text-[10px] font-bold text-purple-400 hover:text-purple-300 transition-colors">
       Voir l'historique
-      <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+      <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"/></svg>
     </a>
   </div>
 
   <!-- Dépensé -->
-  <div class="col-span-1 rounded-xl p-4 border transition-all hover:scale-[1.01] flex flex-col justify-between" style="background:#0d1117;border-color:#1a2332">
+  <div class="col-span-1 rounded-2xl p-3 sm:p-4 border transition-all hover:scale-[1.01] flex flex-col justify-between" style="background:#0d1117;border-color:#1a2332">
     <div>
-      <div class="flex items-center justify-between mb-2 lg:mb-4">
-        <div class="text-[10px] text-gray-400 font-bold tracking-wider uppercase">Dépensé</div>
-        <div class="w-6 h-6 lg:w-8 lg:h-8 rounded-full flex items-center justify-center bg-[#00d4ff]/10 text-[#00d4ff]">
-          <svg class="w-3 h-3 lg:w-4 lg:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+      <div class="flex items-center justify-between mb-3">
+        <div class="text-[10px] text-gray-500 font-black tracking-widest uppercase">Dépensé</div>
+        <div class="w-6 h-6 rounded-md flex items-center justify-center bg-[#00d4ff]/10 text-[#00d4ff]">
+          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
         </div>
       </div>
-      <div class="text-xl lg:text-3xl font-black text-white" id="stat-spent"><?= Currency::format((float)$totalSpentUsd) ?></div>
+      <div class="text-xl sm:text-2xl font-black text-white" id="stat-spent"><?= Currency::format((float)$totalSpentUsd) ?></div>
     </div>
-    <div class="inline-flex items-center gap-1 mt-3 text-[10px] font-semibold text-gray-500">
+    <div class="inline-flex items-center gap-1 mt-3 text-[10px] font-bold text-gray-600">
       Sur vos commandes
     </div>
   </div>
 
   <!-- Services dispo -->
-  <div class="rounded-xl p-4 border transition-all hover:border-gray-700" style="background:#0d1117;border-color:#1a2332">
-    <div class="text-xs text-gray-500 mb-1 uppercase tracking-wider font-semibold">Services</div>
-    <div class="text-2xl font-bold text-white"><?= array_sum(array_map('count', $services)) ?></div>
-    <div class="text-xs text-gray-600 mt-1">Disponibles en ligne</div>
+  <div class="col-span-1 rounded-2xl p-3 sm:p-4 border transition-all hover:border-gray-700 flex flex-col justify-between" style="background:#0d1117;border-color:#1a2332">
+    <div>
+      <div class="text-[10px] text-gray-500 font-black tracking-widest uppercase mb-3">Services</div>
+      <div class="text-xl sm:text-2xl font-black text-white"><?= array_sum(array_map('count', $services)) ?></div>
+    </div>
+    <div class="text-[10px] font-bold text-gray-600 mt-3">Disponibles en ligne</div>
   </div>
 </div>
 
@@ -1484,6 +1487,51 @@ function showNotification(message, type = 'success') {
   }, 3000);
 }
 
+// ===== RECHARGE MODAL LOGIC =====
+function openRechargeModal() {
+  const modal = document.getElementById('recharge-modal');
+  if (modal) {
+    modal.classList.remove('hidden');
+    // Animation fade in
+    setTimeout(() => {
+      modal.firstElementChild.classList.remove('opacity-0');
+      modal.lastElementChild.classList.remove('translate-y-full', 'sm:translate-y-10', 'opacity-0');
+    }, 10);
+  }
+}
+
+function closeRechargeModal() {
+  const modal = document.getElementById('recharge-modal');
+  if (modal) {
+    modal.firstElementChild.classList.add('opacity-0');
+    modal.lastElementChild.classList.add('translate-y-full', 'sm:translate-y-10', 'opacity-0');
+    setTimeout(() => {
+      modal.classList.add('hidden');
+    }, 300);
+  }
+}
+
+function syncRechargeAmount() {
+  const amount = parseFloat(document.getElementById('recharge-amount-input').value) || 0;
+  const cdfEq = document.getElementById('recharge-cdf-eq');
+  const rate = exchangeRate || 2850;
+  cdfEq.textContent = new Intl.NumberFormat('fr-FR').format(amount * rate) + ' Fc';
+}
+
+function selectRechargeCountry(code) {
+  document.getElementById('recharge-country-input').value = code;
+  // Visuellement mettre à jour les boutons
+  document.querySelectorAll('.recharge-country-btn').forEach(btn => {
+    btn.classList.remove('border-emerald-500/50', 'bg-emerald-500/5');
+    btn.classList.add('border-[#1a2332]', 'bg-[#0a0f1a]');
+  });
+  const activeBtn = document.getElementById('recharge-country-' + code);
+  if (activeBtn) {
+    activeBtn.classList.add('border-emerald-500/50', 'bg-emerald-500/5');
+    activeBtn.classList.remove('border-[#1a2332]', 'bg-[#0a0f1a]');
+  }
+}
+
 function handleUrlServiceSelection() {
   const urlParams = new URLSearchParams(window.location.search);
   const serviceId = urlParams.get('service_id');
@@ -1506,3 +1554,128 @@ window.addEventListener('DOMContentLoaded', () => {
   handleUrlServiceSelection();
 });
 </script>
+
+<!-- ============================================== -->
+<!-- MODAL DE RECHARGE (AJOUTER DES FONDS)          -->
+<!-- ============================================== -->
+<div id="recharge-modal" class="fixed inset-0 z-[150] hidden flex items-end sm:items-center justify-center">
+  <!-- Overlay sombre -->
+  <div class="absolute inset-0 bg-black/60 backdrop-blur-sm opacity-0 transition-opacity duration-300" onclick="closeRechargeModal()"></div>
+  
+  <!-- Contenu Modal -->
+  <div class="relative w-full sm:w-[500px] bg-[#0d1117] sm:rounded-3xl rounded-t-3xl border-t sm:border border-[#1a2332] shadow-2xl transform translate-y-full sm:translate-y-10 sm:opacity-0 transition-all duration-300 max-h-[90vh] flex flex-col">
+    
+    <!-- En-tête -->
+    <div class="flex items-center justify-between p-4 sm:p-5 border-b border-[#1a2332]">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-xl flex items-center justify-center bg-emerald-500/10 text-emerald-400">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+        </div>
+        <div>
+          <h3 class="text-base sm:text-lg font-black text-white">Ajouter des fonds</h3>
+          <p class="text-[10px] sm:text-xs text-gray-500">Rechargement Mobile Money automatique</p>
+        </div>
+      </div>
+      <button onclick="closeRechargeModal()" class="w-8 h-8 rounded-full bg-white/5 flex items-center justify-center text-gray-400 hover:text-white hover:bg-white/10 transition-colors">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"/></svg>
+      </button>
+    </div>
+
+    <!-- Formulaire (Scrollable) -->
+    <div class="p-4 sm:p-5 overflow-y-auto flex-1">
+      <!-- Directives -->
+      <div class="rounded-xl p-3 bg-cyan-500/5 border border-cyan-500/20 text-[10px] sm:text-xs text-cyan-400 mb-5 flex gap-2">
+        <svg class="w-4 h-4 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+        <div>
+          Sélectionnez votre pays, indiquez le montant puis validez. Vous serez redirigé vers notre agrégateur sécurisé (BkaPay) pour saisir votre numéro et opérateur, puis un popup USSD s'affichera sur votre téléphone.
+        </div>
+      </div>
+
+      <form method="POST" action="<?= APP_BASE ?>/recharge/online/initiate" class="space-y-5">
+        <?= Auth::csrfField() ?>
+        <input type="hidden" name="gateway" value="bkapay">
+        <input type="hidden" name="currency" value="USD">
+        <input type="hidden" name="bkapay_country" id="recharge-country-input" value="CD" required>
+
+        <!-- PAYS -->
+        <div>
+          <label class="block text-xs font-bold text-gray-400 mb-2">1. Sélectionnez votre pays</label>
+          <div class="grid grid-cols-2 gap-2 max-h-[140px] overflow-y-auto pr-1 custom-scrollbar">
+            <button type="button" onclick="selectRechargeCountry('CD')" id="recharge-country-CD" class="recharge-country-btn flex items-center gap-2 p-2 rounded-xl border border-emerald-500/50 bg-emerald-500/5 text-left transition-all">
+              <span class="text-xl">🇨🇩</span>
+              <div class="min-w-0">
+                <div class="text-[10px] font-bold text-white truncate">RDC</div>
+                <div class="text-[8px] text-gray-500 truncate">M-Pesa, Airtel, Orange</div>
+              </div>
+            </button>
+            <button type="button" onclick="selectRechargeCountry('CI')" id="recharge-country-CI" class="recharge-country-btn flex items-center gap-2 p-2 rounded-xl border border-[#1a2332] bg-[#0a0f1a] text-left transition-all">
+              <span class="text-xl">🇨🇮</span>
+              <div class="min-w-0">
+                <div class="text-[10px] font-bold text-white truncate">Côte d'Ivoire</div>
+                <div class="text-[8px] text-gray-500 truncate">Orange, MTN, Wave</div>
+              </div>
+            </button>
+            <button type="button" onclick="selectRechargeCountry('CM')" id="recharge-country-CM" class="recharge-country-btn flex items-center gap-2 p-2 rounded-xl border border-[#1a2332] bg-[#0a0f1a] text-left transition-all">
+              <span class="text-xl">🇨🇲</span>
+              <div class="min-w-0">
+                <div class="text-[10px] font-bold text-white truncate">Cameroun</div>
+                <div class="text-[8px] text-gray-500 truncate">Orange, MTN</div>
+              </div>
+            </button>
+            <button type="button" onclick="selectRechargeCountry('SN')" id="recharge-country-SN" class="recharge-country-btn flex items-center gap-2 p-2 rounded-xl border border-[#1a2332] bg-[#0a0f1a] text-left transition-all">
+              <span class="text-xl">🇸🇳</span>
+              <div class="min-w-0">
+                <div class="text-[10px] font-bold text-white truncate">Sénégal</div>
+                <div class="text-[8px] text-gray-500 truncate">Wave, Orange, Free</div>
+              </div>
+            </button>
+            <button type="button" onclick="selectRechargeCountry('BJ')" id="recharge-country-BJ" class="recharge-country-btn flex items-center gap-2 p-2 rounded-xl border border-[#1a2332] bg-[#0a0f1a] text-left transition-all">
+              <span class="text-xl">🇧🇯</span>
+              <div class="min-w-0">
+                <div class="text-[10px] font-bold text-white truncate">Bénin</div>
+                <div class="text-[8px] text-gray-500 truncate">MTN, Moov</div>
+              </div>
+            </button>
+            <button type="button" onclick="selectRechargeCountry('TG')" id="recharge-country-TG" class="recharge-country-btn flex items-center gap-2 p-2 rounded-xl border border-[#1a2332] bg-[#0a0f1a] text-left transition-all">
+              <span class="text-xl">🇹🇬</span>
+              <div class="min-w-0">
+                <div class="text-[10px] font-bold text-white truncate">Togo</div>
+                <div class="text-[8px] text-gray-500 truncate">T-Money, Moov</div>
+              </div>
+            </button>
+          </div>
+        </div>
+
+        <!-- MONTANT -->
+        <div>
+          <label class="block text-xs font-bold text-gray-400 mb-2">2. Montant à déposer (en USD $)</label>
+          <div class="relative">
+            <span class="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 text-sm font-black">$</span>
+            <input type="number" name="amount" id="recharge-amount-input" required min="1" step="0.01"
+                   placeholder="10.00" oninput="syncRechargeAmount()"
+                   class="w-full pl-8 pr-4 py-3 rounded-xl text-sm font-black focus:outline-none"
+                   style="background:#0a0f1a;border:1px solid #1a2332;color:#00ff88;">
+          </div>
+          <p class="text-[10px] text-gray-500 mt-1.5 font-semibold text-right">
+            Équivalent indicatif : <span id="recharge-cdf-eq" style="color:#00d4ff">0 Fc</span>
+          </p>
+        </div>
+
+        <!-- SUBMIT -->
+        <div class="pt-2">
+          <button type="submit" class="w-full flex justify-center py-3.5 px-4 rounded-xl text-xs font-black shadow-xl hover:brightness-110 active:scale-[0.98] transition-all"
+                  style="background:linear-gradient(135deg,#00ff88,#00c466);color:#050811;">
+            Aller vers le paiement sécurisé
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<style>
+/* Custom scrollbar for country list to keep it neat */
+.custom-scrollbar::-webkit-scrollbar { width: 4px; }
+.custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+.custom-scrollbar::-webkit-scrollbar-thumb { background: #1a2332; border-radius: 4px; }
+</style>

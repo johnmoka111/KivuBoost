@@ -198,11 +198,10 @@ class RechargeController extends Controller
         $payload = [];
         if ($gateway['identifier'] === 'bkapay') {
             $bkapayCountry  = strtoupper(trim($_POST['bkapay_country'] ?? ''));
-            $bkapayOperator = strtolower(trim($_POST['bkapay_operator'] ?? ''));
-            $bkapayPhone    = trim($_POST['bkapay_phone'] ?? '');
+            // L'opérateur et le téléphone seront saisis sur la page de l'agrégateur
 
-            if (empty($bkapayCountry) || empty($bkapayOperator) || empty($bkapayPhone)) {
-                $this->flash('error', 'Veuillez remplir tous les champs requis pour le paiement mobile BkaPay (Pays, Opérateur, Téléphone).');
+            if (empty($bkapayCountry)) {
+                $this->flash('error', 'Veuillez sélectionner un pays pour le paiement mobile BkaPay.');
                 $this->redirect('/recharge');
             }
 
@@ -240,8 +239,6 @@ class RechargeController extends Controller
                 'orderId'     => (string)$rechargeId,
                 'country'     => $bkapayCountry,
                 'paymentMethod' => 'mobile_money',
-                'operator'    => $bkapayOperator,
-                'phone'       => $bkapayPhone,
                 'returnUrl'   => $successUrl,
                 'cancelUrl'   => $cancelUrl,
                 'webhookUrl'  => $callbackUrl,
