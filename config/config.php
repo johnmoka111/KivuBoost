@@ -27,10 +27,14 @@ if (PHP_SAPI === 'cli' || (isset($_SERVER['HTTP_HOST']) && ($_SERVER['HTTP_HOST'
 define('APP_NAME',    'KivuBoost');
 
 // --- Google OAuth2 ---
-// Chargez ces valeurs depuis les variables d'environnement du serveur (.env ou cPanel)
-// Ne jamais mettre de vraies clés dans ce fichier !
-define('GOOGLE_CLIENT_ID',     getenv('GOOGLE_CLIENT_ID')     ?: '');
-define('GOOGLE_CLIENT_SECRET', getenv('GOOGLE_CLIENT_SECRET') ?: '');
+// Pour la sécurité (GitHub), les clés sont stockées dans le fichier config/secrets.php
+// Ce fichier n'est pas envoyé sur GitHub. Créez-le sur votre ordinateur et sur FileZilla.
+if (file_exists(__DIR__ . '/secrets.php')) {
+    require_once __DIR__ . '/secrets.php';
+} else {
+    define('GOOGLE_CLIENT_ID',     ''); // Remplacez dans secrets.php
+    define('GOOGLE_CLIENT_SECRET', ''); // Remplacez dans secrets.php
+}
 // URI de callback — DOIT correspondre exactement à ce qui est enregistré dans Google Cloud Console
 define('GOOGLE_REDIRECT_URI',  APP_URL . '/auth/google/callback');
 
