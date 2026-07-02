@@ -31,7 +31,7 @@ $totalOrdersCount = $orderStats['total'] ?? 0;
 </div>
 
 <!-- ===== NAVIGATION PAR ONGLETS (TABS) ===== -->
-<div class="flex gap-2.5 mb-6 select-none" id="historyTabs">
+<div class="flex flex-wrap items-center gap-2.5 mb-6 select-none" id="historyTabs">
   <button onclick="switchHistoryTab('orders')" class="hist-tab-btn px-4 py-2.5 text-xs font-bold rounded-xl border bg-[#00d4ff]/10 border-[#00d4ff]/30 text-[#00d4ff] transition-all flex items-center gap-1.5" id="hist-tab-orders">
     <svg class="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
     Mes Commandes (<?= $totalOrdersCount ?>)
@@ -40,6 +40,15 @@ $totalOrdersCount = $orderStats['total'] ?? 0;
     <svg class="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
     Mes Dépôts & Recharges (<?= count($recharges) ?>)
   </button>
+  <?php if (Auth::isAdmin()): ?>
+  <!-- Bouton Sync Statuts pour Admin -->
+  <button type="button" id="btn-sync-statuses" onclick="fetchSyncStatuses()"
+          class="flex items-center gap-1.5 px-4 py-2.5 rounded-xl text-xs font-bold transition-all hover:brightness-110 shrink-0 sm:ml-auto"
+          style="background:rgba(0,212,255,0.12);color:#00d4ff;border:1px solid rgba(0,212,255,0.3)">
+    <svg id="sync-icon" class="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 4v5h.582m15.356 2A8.001 8.001 0 0021.21 8H18M4 4v5h.582m0 0a8.001 8.001 0 0015.356 2M4 9.582A8.001 8.001 0 0119.418 14H16m4 0v5h-.582m0 0a8.001 8.001 0 01-15.356-2M20 19v-5h-.582"/></svg>
+    <span id="sync-label">Sync Statuts</span>
+  </button>
+  <?php endif; ?>
 </div>
 
 <!-- ===== HISTORIQUE DES COMMANDES ===== -->
@@ -508,4 +517,48 @@ function filterOrders() {
     row.style.display = show ? '' : 'none';
   });
 }
+
+<?php if (Auth::isAdmin()): ?>
+window.fetchSyncStatuses = async function() {
+  const btn   = document.getElementById('btn-sync-statuses');
+  const icon  = document.getElementById('sync-icon');
+  const label = document.getElementById('sync-label');
+
+  if (!btn || btn.disabled) return;
+
+  btn.disabled = true;
+  if (icon) icon.classList.add('animate-spin');
+  if (label) label.textContent = 'Synchronisation...';
+
+  try {
+    const csrfMeta = document.querySelector('meta[name="csrf-token"]');
+    const token = csrfMeta ? csrfMeta.content : '';
+
+    const res = await fetch('<?= APP_BASE ?>/admin/orders/sync-statuses', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'X-CSRF-TOKEN': token },
+      body: '_token=' + encodeURIComponent(token)
+    });
+
+    const data = await res.json();
+
+    if (data.success) {
+      showToast('success', '✓ ' + data.message);
+
+      // Reload page to show updated statuses
+      if (data.stats && (data.stats.completed + data.stats.canceled + data.stats.partial) > 0) {
+        setTimeout(() => window.location.reload(), 2500);
+      }
+    } else {
+      showToast('error', '⚠ ' + (data.error || 'Erreur lors de la synchronisation.'));
+    }
+  } catch (err) {
+    showToast('error', '⚠ Impossible de contacter le serveur.');
+  } finally {
+    if (btn) btn.disabled = false;
+    if (icon) icon.classList.remove('animate-spin');
+    if (label) label.textContent = 'Sync Statuts';
+  }
+};
+<?php endif; ?>
 </script>

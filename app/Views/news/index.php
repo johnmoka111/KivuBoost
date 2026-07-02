@@ -39,7 +39,7 @@ if (!empty($rest)) {
     <meta name="description" content="Découvrez les dernières actualités et nouveautés de KivuBoost, la plateforme SMM de référence à Bukavu.">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="<?= APP_BASE ?>/assets/tailwind.js"></script>
     <style>
         * { font-family: 'Inter', sans-serif; }
         body { background: #000; }
@@ -501,7 +501,9 @@ if (!empty($rest)) {
                 </div>
             </div>
         </div>
+    <?php endif; ?>
 
+    <?php if ($isNews): ?>
         <!-- ============================================================ -->
         <!-- SECTION ACTUALITÉS (Uniquement sur la page Dédiée /actualites) -->
         <!-- ============================================================ -->
