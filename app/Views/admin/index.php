@@ -14,28 +14,6 @@ $pageTitle = 'Administration sécurisée';
     <p class="text-gray-500 text-xs mt-0.5">KivuBoost · Gestion multi-fournisseurs et tarification dynamique</p>
   </div>
   <div class="flex items-center gap-3">
-    <!-- Solde API Fournisseur Actif -->
-    <div class="px-4 py-2 rounded-xl border flex items-center gap-3 animate-pulse" id="provider-balance-card" style="background:#0d1117;border-color:#1a2332">
-      <div class="w-8 h-8 rounded-lg flex items-center justify-center shrink-0 transition-colors duration-300" id="provider-balance-icon-container" style="background:rgba(0,255,136,0.1)">
-        <svg id="provider-balance-icon" class="w-4 h-4 text-[#00ff88] shrink-0 transition-colors duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
-      </div>
-      <div>
-        <div class="flex items-center gap-2">
-          <select id="provider-balance-select" class="bg-transparent border-none text-[10px] text-gray-500 uppercase tracking-wider font-semibold focus:ring-0 p-0 cursor-pointer w-auto outline-none appearance-none" onchange="fetchProviderBalance(this.value)">
-            <?php foreach ($allProviders as $p): ?>
-              <?php if ($p['status'] == 1): ?>
-                <option value="<?= $p['id'] ?>">ACTIF : <?= htmlspecialchars($p['name']) ?></option>
-              <?php endif; ?>
-            <?php endforeach; ?>
-          </select>
-          <span id="provider-balance-warning" class="hidden text-[9px] font-black px-1.5 py-0.5 rounded border uppercase tracking-wider animate-pulse"></span>
-        </div>
-        <div class="text-sm font-bold font-mono flex items-center gap-1.5 transition-colors duration-300" style="color:#00ff88" id="provider-balance-value">
-          <span class="w-3.5 h-3.5 rounded-full border-2 border-[#00ff88]/30 border-t-[#00ff88] animate-spin"></span>
-          <span class="text-xs text-gray-500 font-normal">Connexion...</span>
-        </div>
-      </div>
-    </div>
     <!-- Bouton Rédiger actualité -->
     <a href="<?= APP_BASE ?>/admin/actualites"
        class="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold text-black hover:opacity-90 transition-all shrink-0"
@@ -377,8 +355,8 @@ $pageTitle = 'Administration sécurisée';
           <!-- Rendu progressif en JS -->
         </tbody>
         <script>
-          window.ALL_SERVICES = <?= json_encode($allServices) ?>;
-          window.CSRF_FIELD = <?= json_encode(Auth::csrfField()) ?>;
+          window.ALL_SERVICES = <?= json_encode($allServices, JSON_HEX_TAG | JSON_UNESCAPED_UNICODE) ?>;
+          window.CSRF_FIELD = <?= json_encode(Auth::csrfField(), JSON_HEX_TAG) ?>;
         </script>
       </table>
     </div>
@@ -1689,96 +1667,7 @@ function filterAdminOrders() {
   if (label) label.textContent = visibleCount + ' commande(s) trouvée(s)';
 }
 
-// Chargement asynchrone du solde du grossiste actif pour éviter le gel de la page
-window.fetchProviderBalance = function(providerId = null) {
-  const cardEl  = document.getElementById('provider-balance-card');
-  const valEl   = document.getElementById('provider-balance-value');
-  const warnEl  = document.getElementById('provider-balance-warning');
-  const iconContainer = document.getElementById('provider-balance-icon-container');
-  const iconEl  = document.getElementById('provider-balance-icon');
-  
-  if (cardEl) cardEl.classList.add('animate-pulse');
-  if (valEl) {
-    valEl.innerHTML = '<span class="w-3.5 h-3.5 rounded-full border-2 border-[#00ff88]/30 border-t-[#00ff88] animate-spin"></span><span class="text-xs text-gray-500 font-normal">Connexion...</span>';
-  }
 
-  let url = '<?= APP_BASE ?>/admin/provider-balance';
-  if (providerId) {
-    url += '?provider_id=' + providerId;
-  }
-
-  fetch(url)
-    .then(response => response.json())
-    .then(data => {
-      if (cardEl) cardEl.classList.remove('animate-pulse');
-      
-      if (data.success && data.balance !== null && data.balance !== undefined) {
-        const selectEl = document.getElementById('provider-balance-select');
-        if (selectEl && data.provider_id) {
-          selectEl.value = data.provider_id;
-        }
-        const val = parseFloat(data.balance);
-        const formatted = val.toLocaleString('en-US', { style: 'currency', currency: 'USD' });
-        if (valEl) valEl.textContent = formatted;
-
-        // Configuration dynamique de l'état d'alerte du solde
-        if (val < 10.0) {
-          const isCritical = val < 5.0;
-          if (warnEl) {
-            warnEl.textContent = isCritical ? 'Critique' : 'Solde Bas';
-            warnEl.className = `inline-block text-[9px] font-black px-1.5 py-0.5 rounded border uppercase tracking-wider animate-pulse ${
-              isCritical 
-                ? 'bg-red-500/20 text-red-400 border-red-500/30' 
-                : 'bg-amber-500/20 text-amber-400 border-amber-500/30'
-            }`;
-          }
-          if (valEl) {
-            valEl.style.color = isCritical ? '#f87171' : '#fbbf24';
-          }
-          if (cardEl) {
-            cardEl.style.borderColor = isCritical ? 'rgba(239,68,68,0.4)' : 'rgba(251,191,36,0.4)';
-            cardEl.classList.add('animate-pulse');
-          }
-          if (iconContainer) {
-            iconContainer.style.backgroundColor = isCritical ? 'rgba(239,68,68,0.1)' : 'rgba(251,191,36,0.1)';
-          }
-          if (iconEl) {
-            iconEl.className = `w-4 h-4 shrink-0 transition-colors duration-300 ${isCritical ? 'text-red-400' : 'text-amber-400'}`;
-          }
-        } else {
-          if (warnEl) {
-            warnEl.className = 'hidden';
-          }
-          if (valEl) {
-            valEl.style.color = '#00ff88';
-          }
-          if (cardEl) {
-            cardEl.style.borderColor = '#1a2332';
-            cardEl.classList.remove('animate-pulse');
-          }
-          if (iconContainer) {
-            iconContainer.style.backgroundColor = 'rgba(0,255,136,0.1)';
-          }
-          if (iconEl) {
-            iconEl.className = 'w-4 h-4 text-[#00ff88] shrink-0 transition-colors duration-300';
-          }
-        }
-      } else {
-        if (valEl) valEl.innerHTML = '<span class="text-xs text-red-500 font-bold">API Inaccessible</span>';
-        if (warnEl) warnEl.className = 'hidden';
-      }
-    })
-    .catch(err => {
-      if (cardEl) cardEl.classList.remove('animate-pulse');
-      if (valEl) valEl.innerHTML = '<span class="text-xs text-red-500 font-bold">Hors-ligne</span>';
-      if (warnEl) warnEl.className = 'hidden';
-    });
-};
-
-document.addEventListener('DOMContentLoaded', () => {
-  const selectEl = document.getElementById('provider-balance-select');
-  fetchProviderBalance(selectEl ? selectEl.value : null);
-});
 
 // =====================================================
 // SYNC STATUTS COMMANDES (AJAX)

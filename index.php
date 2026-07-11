@@ -80,6 +80,7 @@ $router->post('/api/webhook/bkapay', 'RechargeController@webhook');
 $router->get('/admin',                      'AdminController@index');
 $router->get('/admin/configuration',        'AdminController@configuration');
 $router->get('/admin/provider-balance',     'AdminController@getProviderBalance');
+$router->get('/admin/providers/balances',    'AdminController@providerBalances');
 $router->post('/admin/recharge/approve',    'AdminController@approveRecharge');
 $router->post('/admin/recharge/reject',     'AdminController@rejectRecharge');
 $router->get('/admin/settings',             'AdminController@settings');
@@ -135,8 +136,11 @@ $router->post('/admin/tickets/:id/reply',            'SupportController@adminRep
 $router->post('/admin/tickets/:id/close',            'SupportController@adminCloseTicket');
 
 // Actualités — Admin
-$router->get('/admin/actualites',           'NewsController@adminForm');
+$router->get('/admin/actualites',           'NewsController@adminIndex');
+$router->get('/admin/actualites/creer',     'NewsController@adminForm');
+$router->get('/admin/actualites/edit/:id',  'NewsController@adminForm');
 $router->post('/admin/actualites/publier',  'NewsController@store');
+$router->post('/admin/actualites/delete/:id', 'NewsController@delete');
 
 // -------------------------------------------------------
 // Dispatch

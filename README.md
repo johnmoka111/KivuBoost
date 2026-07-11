@@ -1,6 +1,32 @@
 # KivuBoost
 
-KivuBoost is a social media marketing (SMM) panel built for the Bukavu market (Democratic Republic of Congo). It allows users to purchase social media engagement services (followers, views, likes, etc.) on platforms such as Instagram, TikTok, YouTube, Facebook, and others. It supports multiple wholesale API providers, multi-currency billing (USD / CDF), and an integrated admin dashboard.
+KivuBoost is a social media marketing (SMM) panel built for the Bukavu market (Democratic Republic of Congo). It allows users to purchase social media engagement services (followers, views, likes, etc.) on platforms such as engagement is on Instagram, TikTok, YouTube, Facebook, and others. It supports multiple wholesale API providers, multi-currency billing (USD / CDF), and an integrated admin dashboard.
+
+---
+
+## État du Développement (Juillet 2026)
+
+Le projet est dans un état stable et prêt pour la production avec les fonctionnalités clés suivantes complétées :
+
+1. **Tableau de Bord Admin Stabilisé** :
+   - Le système d'onglets de la page principale de l'administration (`/admin`) a été corrigé et nettoyé de tout code expérimental ou instable.
+   - **Sécurisation de l'injection JSON** : L'injection de variables PHP vers le frontend (telles que `window.ALL_SERVICES`) utilise désormais `JSON_HEX_TAG | JSON_UNESCAPED_UNICODE` afin d'éviter toute rupture syntaxique due à des caractères spéciaux ou des balises HTML fermantes dans le catalogue de services.
+
+2. **Soldes Fournisseurs Découplés** :
+   - Le widget de solde de l'API active a été retiré de l'en-tête du tableau de bord admin principal pour éliminer la dépendance aux temps de réponse des APIs grossistes.
+   - Une page dédiée **"Soldes Grossistes"** (`/admin/providers/balances`) a été créée. Elle charge de manière asynchrone et en parallèle le solde de chaque API configurée, affiche précisément les erreurs de connexion et offre un rafraîchissement manuel individuel ou global avec un cache de session optimisé.
+
+3. **Authentification Google OAuth 2.0 Web** :
+   - Transition réussie de l'ancienne infrastructure mobile (Flutter) vers la version web PHP avec détection et persistance de session sécurisées.
+
+4. **Intégration BkaPay (Webhook & Paiements)** :
+   - Intégration complète de la passerelle de paiement en ligne BkaPay avec gestion sécurisée des webhooks de notification automatique des dépôts clients.
+
+5. **Système de Support & Tickets** :
+   - Système de tickets de support de bout en bout permettant aux clients d'ouvrir des discussions, et aux administrateurs d'y répondre et de les clore.
+
+6. **Publication d'Actualités** :
+   - Outils de publication d'actualités avec métadonnées Open Graph dynamiques pour les partages sur WhatsApp et autres réseaux sociaux.
 
 ---
 

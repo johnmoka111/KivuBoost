@@ -105,12 +105,26 @@ class AdminController extends Controller
     // -------------------------------------------------------
     public function getProviderBalance(): void
     {
-        Auth::requireAdmin();
+        // Pour les appels AJAX, on retourne du JSON au lieu de rediriger
+        $isAjax = isset($_SERVER['HTTP_X_REQUESTED_WITH'])
+               && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest';
 
+        if (!Auth::isAdmin()) {
+            if ($isAjax) {
+                http_response_code(401);
+                header('Content-Type: application/json');
+                echo json_encode(['success' => false, 'error' => 'Session expirée. Veuillez vous reconnecter.']);
+                exit;
+            }
+            header('Location: ' . APP_BASE . '/login');
+            exit;
+        }
+        
         $providerModel = new Provider();
         $providers = $providerModel->all();
         $activeProvider = null;
         $providerId = isset($_GET['provider_id']) ? (int)$_GET['provider_id'] : 0;
+        $forceRefresh = isset($_GET['refresh']) && $_GET['refresh'] == 1;
 
         if ($providerId > 0) {
             foreach ($providers as $prov) {
@@ -129,27 +143,73 @@ class AdminController extends Controller
         }
 
         $balance = null;
+        $success = false;
         $name = 'N/A';
         $returnedProviderId = null;
 
         if ($activeProvider) {
             $name = $activeProvider['name'];
             $returnedProviderId = $activeProvider['id'];
-            $fetch = $this->fetchProviderBalance(
-                $activeProvider['api_key'],
-                $activeProvider['api_url']
-            );
-            $balance = $fetch['balance'] ?? null;
+            
+            // Gestion du Cache en Session pour éviter de bloquer le site et de surcharger l'API du fournisseur
+            $cacheKey = 'provider_balance_' . $returnedProviderId;
+
+            // Auto-invalider le cache si le solde stocké est null (cache empoisonné après une erreur PHP)
+            if (isset($_SESSION[$cacheKey]) && $_SESSION[$cacheKey]['balance'] === null) {
+                unset($_SESSION[$cacheKey]);
+            }
+
+            if (!$forceRefresh && isset($_SESSION[$cacheKey]) && $_SESSION[$cacheKey]['expires'] > time()) {
+                $balance = $_SESSION[$cacheKey]['balance'];
+                $success = $_SESSION[$cacheKey]['success'];
+            } else {
+                $fetch = $this->fetchProviderBalance(
+                    $activeProvider['api_key'],
+                    $activeProvider['api_url']
+                );
+                $balance = $fetch['balance'] ?? null;
+                $success = ($balance !== null);
+                
+                // Ne mettre en cache que si la récupération a réussi
+                if ($success) {
+                    $_SESSION[$cacheKey] = [
+                        'balance' => $balance,
+                        'success' => true,
+                        'expires' => time() + 180 // Cache de 3 min si OK
+                    ];
+                } else {
+                    // En cas d'échec : ne pas mettre en cache, réessayer à chaque appel
+                    unset($_SESSION[$cacheKey]);
+                }
+            }
         }
+
 
         header('Content-Type: application/json');
         echo json_encode([
-            'success' => $balance !== null,
+            'success' => $success,
             'balance' => $balance,
             'provider_name' => $name,
-            'provider_id' => $returnedProviderId
+            'provider_id' => $returnedProviderId,
+            'error' => $fetch['error'] ?? null
         ]);
         exit;
+    }
+
+    // -------------------------------------------------------
+    // GET /admin/providers/balances — Affichage des soldes grossistes
+    // -------------------------------------------------------
+    public function providerBalances(): void
+    {
+        Auth::requireAdmin();
+
+        $providerModel = new Provider();
+        $providers = $providerModel->all();
+
+        $this->render('admin/provider_balances', [
+            'user' => Auth::user(),
+            'providers' => $providers
+        ]);
     }
 
     // -------------------------------------------------------
@@ -907,7 +967,7 @@ class AdminController extends Controller
 
         $db = Database::getInstance();
         $stmt = $db->query("SELECT email, username FROM users WHERE email IS NOT NULL AND email != ''");
-        $users = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        $users = $stmt->fetchAll(\PDO::FETCH_ASSOC);
 
         $total = count($users);
         $successCount = 0;
@@ -1263,19 +1323,6 @@ class AdminController extends Controller
     }
 
     // -------------------------------------------------------
-    // Privé : récupérer le solde fournisseur
-    // -------------------------------------------------------
-    private function fetchProviderBalance(string $apiKey, string $apiUrl): ?array
-    {
-        try {
-            $api = new SmmApi($apiKey, $apiUrl);
-            return $api->getBalance();
-        } catch (\Throwable $e) {
-            return ['balance' => '0.00', 'currency' => 'USD', 'error' => $e->getMessage()];
-        }
-    }
-
-    // -------------------------------------------------------
     // GET /admin/pricing-rules — Gestion des regles de tarification
     // -------------------------------------------------------
     public function pricingRules(): void
@@ -1402,5 +1449,51 @@ class AdminController extends Controller
             'months'    => $months,
             'pageTitle' => 'Rapport Financier Mensuel',
         ]);
+    }
+
+    // -------------------------------------------------------
+    // HELPER PRIVÉ — Récupère le solde d'un fournisseur via cURL
+    // -------------------------------------------------------
+    private function fetchProviderBalance(string $apiKey, string $apiUrl): array
+    {
+        try {
+            $api    = new SmmApi($apiKey, $apiUrl);
+            $result = $api->getBalance();
+
+            if (!is_array($result)) {
+                return [
+                    'balance' => null, 
+                    'error' => 'Réponse API invalide (non-array ou vide)'
+                ];
+            }
+
+            // Chercher la clé du solde de manière insensible à la casse
+            // car certaines API retournent "Balance", "balance", "funds", "credit"...
+            $possible = ['balance', 'Balance', 'funds', 'credit', 'amount'];
+            foreach ($possible as $key) {
+                if (isset($result[$key]) && is_numeric($result[$key])) {
+                    return ['balance' => (string)$result[$key]];
+                }
+            }
+
+            // Dernier recours : chercher n'importe quelle clé numérique contenant "bal"
+            foreach ($result as $key => $val) {
+                if (is_numeric($val) && stripos($key, 'bal') !== false) {
+                    return ['balance' => (string)$val];
+                }
+            }
+
+            return [
+                'balance' => null,
+                'error' => 'Clé de solde introuvable dans la réponse',
+                'raw_response' => $result
+            ];
+        } catch (\Throwable $e) {
+            // Capturer le message exact (cURL timeout, connexion refusée, etc.)
+            return [
+                'balance' => null, 
+                'error' => $e->getMessage()
+            ];
+        }
     }
 }
