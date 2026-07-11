@@ -1,6 +1,6 @@
 # KivuBoost
 
-KivuBoost is a social media marketing (SMM) panel built for the Bukavu market (Democratic Republic of Congo). It allows users to purchase social media engagement services (followers, views, likes, etc.) on platforms such as engagement is on Instagram, TikTok, YouTube, Facebook, and others. It supports multiple wholesale API providers, multi-currency billing (USD / CDF), and an integrated admin dashboard.
+KivuBoost is a social media marketing (SMM) panel built for the Bukavu market (Democratic Republic of Congo). It allows users to purchase social media engagement services (followers, views, likes, etc.) on platforms such as Instagram, TikTok, YouTube, Facebook, and others. It supports multiple wholesale API providers, multi-currency billing (USD / CDF), and an integrated admin dashboard.
 
 ---
 
